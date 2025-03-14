@@ -26,7 +26,7 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
   const [subcategories, setSubcategories] = useState<TransactionCategory[]>([]);
   const [items, setItems] = useState<TransactionCategory[]>([]);
   
-  // Effect to filter and set main categories
+  // Effect to filter and set main categories when type changes
   useEffect(() => {
     console.log("Filtering main categories for type:", type);
     console.log("Full category list:", categoryList);
@@ -42,25 +42,37 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
     setMainCategories(filteredMainCats);
   }, [categoryList, type]);
   
+  // Effect to reset subcategories when level changes
+  useEffect(() => {
+    if (level === 3) {
+      // When going to level 3, we need available level 2 categories
+      const availableL2Categories = categoryList.filter(cat => 
+        cat.level === 2 && cat.type === type
+      );
+      setMainCategories(availableL2Categories);
+    } else if (level === 4) {
+      // When going to level 4, we need available level 3 categories
+      const availableL3Categories = categoryList.filter(cat => 
+        cat.level === 3 && cat.type === type
+      );
+      setSubcategories(availableL3Categories);
+    }
+  }, [categoryList, level, type]);
+  
   // Effect to filter subcategories when parentId changes
   useEffect(() => {
     if (!parentId) return;
     
-    console.log("Filtering subcategories for parentId:", parentId);
+    console.log("Parent ID selected:", parentId);
     
     if (level === 3) {
-      const filteredSubcats = categoryList.filter(cat => 
-        cat.parentId === parentId
-      );
-      console.log("Filtered subcategories:", filteredSubcats);
-      setSubcategories(filteredSubcats);
-    }
-    
-    if (level === 4) {
+      // Don't need to do anything here as we already set the main categories
+    } else if (level === 4) {
+      // For level 4, we filter items based on the selected level 3 parent
       const filteredItems = categoryList.filter(cat => 
-        cat.parentId === parentId
+        cat.parentId === parentId && cat.level === 4
       );
-      console.log("Filtered items:", filteredItems);
+      console.log("Filtered items for level 4:", filteredItems);
       setItems(filteredItems);
     }
   }, [categoryList, parentId, level]);
@@ -228,7 +240,7 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
           id="categoryName"
           value={categoryName}
           onChange={(e) => setCategoryName(e.target.value)}
-          placeholder="Ex: Salários, Rendas, Equipamentos..."
+          placeholder="Ex: Salarios, Impostos, Seguros..."
         />
       </div>
       
@@ -284,7 +296,7 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
           id="categoryName"
           value={categoryName}
           onChange={(e) => setCategoryName(e.target.value)}
-          placeholder="Ex: Carlos, Antonio, Leandro..."
+          placeholder="Ex: Carlos, Leandro, Ana Paula..."
         />
       </div>
       

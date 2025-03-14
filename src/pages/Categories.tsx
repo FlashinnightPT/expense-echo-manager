@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import CategoryForm from "@/components/forms/CategoryForm";
@@ -51,18 +50,15 @@ const Categories = () => {
 
     // Create the new category with proper handling of parentId
     const newCategory: TransactionCategory = {
-      id: `${category.type}-${Date.now()}`,
+      id: `${category.type}-${category.level}-${Date.now()}`,
       name: category.name,
       type: category.type,
       level: category.level,
-      parentId: category.parentId || undefined // Only include parentId if it has a value
+      ...(category.parentId && { parentId: category.parentId })
     };
 
-    // Remove undefined values to avoid serialization issues
-    if (newCategory.parentId === undefined) {
-      delete newCategory.parentId;
-    }
-
+    console.log("Adding new category:", newCategory);
+    
     const updatedList = [...categoryList, newCategory];
     setCategoryList(updatedList);
     

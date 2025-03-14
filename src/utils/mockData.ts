@@ -39,131 +39,118 @@ export type YearlyData = {
   }[];
 };
 
-// Sample categories
+// Sample categories based on the requested structure
 export const categories: TransactionCategory[] = [
+  // INCOME CATEGORIES
   // Level 2 categories (income)
   {
     id: 'income-1',
-    name: 'Salary',
+    name: 'Salário',
     type: 'income',
     level: 2
   },
   {
     id: 'income-2',
-    name: 'Investments',
+    name: 'Investimentos',
     type: 'income',
     level: 2
   },
   
-  // Level 3 subcategories (income)
+  // EXPENSE CATEGORIES
+  // Level 2 - Pessoal
   {
-    id: 'income-1-1',
-    name: 'Base Salary',
-    type: 'income',
-    parentId: 'income-1',
+    id: 'expense-pessoal',
+    name: 'Pessoal',
+    type: 'expense',
+    level: 2
+  },
+  
+  // Level 3 - Subcategories under Pessoal
+  {
+    id: 'expense-pessoal-salarios',
+    name: 'Salarios',
+    type: 'expense',
+    parentId: 'expense-pessoal',
     level: 3
   },
   {
-    id: 'income-1-2',
-    name: 'Bonuses',
-    type: 'income',
-    parentId: 'income-1',
+    id: 'expense-pessoal-impostos',
+    name: 'Impostos',
+    type: 'expense',
+    parentId: 'expense-pessoal',
     level: 3
   },
   {
-    id: 'income-2-1',
-    name: 'Dividends',
-    type: 'income',
-    parentId: 'income-2',
+    id: 'expense-pessoal-seguros',
+    name: 'Seguros',
+    type: 'expense',
+    parentId: 'expense-pessoal',
     level: 3
   },
   {
-    id: 'income-2-2',
-    name: 'Interest',
-    type: 'income',
-    parentId: 'income-2',
+    id: 'expense-pessoal-diversos',
+    name: 'Diversos',
+    type: 'expense',
+    parentId: 'expense-pessoal',
+    level: 3
+  },
+  {
+    id: 'expense-pessoal-comida',
+    name: 'Comida escritorio',
+    type: 'expense',
+    parentId: 'expense-pessoal',
     level: 3
   },
   
-  // Level 2 categories (expense)
+  // Level 4 - Items under Salarios subcategory
   {
-    id: 'expense-1',
+    id: 'expense-pessoal-salarios-carlos',
+    name: 'Carlos',
+    type: 'expense',
+    parentId: 'expense-pessoal-salarios',
+    level: 4
+  },
+  {
+    id: 'expense-pessoal-salarios-leandro',
+    name: 'Leandro',
+    type: 'expense',
+    parentId: 'expense-pessoal-salarios',
+    level: 4
+  },
+  {
+    id: 'expense-pessoal-salarios-anapaula',
+    name: 'Ana Paula',
+    type: 'expense',
+    parentId: 'expense-pessoal-salarios',
+    level: 4
+  },
+  {
+    id: 'expense-pessoal-salarios-isabel',
+    name: 'Isabel',
+    type: 'expense',
+    parentId: 'expense-pessoal-salarios',
+    level: 4
+  },
+  {
+    id: 'expense-pessoal-salarios-morais',
+    name: 'Morais',
+    type: 'expense',
+    parentId: 'expense-pessoal-salarios',
+    level: 4
+  },
+  
+  // Keep some original categories for variety
+  {
+    id: 'expense-housing',
     name: 'Housing',
     type: 'expense',
     level: 2
   },
   {
-    id: 'expense-2', 
+    id: 'expense-food', 
     name: 'Food',
     type: 'expense',
     level: 2
-  },
-  
-  // Level 3 subcategories (expense)
-  {
-    id: 'expense-1-1',
-    name: 'Rent',
-    type: 'expense',
-    parentId: 'expense-1',
-    level: 3
-  },
-  {
-    id: 'expense-1-2',
-    name: 'Utilities',
-    type: 'expense',
-    parentId: 'expense-1',
-    level: 3
-  },
-  {
-    id: 'expense-2-1',
-    name: 'Groceries',
-    type: 'expense',
-    parentId: 'expense-2',
-    level: 3
-  },
-  {
-    id: 'expense-2-2',
-    name: 'Dining Out',
-    type: 'expense',
-    parentId: 'expense-2',
-    level: 3
-  },
-  
-  // Level 4 items (expense)
-  {
-    id: 'expense-1-2-1',
-    name: 'Electricity',
-    type: 'expense',
-    parentId: 'expense-1-2',
-    level: 4
-  },
-  {
-    id: 'expense-1-2-2',
-    name: 'Water',
-    type: 'expense',
-    parentId: 'expense-1-2',
-    level: 4
-  },
-  {
-    id: 'expense-1-2-3',
-    name: 'Internet',
-    type: 'expense',
-    parentId: 'expense-1-2',
-    level: 4
-  },
-  {
-    id: 'expense-1-2-3-1',
-    name: 'Home Internet',
-    type: 'expense',
-    parentId: 'expense-1-2-3',
-    level: 4
-  },
-  {
-    id: 'expense-1-2-3-2',
-    name: 'Mobile Data',
-    type: 'expense',
-    parentId: 'expense-1-2-3',
-    level: 4
   }
 ];
 
@@ -219,22 +206,30 @@ export const yearlyData: YearlyData[] = Array.from({ length: 2 }, (_, i) => {
   };
 });
 
-// Sample transactions (recent ones)
+// Sample transactions with the new categories
 export const transactions: Transaction[] = Array.from({ length: 30 }, (_, i) => {
   const types = ['income', 'expense'] as const;
   const type = types[Math.floor(Math.random() * types.length)];
   
   // Get a random category of the selected type
-  const typeCategories = categories.filter(c => c.type === type);
+  const typeCategories = categories.filter(c => c.type === type && c.level >= 3);
   const category = typeCategories[Math.floor(Math.random() * typeCategories.length)];
   
   // Generate a date within the last 30 days
   const date = new Date();
   date.setDate(date.getDate() - Math.floor(Math.random() * 30));
   
+  // Create descriptive transaction names
+  let description = `${type === 'income' ? 'Receita' : 'Despesa'} - `;
+  if (category.name) {
+    description += category.name;
+  } else {
+    description += `Item ${i+1}`;
+  }
+  
   return {
     id: `transaction-${i}`,
-    description: `${type.charAt(0).toUpperCase() + type.slice(1)} transaction ${i+1}`,
+    description,
     amount: Math.round((type === 'income' ? 500 : 200) * (0.5 + Math.random()) * 100) / 100,
     date: date.toISOString().split('T')[0],
     categoryId: category.id,
