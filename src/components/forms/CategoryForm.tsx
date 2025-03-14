@@ -26,39 +26,44 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
   const [subcategories, setSubcategories] = useState<TransactionCategory[]>([]);
   const [items, setItems] = useState<TransactionCategory[]>([]);
   
-  // Effect to filter and set categories based on current selections
+  // Effect to filter and set main categories
   useEffect(() => {
-    console.log("Filtering categories for level", level, "and type", type);
-    console.log("Current categoryList:", categoryList);
+    console.log("Filtering main categories for type:", type);
+    console.log("Full category list:", categoryList);
+    
+    // Reset parentId when changing type
+    setParentId("");
     
     // Filter level 2 categories (main categories)
-    const mainCats = categoryList.filter(cat => 
+    const filteredMainCats = categoryList.filter(cat => 
       cat.level === 2 && cat.type === type
     );
-    console.log("Filtered main categories:", mainCats);
-    setMainCategories(mainCats);
+    console.log("Filtered main categories:", filteredMainCats);
+    setMainCategories(filteredMainCats);
+  }, [categoryList, type]);
+  
+  // Effect to filter subcategories when parentId changes
+  useEffect(() => {
+    if (!parentId) return;
     
-    // If a parent is selected, filter subcategories appropriately
-    if (parentId) {
-      console.log("Filtering subcategories for parentId:", parentId);
-      
-      if (level === 3) {
-        const subCats = categoryList.filter(cat => 
-          cat.parentId === parentId
-        );
-        console.log("Filtered subcategories:", subCats);
-        setSubcategories(subCats);
-      }
-      
-      if (level === 4) {
-        const categoryItems = categoryList.filter(cat => 
-          cat.parentId === parentId
-        );
-        console.log("Filtered items:", categoryItems);
-        setItems(categoryItems);
-      }
+    console.log("Filtering subcategories for parentId:", parentId);
+    
+    if (level === 3) {
+      const filteredSubcats = categoryList.filter(cat => 
+        cat.parentId === parentId
+      );
+      console.log("Filtered subcategories:", filteredSubcats);
+      setSubcategories(filteredSubcats);
     }
-  }, [categoryList, type, parentId, level]);
+    
+    if (level === 4) {
+      const filteredItems = categoryList.filter(cat => 
+        cat.parentId === parentId
+      );
+      console.log("Filtered items:", filteredItems);
+      setItems(filteredItems);
+    }
+  }, [categoryList, parentId, level]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,9 +108,9 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
   const goToLevel = (newLevel: number) => {
     setLevel(newLevel);
     setCategoryName("");
+    setParentId("");
     
     if (newLevel === 2) {
-      setParentId("");
       setSubcategories([]);
       setItems([]);
     } else if (newLevel === 3) {
@@ -117,6 +122,7 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
     if (level < 4) {
       setLevel(level + 1);
       setCategoryName("");
+      setParentId("");
     }
   };
   
