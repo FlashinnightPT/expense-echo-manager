@@ -1,12 +1,27 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useEffect } from "react";
+import Header from "@/components/layout/Header";
+import Dashboard from "@/components/layout/Dashboard";
 
 const Index = () => {
+  // Smooth loading animation
+  useEffect(() => {
+    document.body.style.opacity = "0";
+    setTimeout(() => {
+      document.body.style.transition = "opacity 0.5s ease-in-out";
+      document.body.style.opacity = "1";
+    }, 100);
+    
+    return () => {
+      document.body.style.transition = "";
+      document.body.style.opacity = "";
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <Dashboard />
     </div>
   );
 };
