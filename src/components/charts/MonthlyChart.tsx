@@ -39,7 +39,7 @@ const MonthlyChart = ({ data, year, className }: MonthlyChartProps) => {
   useEffect(() => {
     const yearData = data.filter((item) => item.year === year);
     const transformedData = yearData.map((item) => ({
-      month: getMonthName(item.month, true),
+      month: getMonthName(item.month),
       Income: item.income,
       Expenses: item.expense,
       Savings: item.savings,
@@ -67,7 +67,7 @@ const MonthlyChart = ({ data, year, className }: MonthlyChartProps) => {
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle className="text-lg">Monthly Overview {year}</CardTitle>
+        <CardTitle className="text-lg">Visão Mensal {year}</CardTitle>
       </CardHeader>
       <div className="h-[300px] w-full">
         {isClient && (

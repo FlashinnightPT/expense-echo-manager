@@ -29,10 +29,10 @@ const Header = ({ className }: HeaderProps) => {
   }, [scrolled]);
 
   const navItems = [
-    { name: "Dashboard", href: "/", icon: PieChart },
-    { name: "Monthly", href: "/monthly", icon: Calendar },
-    { name: "Yearly", href: "/yearly", icon: BarChart3 },
-    { name: "Settings", href: "/settings", icon: Settings },
+    { name: "Painel", href: "/", icon: PieChart },
+    { name: "Mensal", href: "/monthly", icon: Calendar },
+    { name: "Anual", href: "/yearly", icon: BarChart3 },
+    { name: "Definições", href: "/settings", icon: Settings },
   ];
 
   const toggleMobileMenu = () => {
@@ -119,7 +119,7 @@ const Header = ({ className }: HeaderProps) => {
             className="mt-auto mb-8"
             onClick={() => setMobileMenuOpen(false)}
           >
-            Close Menu
+            Fechar Menu
           </Button>
         </div>
       </div>
