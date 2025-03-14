@@ -83,9 +83,7 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
   // Tipos de categorias em português
   const typeLabels = {
     income: "Receita",
-    expense: "Despesa",
-    savings: "Poupança",
-    investment: "Investimento"
+    expense: "Despesa"
   };
 
   return (
@@ -122,14 +120,6 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="expense" id="expense" />
                   <Label htmlFor="expense" className="cursor-pointer">Despesa</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="savings" id="savings" />
-                  <Label htmlFor="savings" className="cursor-pointer">Poupança</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="investment" id="investment" />
-                  <Label htmlFor="investment" className="cursor-pointer">Investimento</Label>
                 </div>
               </RadioGroup>
             </div>

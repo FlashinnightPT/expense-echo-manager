@@ -47,7 +47,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
     } else if (field === "type") {
       setFormData({
         ...formData,
-        type: value as "income" | "expense" | "savings" | "investment",
+        type: value as "income" | "expense",
         categoryId: "" // Reset category when type changes
       });
     } else {
@@ -102,9 +102,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
   // Tipos de transações em português
   const typeLabels = {
     income: "Receita",
-    expense: "Despesa",
-    savings: "Poupança",
-    investment: "Investimento"
+    expense: "Despesa"
   };
 
   return (
@@ -155,7 +153,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
               <Select
                 value={formData.type}
                 onValueChange={(value) => 
-                  handleChange("type", value as "income" | "expense" | "savings" | "investment")
+                  handleChange("type", value as "income" | "expense")
                 }
               >
                 <SelectTrigger>
@@ -164,8 +162,6 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                 <SelectContent>
                   <SelectItem value="income">Receita</SelectItem>
                   <SelectItem value="expense">Despesa</SelectItem>
-                  <SelectItem value="savings">Poupança</SelectItem>
-                  <SelectItem value="investment">Investimento</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -129,12 +129,10 @@ const Categories = () => {
                   </Alert>
                 ) : (
                   <div className="space-y-4">
-                    {["income", "expense", "savings", "investment"].map((type) => (
+                    {["income", "expense"].map((type) => (
                       <div key={type} className="space-y-2">
                         <h3 className="font-medium text-lg capitalize">
-                          {type === "income" ? "Receitas" : 
-                           type === "expense" ? "Despesas" : 
-                           type === "savings" ? "Poupanças" : "Investimentos"}
+                          {type === "income" ? "Receitas" : "Despesas"}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {categoryList

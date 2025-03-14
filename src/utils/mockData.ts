@@ -4,7 +4,7 @@
 export type TransactionCategory = {
   id: string;
   name: string;
-  type: 'income' | 'expense' | 'savings' | 'investment';
+  type: 'income' | 'expense';
   parentId?: string;
   level: number;
   children?: TransactionCategory[];
@@ -16,7 +16,7 @@ export type Transaction = {
   amount: number;
   date: string;
   categoryId: string;
-  type: 'income' | 'expense' | 'savings' | 'investment';
+  type: 'income' | 'expense';
 };
 
 export type MonthlyData = {
@@ -24,8 +24,6 @@ export type MonthlyData = {
   month: number;
   income: number;
   expense: number;
-  savings: number;
-  investment: number;
   categories: {
     categoryId: string;
     amount: number;
@@ -36,8 +34,6 @@ export type YearlyData = {
   year: number;
   income: number;
   expense: number;
-  savings: number;
-  investment: number;
   categories: {
     categoryId: string;
     amount: number;
@@ -175,50 +171,6 @@ export const categories: TransactionCategory[] = [
         level: 2,
       }
     ]
-  },
-  
-  // Savings categories
-  {
-    id: 'savings-1',
-    name: 'Emergency Fund',
-    type: 'savings',
-    level: 1,
-  },
-  {
-    id: 'savings-2',
-    name: 'Future Purchases',
-    type: 'savings',
-    level: 1,
-    children: [
-      {
-        id: 'savings-2-1',
-        name: 'Home',
-        type: 'savings',
-        parentId: 'savings-2',
-        level: 2,
-      },
-      {
-        id: 'savings-2-2',
-        name: 'Vehicle',
-        type: 'savings',
-        parentId: 'savings-2',
-        level: 2,
-      }
-    ]
-  },
-  
-  // Investment categories
-  {
-    id: 'investment-1',
-    name: 'Stocks',
-    type: 'investment',
-    level: 1,
-  },
-  {
-    id: 'investment-2',
-    name: 'Real Estate',
-    type: 'investment',
-    level: 1,
   }
 ];
 
@@ -230,8 +182,6 @@ export const monthlyData: MonthlyData[] = Array.from({ length: 24 }, (_, i) => {
   // Generate some realistic values with variation
   const baseIncome = 5000 + Math.random() * 1000;
   const baseExpense = 3500 + Math.random() * 800;
-  const baseSavings = 800 + Math.random() * 300;
-  const baseInvestment = 500 + Math.random() * 200;
   
   // Seasonal variations
   const seasonalFactor = Math.sin((month - 1) * Math.PI / 6) * 0.15;
@@ -241,16 +191,12 @@ export const monthlyData: MonthlyData[] = Array.from({ length: 24 }, (_, i) => {
     month,
     income: Math.round(baseIncome * (1 + seasonalFactor) * 100) / 100,
     expense: Math.round(baseExpense * (1 + seasonalFactor * 0.8) * 100) / 100,
-    savings: Math.round(baseSavings * (1 - seasonalFactor) * 100) / 100,
-    investment: Math.round(baseInvestment * (1 + seasonalFactor * 0.5) * 100) / 100,
     categories: categories
       .filter(c => !c.parentId) // Only top-level categories
       .map(category => ({
         categoryId: category.id,
-        amount: Math.round((category.type === 'income' ? baseIncome : 
-                            category.type === 'expense' ? baseExpense :
-                            category.type === 'savings' ? baseSavings : 
-                            baseInvestment) * (0.3 + Math.random() * 0.7) * 100) / 100
+        amount: Math.round((category.type === 'income' ? baseIncome : baseExpense) * 
+                          (0.3 + Math.random() * 0.7) * 100) / 100
       }))
   };
 });
@@ -264,8 +210,6 @@ export const yearlyData: YearlyData[] = Array.from({ length: 2 }, (_, i) => {
     year,
     income: Math.round(yearMonths.reduce((sum, month) => sum + month.income, 0) * 100) / 100,
     expense: Math.round(yearMonths.reduce((sum, month) => sum + month.expense, 0) * 100) / 100,
-    savings: Math.round(yearMonths.reduce((sum, month) => sum + month.savings, 0) * 100) / 100,
-    investment: Math.round(yearMonths.reduce((sum, month) => sum + month.investment, 0) * 100) / 100,
     categories: categories
       .filter(c => !c.parentId) // Only top-level categories
       .map(category => {
@@ -284,7 +228,7 @@ export const yearlyData: YearlyData[] = Array.from({ length: 2 }, (_, i) => {
 
 // Sample transactions (recent ones)
 export const transactions: Transaction[] = Array.from({ length: 30 }, (_, i) => {
-  const types = ['income', 'expense', 'savings', 'investment'] as const;
+  const types = ['income', 'expense'] as const;
   const type = types[Math.floor(Math.random() * types.length)];
   
   // Get a random category of the selected type
@@ -298,7 +242,7 @@ export const transactions: Transaction[] = Array.from({ length: 30 }, (_, i) => 
   return {
     id: `transaction-${i}`,
     description: `${type.charAt(0).toUpperCase() + type.slice(1)} transaction ${i+1}`,
-    amount: Math.round((type === 'income' || type === 'savings' || type === 'investment' ? 500 : 200) * (0.5 + Math.random()) * 100) / 100,
+    amount: Math.round((type === 'income' ? 500 : 200) * (0.5 + Math.random()) * 100) / 100,
     date: date.toISOString().split('T')[0],
     categoryId: category.id,
     type
