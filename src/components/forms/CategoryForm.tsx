@@ -23,7 +23,7 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
     name: category?.name || "",
     type: category?.type || "expense",
     parentId: category?.parentId || undefined,
-    level: category?.parentId ? 0 : 1 // Será calculado quando o parentId for selecionado
+    level: category?.level || 1
   });
   
   const [availableCategories, setAvailableCategories] = useState<TransactionCategory[]>([]);
@@ -40,10 +40,12 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
   const handleChange = (field: string, value: string) => {
     if (field === "parentId") {
       const parentCategory = availableCategories.find(c => c.id === value);
+      const newLevel = value === "none" ? 1 : (parentCategory?.level || 0) + 1;
+      
       setFormData({
         ...formData,
         [field]: value === "none" ? undefined : value,
-        level: value === "none" ? 1 : (parentCategory?.level || 0) + 1
+        level: newLevel
       });
     } else {
       setFormData({
@@ -58,6 +60,11 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
     
     if (!formData.name) {
       toast.error("Por favor, insira um nome para a categoria");
+      return;
+    }
+    
+    if (formData.level && formData.level > 4) {
+      toast.error("Não é possível criar categorias com mais de 4 níveis de profundidade");
       return;
     }
     
@@ -85,15 +92,9 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
     // Same type (income, expense, etc.)
     if (c.type !== formData.type) return false;
     
-    // Not too deep (max 3 levels for parents)
+    // Not too deep (max 3 levels for parents, since child will be level 4)
     return c.level < 4;
   });
-
-  // Tipos de categorias em português
-  const typeLabels = {
-    income: "Receita",
-    expense: "Despesa"
-  };
 
   return (
     <Card className={cn("animate-fade-in-up", className)}>
@@ -147,13 +148,18 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
                   <Separator className="my-2" />
                   {potentialParents.map((parent) => (
                     <SelectItem key={parent.id} value={parent.id}>
-                      {parent.name} {parent.level > 1 ? `(Nível ${parent.level})` : ""}
+                      {parent.level > 1 ? "└ ".repeat(parent.level - 1) : ""}{parent.name} (Nível {parent.level})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
                 Nível atual: {formData.level} (Máx: 4)
+                {formData.level === 4 && (
+                  <span className="text-xs text-destructive ml-2">
+                    Nível máximo atingido. Esta categoria não poderá ter subcategorias.
+                  </span>
+                )}
               </p>
             </div>
           </div>
