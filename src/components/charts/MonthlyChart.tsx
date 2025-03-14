@@ -24,8 +24,6 @@ interface ChartDataPoint {
   month: string;
   Income: number;
   Expenses: number;
-  Savings: number;
-  Investments: number;
 }
 
 const MonthlyChart = ({ data, year, className }: MonthlyChartProps) => {
@@ -48,9 +46,7 @@ const MonthlyChart = ({ data, year, className }: MonthlyChartProps) => {
         emptyData.push({
           month: getMonthName(i),
           Income: 0,
-          Expenses: 0,
-          Savings: 0,
-          Investments: 0
+          Expenses: 0
         });
       }
       setChartData(emptyData);
@@ -62,9 +58,7 @@ const MonthlyChart = ({ data, year, className }: MonthlyChartProps) => {
     const transformedData = yearData.map((item) => ({
       month: getMonthName(item.month),
       Income: item.income,
-      Expenses: item.expense,
-      Savings: item.savings,
-      Investments: item.investment,
+      Expenses: item.expense
     }));
     setChartData(transformedData);
   }, [data, year]);
@@ -124,20 +118,6 @@ const MonthlyChart = ({ data, year, className }: MonthlyChartProps) => {
                 radius={[4, 4, 0, 0]}
                 animationDuration={1500}
                 animationBegin={300}
-              />
-              <Bar
-                dataKey="Savings"
-                fill="hsl(var(--finance-savings))"
-                radius={[4, 4, 0, 0]}
-                animationDuration={1500}
-                animationBegin={600}
-              />
-              <Bar
-                dataKey="Investments"
-                fill="hsl(var(--finance-investment))"
-                radius={[4, 4, 0, 0]}
-                animationDuration={1500}
-                animationBegin={900}
               />
             </BarChart>
           </ResponsiveContainer>

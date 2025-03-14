@@ -25,18 +25,14 @@ const Yearly = () => {
   
   const totalIncome = filteredData.reduce((sum, item) => sum + item.income, 0);
   const totalExpenses = filteredData.reduce((sum, item) => sum + item.expense, 0);
-  const totalSavings = filteredData.reduce((sum, item) => sum + item.savings, 0);
-  const totalInvestments = filteredData.reduce((sum, item) => sum + item.investment, 0);
   
   // Preparar os dados para a tabela
   const tableData = filteredData.map(item => ({
     year: item.year,
     income: item.income,
     expense: item.expense,
-    savings: item.savings,
-    investment: item.investment,
     balance: item.income - item.expense,
-    savingsRate: ((item.savings + item.investment) / item.income * 100).toFixed(2)
+    savingsRate: ((item.income - item.expense) / item.income * 100).toFixed(2)
   }));
   
   // Definir as colunas da tabela
@@ -65,20 +61,6 @@ const Yearly = () => {
       id: "balance",
       header: "Saldo",
       accessorFn: (row) => formatCurrency(row.balance),
-      sortable: true,
-      className: "text-right",
-    },
-    {
-      id: "savings",
-      header: "Poupanças",
-      accessorFn: (row) => formatCurrency(row.savings),
-      sortable: true,
-      className: "text-right",
-    },
-    {
-      id: "investment",
-      header: "Investimentos",
-      accessorFn: (row) => formatCurrency(row.investment),
       sortable: true,
       className: "text-right",
     },
@@ -119,7 +101,7 @@ const Yearly = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <Card>
             <div className="p-6">
               <p className="text-sm text-muted-foreground">Receitas Totais</p>
@@ -130,18 +112,6 @@ const Yearly = () => {
             <div className="p-6">
               <p className="text-sm text-muted-foreground">Despesas Totais</p>
               <p className="text-2xl font-bold mt-1">{formatCurrency(totalExpenses)}</p>
-            </div>
-          </Card>
-          <Card>
-            <div className="p-6">
-              <p className="text-sm text-muted-foreground">Poupanças Totais</p>
-              <p className="text-2xl font-bold mt-1">{formatCurrency(totalSavings)}</p>
-            </div>
-          </Card>
-          <Card>
-            <div className="p-6">
-              <p className="text-sm text-muted-foreground">Investimentos Totais</p>
-              <p className="text-2xl font-bold mt-1">{formatCurrency(totalInvestments)}</p>
             </div>
           </Card>
         </div>

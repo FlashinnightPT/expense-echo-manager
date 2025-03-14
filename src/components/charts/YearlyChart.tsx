@@ -23,8 +23,6 @@ interface ChartDataPoint {
   year: string;
   Income: number;
   Expenses: number;
-  Savings: number;
-  Investments: number;
 }
 
 const YearlyChart = ({ data, className }: YearlyChartProps) => {
@@ -39,9 +37,7 @@ const YearlyChart = ({ data, className }: YearlyChartProps) => {
     const transformedData = data.map((item) => ({
       year: item.year.toString(),
       Income: item.income,
-      Expenses: item.expense,
-      Savings: item.savings,
-      Investments: item.investment,
+      Expenses: item.expense
     }));
     setChartData(transformedData);
   }, [data]);
@@ -107,26 +103,6 @@ const YearlyChart = ({ data, className }: YearlyChartProps) => {
                 activeDot={{ r: 6 }}
                 animationDuration={1500}
                 animationBegin={300}
-              />
-              <Line
-                type="monotone"
-                dataKey="Savings"
-                stroke="hsl(var(--finance-savings))"
-                strokeWidth={3}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-                animationDuration={1500}
-                animationBegin={600}
-              />
-              <Line
-                type="monotone"
-                dataKey="Investments"
-                stroke="hsl(var(--finance-investment))"
-                strokeWidth={3}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-                animationDuration={1500}
-                animationBegin={900}
               />
             </LineChart>
           </ResponsiveContainer>
