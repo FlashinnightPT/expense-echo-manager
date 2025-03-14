@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
@@ -14,7 +13,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 const Categories = () => {
   const initCategories = () => {
     const storedCategories = localStorage.getItem('categories');
-    // Se não houver categorias no localStorage, use as categorias padrão
     if (!storedCategories) {
       localStorage.setItem('categories', JSON.stringify(defaultCategories));
       return defaultCategories;
@@ -56,7 +54,6 @@ const Categories = () => {
   };
 
   const handleDeleteCategory = (categoryId: string) => {
-    // Verificar se a categoria tem filhos
     const hasChildren = categoryList.some(cat => cat.parentId === categoryId);
     
     if (hasChildren) {
@@ -64,7 +61,6 @@ const Categories = () => {
       return;
     }
     
-    // Verificar se a categoria está sendo usada em transações
     const isUsedInTransactions = transactionList.some(transaction => transaction.categoryId === categoryId);
     
     if (isUsedInTransactions) {
@@ -97,7 +93,6 @@ const Categories = () => {
     toast.success("Todas as transações foram apagadas com sucesso");
   };
 
-  // Função para limpar todas as categorias
   const handleResetCategories = () => {
     localStorage.removeItem('categories');
     setCategoryList(defaultCategories);
@@ -111,9 +106,21 @@ const Categories = () => {
     }));
   };
 
-  // Função para renderizar uma categoria de nível 1 com suas subcategorias
-  const renderCategory = (category: TransactionCategory) => {
-    // Encontrar subcategorias diretas
+  const renderCategoriesByType = (type: string) => {
+    const mainCategories = categoryList.filter(cat => cat.type === type && cat.level === 2);
+    
+    if (mainCategories.length === 0) {
+      return <p className="text-sm text-muted-foreground">Nenhuma categoria deste tipo</p>;
+    }
+    
+    return (
+      <div className="space-y-2">
+        {mainCategories.map(category => renderMainCategory(category))}
+      </div>
+    );
+  };
+
+  const renderMainCategory = (category: TransactionCategory) => {
     const subcategories = categoryList.filter(c => c.parentId === category.id);
     const isExpanded = expandedCategories[category.id] || false;
 
@@ -129,7 +136,10 @@ const Categories = () => {
                   </Button>
                 </CollapsibleTrigger>
               ) : <div className="w-5" />}
-              <span className="font-medium">{category.name}</span>
+              <div>
+                <span className="font-medium">{category.name}</span>
+                <p className="text-xs text-muted-foreground">Nível 2</p>
+              </div>
             </div>
             <Button 
               variant="ghost" 
@@ -148,7 +158,7 @@ const Categories = () => {
           {subcategories.length > 0 && (
             <CollapsibleContent>
               <div className="pl-6 mt-2 space-y-2">
-                {subcategories.map(subcat => renderSubcategory(subcat, 2))}
+                {subcategories.map(subcat => renderSubcategory(subcat))}
               </div>
             </CollapsibleContent>
           )}
@@ -157,24 +167,22 @@ const Categories = () => {
     );
   };
 
-  // Função recursiva para renderizar subcategorias
-  const renderSubcategory = (category: TransactionCategory, level: number) => {
-    // Encontrar subcategorias diretas
-    const subcategories = categoryList.filter(c => c.parentId === category.id);
+  const renderSubcategory = (category: TransactionCategory) => {
+    const items = categoryList.filter(c => c.parentId === category.id);
     const isExpanded = expandedCategories[category.id] || false;
+    const isLevel3 = category.level === 3;
+    const isLevel4 = category.level === 4;
 
-    const bgClasses = level === 2 
+    const bgClasses = isLevel3 
       ? "bg-muted/30" 
-      : level === 3 
-        ? "bg-muted/50" 
-        : "bg-muted/70";
+      : "bg-muted/50";
 
     return (
       <div key={category.id} className="mb-2">
         <Collapsible open={isExpanded} onOpenChange={() => toggleCategoryExpansion(category.id)}>
           <div className={`flex items-center justify-between p-2 border rounded-md ${bgClasses} hover:bg-accent/20 transition-colors`}>
             <div className="flex items-center space-x-2">
-              {subcategories.length > 0 ? (
+              {items.length > 0 ? (
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
                     {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
@@ -184,7 +192,7 @@ const Categories = () => {
               <div>
                 <span>{category.name}</span>
                 <p className="text-xs text-muted-foreground">
-                  {level === 4 ? "Subnível máximo" : `Nível ${level}`}
+                  {isLevel4 ? "Nível 4 (máximo)" : isLevel3 ? "Nível 3" : `Nível ${category.level}`}
                 </p>
               </div>
             </div>
@@ -202,10 +210,10 @@ const Categories = () => {
             </Button>
           </div>
           
-          {subcategories.length > 0 && (
+          {items.length > 0 && (
             <CollapsibleContent>
               <div className="pl-5 mt-2 space-y-2">
-                {subcategories.map(subcat => renderSubcategory(subcat, level + 1))}
+                {items.map(item => renderSubcategory(item))}
               </div>
             </CollapsibleContent>
           )}
@@ -277,14 +285,9 @@ const Categories = () => {
                         <h3 className="font-medium text-lg capitalize">
                           {type === "income" ? "Receitas" : "Despesas"}
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {categoryList
-                            .filter(cat => cat.type === type && cat.level === 1)
-                            .map(category => renderCategory(category))}
+                        <div className="grid grid-cols-1 gap-2">
+                          {renderCategoriesByType(type)}
                         </div>
-                        {categoryList.filter(cat => cat.type === type && cat.level === 1).length === 0 && (
-                          <p className="text-sm text-muted-foreground">Nenhuma categoria deste tipo</p>
-                        )}
                       </div>
                     ))}
                   </div>
