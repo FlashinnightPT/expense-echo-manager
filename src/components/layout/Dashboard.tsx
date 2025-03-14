@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -36,7 +36,7 @@ import TransactionForm from "@/components/forms/TransactionForm";
 import { 
   monthlyData, 
   yearlyData, 
-  transactions, 
+  transactions as mockTransactions, 
   flattenedCategories,
   Transaction,
   getCategoryById
@@ -52,6 +52,15 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 const Dashboard = () => {
   const [selectedYear, setSelectedYear] = useState(2024);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  
+  // Load transactions from localStorage if available
+  useEffect(() => {
+    const storedTransactions = localStorage.getItem('transactions');
+    if (storedTransactions) {
+      setTransactions(JSON.parse(storedTransactions));
+    }
+  }, []);
   
   // Get current month and year data
   const currentMonthData = monthlyData.find(

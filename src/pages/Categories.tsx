@@ -1,25 +1,41 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import CategoryForm from "@/components/forms/CategoryForm";
 import { Button } from "@/components/ui/button";
-import { categories, TransactionCategory, transactions } from "@/utils/mockData";
+import { categories, TransactionCategory, transactions as mockTransactions } from "@/utils/mockData";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const Categories = () => {
-  const [categoryList, setCategoryList] = useState<TransactionCategory[]>(categories);
-  const [transactionList, setTransactionList] = useState(transactions);
+  const initCategories = () => {
+    const storedCategories = localStorage.getItem('categories');
+    return storedCategories ? JSON.parse(storedCategories) : categories;
+  };
+  
+  const initTransactions = () => {
+    const storedTransactions = localStorage.getItem('transactions');
+    return storedTransactions ? JSON.parse(storedTransactions) : mockTransactions;
+  };
+
+  const [categoryList, setCategoryList] = useState<TransactionCategory[]>(initCategories());
+  const [transactionList, setTransactionList] = useState(initTransactions());
   const [openResetDialog, setOpenResetDialog] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openClearTransactionsDialog, setOpenClearTransactionsDialog] = useState(false);
 
+  useEffect(() => {
+    localStorage.setItem('categories', JSON.stringify(categoryList));
+  }, [categoryList]);
+  
+  useEffect(() => {
+    localStorage.setItem('transactions', JSON.stringify(transactionList));
+  }, [transactionList]);
+
   const handleSaveCategory = (category: Partial<TransactionCategory>) => {
-    // Create a new category with a unique ID
     const newCategory: TransactionCategory = {
       id: `${category.type}-${Date.now()}`,
       name: category.name || "",
@@ -28,18 +44,15 @@ const Categories = () => {
       parentId: category.parentId,
     };
 
-    // Update the state with the new category
     setCategoryList([...categoryList, newCategory]);
     toast.success("Categoria adicionada com sucesso");
   };
 
   const handleResetAllData = () => {
-    // Reset the categories list
     setCategoryList([]);
-    
-    // Also clear transactions
     setTransactionList([]);
-    
+    localStorage.setItem('categories', JSON.stringify([]));
+    localStorage.setItem('transactions', JSON.stringify([]));
     setOpenResetDialog(false);
     toast.success("Todos os dados foram apagados com sucesso");
   };
@@ -51,7 +64,6 @@ const Categories = () => {
 
   const confirmDeleteCategory = () => {
     if (categoryToDelete) {
-      // Filter out the category to delete
       const updatedList = categoryList.filter(cat => cat.id !== categoryToDelete);
       setCategoryList(updatedList);
       toast.success("Categoria apagada com sucesso");
@@ -66,6 +78,7 @@ const Categories = () => {
 
   const confirmClearTransactions = () => {
     setTransactionList([]);
+    localStorage.setItem('transactions', JSON.stringify([]));
     setOpenClearTransactionsDialog(false);
     toast.success("Todas as transações foram apagadas com sucesso");
   };
@@ -194,7 +207,6 @@ const Categories = () => {
         </div>
       </div>
 
-      {/* Dialog for deleting a single category */}
       <Dialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
         <DialogContent>
           <DialogHeader>

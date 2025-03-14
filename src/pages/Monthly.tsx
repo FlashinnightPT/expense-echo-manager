@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { monthlyData } from "@/utils/mockData";
+import { useState, useEffect } from "react";
+import { monthlyData, transactions as mockTransactions } from "@/utils/mockData";
 import MonthlyChart from "@/components/charts/MonthlyChart";
 import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
@@ -10,6 +10,16 @@ import { formatCurrency, getMonthName } from "@/utils/financialCalculations";
 
 const Monthly = () => {
   const [selectedYear, setSelectedYear] = useState(2024);
+  const [transactions, setTransactions] = useState(mockTransactions);
+  
+  // Check for empty transactions in localStorage (set by Categories page)
+  useEffect(() => {
+    const storedTransactions = localStorage.getItem('transactions');
+    if (storedTransactions) {
+      // If we have stored transactions (or empty array) in localStorage, use that
+      setTransactions(JSON.parse(storedTransactions));
+    }
+  }, []);
   
   // Filtrar os dados pelo ano selecionado
   const filteredData = monthlyData.filter(item => item.year === selectedYear);
