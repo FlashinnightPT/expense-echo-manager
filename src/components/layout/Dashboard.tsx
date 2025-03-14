@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { 
   BarChart3, 
@@ -80,6 +81,11 @@ const Dashboard = () => {
     investment: 0,
     balance: 0,
     savingsRate: 0
+  };
+  
+  // Função para obter categoria pelo ID
+  const getCategoryById = (categoryId: string) => {
+    return categories.find(cat => cat.id === categoryId);
   };
   
   // Table columns definition

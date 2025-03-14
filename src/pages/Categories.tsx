@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
@@ -22,7 +23,6 @@ const Categories = () => {
 
   const [categoryList, setCategoryList] = useState<TransactionCategory[]>(initCategories());
   const [transactionList, setTransactionList] = useState(initTransactions());
-  const [openResetDialog, setOpenResetDialog] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openClearTransactionsDialog, setOpenClearTransactionsDialog] = useState(false);
@@ -46,15 +46,6 @@ const Categories = () => {
 
     setCategoryList([...categoryList, newCategory]);
     toast.success("Categoria adicionada com sucesso");
-  };
-
-  const handleResetAllData = () => {
-    setCategoryList([]);
-    setTransactionList([]);
-    localStorage.setItem('categories', JSON.stringify([]));
-    localStorage.setItem('transactions', JSON.stringify([]));
-    setOpenResetDialog(false);
-    toast.success("Todos os dados foram apagados com sucesso");
   };
 
   const handleDeleteCategory = (categoryId: string) => {
@@ -112,27 +103,6 @@ const Categories = () => {
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setOpenClearTransactionsDialog(false)}>Cancelar</Button>
                   <Button variant="destructive" onClick={confirmClearTransactions}>Apagar Transações</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            
-            <Dialog open={openResetDialog} onOpenChange={setOpenResetDialog}>
-              <DialogTrigger asChild>
-                <Button variant="destructive">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Apagar Todos os Dados
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Apagar Todos os Dados</DialogTitle>
-                  <DialogDescription>
-                    Esta ação irá apagar todas as categorias, transações e outros dados. Esta ação não pode ser revertida.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setOpenResetDialog(false)}>Cancelar</Button>
-                  <Button variant="destructive" onClick={handleResetAllData}>Apagar Dados</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
