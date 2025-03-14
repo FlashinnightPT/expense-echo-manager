@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 const Categories = () => {
   const [categoryList, setCategoryList] = useState<TransactionCategory[]>(categories);
   const [openResetDialog, setOpenResetDialog] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const handleSaveCategory = (category: Partial<TransactionCategory>) => {
     // Create a new category with a unique ID
@@ -38,6 +40,22 @@ const Categories = () => {
     
     setOpenResetDialog(false);
     toast.success("Todos os dados foram apagados com sucesso");
+  };
+
+  const handleDeleteCategory = (categoryId: string) => {
+    setCategoryToDelete(categoryId);
+    setOpenDeleteDialog(true);
+  };
+
+  const confirmDeleteCategory = () => {
+    if (categoryToDelete) {
+      // Filter out the category to delete
+      const updatedList = categoryList.filter(cat => cat.id !== categoryToDelete);
+      setCategoryList(updatedList);
+      toast.success("Categoria apagada com sucesso");
+      setOpenDeleteDialog(false);
+      setCategoryToDelete(null);
+    }
   };
 
   return (
@@ -116,7 +134,15 @@ const Categories = () => {
                                     </p>
                                   )}
                                 </div>
-                                {/* Em uma versão futura, poderiamos adicionar botões para editar/eliminar */}
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                                  onClick={() => handleDeleteCategory(category.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  <span className="sr-only">Apagar categoria</span>
+                                </Button>
                               </div>
                             ))}
                         </div>
@@ -132,6 +158,22 @@ const Categories = () => {
           </div>
         </div>
       </div>
+
+      {/* Dialog for deleting a single category */}
+      <Dialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Apagar Categoria</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja apagar esta categoria? Esta ação não pode ser revertida.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenDeleteDialog(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={confirmDeleteCategory}>Apagar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
