@@ -4,7 +4,7 @@ import Header from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import CategoryForm from "@/components/forms/CategoryForm";
 import { Button } from "@/components/ui/button";
-import { categories, TransactionCategory } from "@/utils/mockData";
+import { categories, TransactionCategory, transactions } from "@/utils/mockData";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,9 +12,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 
 const Categories = () => {
   const [categoryList, setCategoryList] = useState<TransactionCategory[]>(categories);
+  const [transactionList, setTransactionList] = useState(transactions);
   const [openResetDialog, setOpenResetDialog] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openClearTransactionsDialog, setOpenClearTransactionsDialog] = useState(false);
 
   const handleSaveCategory = (category: Partial<TransactionCategory>) => {
     // Create a new category with a unique ID
@@ -35,8 +37,8 @@ const Categories = () => {
     // Reset the categories list
     setCategoryList([]);
     
-    // In a real app, we would also clear transactions and other data
-    // But for this mock demo, we're just clearing the categories
+    // Also clear transactions
+    setTransactionList([]);
     
     setOpenResetDialog(false);
     toast.success("Todos os dados foram apagados com sucesso");
@@ -58,6 +60,16 @@ const Categories = () => {
     }
   };
 
+  const handleClearTransactions = () => {
+    setOpenClearTransactionsDialog(true);
+  };
+
+  const confirmClearTransactions = () => {
+    setTransactionList([]);
+    setOpenClearTransactionsDialog(false);
+    toast.success("Todas as transações foram apagadas com sucesso");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -69,26 +81,49 @@ const Categories = () => {
               Adicione, edite ou elimine categorias
             </p>
           </div>
-          <Dialog open={openResetDialog} onOpenChange={setOpenResetDialog}>
-            <DialogTrigger asChild>
-              <Button variant="destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Apagar Todos os Dados
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Apagar Todos os Dados</DialogTitle>
-                <DialogDescription>
-                  Esta ação irá apagar todas as categorias, transações e outros dados. Esta ação não pode ser revertida.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setOpenResetDialog(false)}>Cancelar</Button>
-                <Button variant="destructive" onClick={handleResetAllData}>Apagar Dados</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <div className="flex gap-2">
+            <Dialog open={openClearTransactionsDialog} onOpenChange={setOpenClearTransactionsDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="mr-2">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Apagar Todas as Transações
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Apagar Todas as Transações</DialogTitle>
+                  <DialogDescription>
+                    Esta ação irá apagar todas as transações registradas. Esta ação não pode ser revertida.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setOpenClearTransactionsDialog(false)}>Cancelar</Button>
+                  <Button variant="destructive" onClick={confirmClearTransactions}>Apagar Transações</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            
+            <Dialog open={openResetDialog} onOpenChange={setOpenResetDialog}>
+              <DialogTrigger asChild>
+                <Button variant="destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Apagar Todos os Dados
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Apagar Todos os Dados</DialogTitle>
+                  <DialogDescription>
+                    Esta ação irá apagar todas as categorias, transações e outros dados. Esta ação não pode ser revertida.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setOpenResetDialog(false)}>Cancelar</Button>
+                  <Button variant="destructive" onClick={handleResetAllData}>Apagar Dados</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
