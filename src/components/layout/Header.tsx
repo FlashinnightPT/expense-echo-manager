@@ -1,130 +1,107 @@
 
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { PieChart, BarChart3, Calendar, Settings, Menu, X } from "lucide-react";
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import { useIsNotMobile } from "@/hooks/use-mobile";
 
-interface HeaderProps {
-  className?: string;
-}
+const Header = () => {
+  const notMobile = useIsNotMobile();
+  const location = useLocation();
 
-const Header = ({ className }: HeaderProps) => {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 10;
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [scrolled]);
-
-  const navItems = [
-    { name: "Painel", href: "/", icon: PieChart },
-    { name: "Mensal", href: "/monthly", icon: Calendar },
-    { name: "Anual", href: "/yearly", icon: BarChart3 },
-    { name: "Definições", href: "/settings", icon: Settings },
+  const links = [
+    { name: "Início", path: "/" },
+    { name: "Mensal", path: "/monthly" },
+    { name: "Anual", path: "/yearly" },
+    { name: "Categorias", path: "/categories" },
+    { name: "Opções", path: "/settings" }
   ];
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
+  // Determine if a link is active
+  const isActive = (path: string) => {
+    return path === "/"
+      ? location.pathname === path
+      : location.pathname.startsWith(path);
   };
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        scrolled ? "glass shadow-sm" : "bg-transparent",
-        className
-      )}
-    >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center">
-            <Link 
-              to="/" 
-              className="text-primary font-semibold text-xl flex items-center gap-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                <PieChart className="h-5 w-5" />
-              </span>
-              <span>FinanceEcho</span>
-            </Link>
-          </div>
-
-          {/* Desktop navigation */}
-          <nav className="hidden md:flex items-center space-x-4">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className="flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                <item.icon className="h-4 w-4 mr-2" />
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Mobile menu button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={toggleMobileMenu}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
+    <header className="fixed top-0 left-0 right-0 z-10 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 hidden md:flex">
+          <Link to="/" className="mr-6 flex items-center space-x-2">
+            <span className="hidden font-bold sm:inline-block">
+              Finanças Pessoais
+            </span>
+          </Link>
+          <Separator orientation="vertical" className="h-6" />
         </div>
-      </div>
-
-      {/* Mobile navigation */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 glass transform transition-transform duration-300 ease-in-out md:hidden",
-          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        )}
-      >
-        <div className="flex flex-col h-full pt-20 px-4">
-          <nav className="flex flex-col space-y-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className="flex items-center px-4 py-3 text-base font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
+        
+        <div className="flex-1 md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 rounded-full"
               >
-                <item.icon className="h-5 w-5 mr-3" />
-                {item.name}
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="pr-0">
+              <Link to="/" className="flex items-center mb-6">
+                <span className="font-bold">Finanças Pessoais</span>
               </Link>
-            ))}
-          </nav>
-          <Separator className="my-4" />
-          <Button
-            variant="outline"
-            className="mt-auto mb-8"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Fechar Menu
-          </Button>
+              <nav className="grid gap-2 place-items-start">
+                {links.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={cn(
+                      "text-lg font-medium transition-colors hover:text-foreground/80 py-1 px-2 rounded-md w-full",
+                      isActive(link.path)
+                        ? "text-foreground bg-accent"
+                        : "text-foreground/60"
+                    )}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
+        
+        <Link to="/" className="md:hidden">
+          <span className="font-bold">Finanças Pessoais</span>
+        </Link>
+
+        <nav className="hidden md:flex flex-1 items-center justify-center space-x-1">
+          {links.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={cn(
+                "px-4 py-1.5 text-sm font-medium rounded-md transition-colors",
+                isActive(link.path)
+                  ? "text-foreground bg-accent"
+                  : "text-foreground/60 hover:text-foreground hover:bg-accent/50"
+              )}
+            >
+              {link.name}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex flex-1 items-center justify-end space-x-2">
+          {/* Placeholder for right side content (user account, theme toggle, etc.) */}
         </div>
       </div>
     </header>
   );
-};
+}
 
 export default Header;

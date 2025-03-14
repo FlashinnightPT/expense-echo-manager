@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Monthly from "./pages/Monthly";
 import Yearly from "./pages/Yearly";
 import Settings from "./pages/Settings";
+import Categories from "./pages/Categories";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/monthly" element={<Monthly />} />
           <Route path="/yearly" element={<Yearly />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/categories" element={<Categories />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
