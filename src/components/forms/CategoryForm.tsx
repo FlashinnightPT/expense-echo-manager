@@ -8,40 +8,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TransactionCategory } from "@/utils/mockData";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PlusCircle } from "lucide-react";
 
 interface CategoryFormProps {
   onSave: (category: Partial<TransactionCategory>) => void;
 }
 
-// Fix the type issues with categoryNames array and handling
 const CategoryForm = ({ onSave }: CategoryFormProps) => {
   const [type, setType] = useState<"income" | "expense">("expense");
   const [level, setLevel] = useState(2);
   const [categoryName, setCategoryName] = useState("");
-  
-  // Change to string instead of string[] to fix the errors
   const [parentId, setParentId] = useState("");
   
   const [mainCategories, setMainCategories] = useState<TransactionCategory[]>([]);
   const [subcategories, setSubcategories] = useState<TransactionCategory[]>([]);
   const [items, setItems] = useState<TransactionCategory[]>([]);
   
-  // Load categories from localStorage when the component mounts
   useEffect(() => {
     const storedCategories = localStorage.getItem('categories');
     if (storedCategories) {
       const allCategories = JSON.parse(storedCategories) as TransactionCategory[];
       
-      // Get level 2 categories (main categories)
       const mainCats = allCategories.filter(cat => cat.level === 2 && cat.type === type);
       setMainCategories(mainCats);
       
-      // If a main category is selected, get its subcategories (level 3)
       if (parentId) {
         const subCats = allCategories.filter(cat => cat.parentId === parentId);
         setSubcategories(subCats);
         
-        // If a subcategory is selected, get its items (level 4)
         if (level === 4) {
           const selectedSubcategory = subcategories.find(subcat => subcat.id === parentId);
           if (selectedSubcategory) {
@@ -61,45 +55,48 @@ const CategoryForm = ({ onSave }: CategoryFormProps) => {
       return;
     }
     
-    // Create the new category based on the current level
     let newCategory: Partial<TransactionCategory> = {
       name: categoryName,
       type: type,
       level: level,
     };
     
-    // Add parent ID if we're at level 3 or 4
     if (level > 2) {
       newCategory.parentId = parentId;
     }
     
-    // Save the category
     onSave(newCategory);
-    
-    // Reset the form
     setCategoryName("");
     
-    // Move to next level if we're not at level 4 yet
-    if (level < 4) {
-      setLevel(level + 1);
+    toast.success(`${getCategoryLevelName(level)} "${newCategory.name}" adicionado com sucesso`);
+  };
+  
+  const getCategoryLevelName = (level: number): string => {
+    switch (level) {
+      case 2: return "Categoria";
+      case 3: return "Subcategoria";
+      case 4: return "Item";
+      default: return "Categoria";
     }
   };
   
-  // This function helps us go back to a specific level
   const goToLevel = (newLevel: number) => {
     setLevel(newLevel);
-    // Clear the name field
     setCategoryName("");
     
-    // If we're going back to level 2, clear the parent ID
     if (newLevel === 2) {
       setParentId("");
       setSubcategories([]);
       setItems([]);
-    }
-    // If we're going back to level 3, clear level 4 items
-    else if (newLevel === 3) {
+    } else if (newLevel === 3) {
       setItems([]);
+    }
+  };
+  
+  const goToNextLevel = () => {
+    if (level < 4) {
+      setLevel(level + 1);
+      setCategoryName("");
     }
   };
   
@@ -275,24 +272,39 @@ const CategoryForm = ({ onSave }: CategoryFormProps) => {
             </div>
           )}
           
-          <Button 
-            type="submit"
-            className="w-full"
-            disabled={level > 2 && !parentId}
-          >
-            {level < 4 ? "Adicionar e Continuar" : "Adicionar Item"}
-          </Button>
-          
-          {level > 2 && (
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full mt-2"
-              onClick={() => goToLevel(level - 1)}
+          <div className="space-y-2">
+            <Button 
+              type="submit"
+              className="w-full"
+              disabled={level > 2 && !parentId}
             >
-              Voltar ao Nível Anterior
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Adicionar {getCategoryLevelName(level)}
             </Button>
-          )}
+            
+            {level < 4 && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={goToNextLevel}
+                disabled={(level === 3 && !parentId) || !categoryName}
+              >
+                Continuar para Nível {level + 1}
+              </Button>
+            )}
+            
+            {level > 2 && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => goToLevel(level - 1)}
+              >
+                Voltar ao Nível Anterior
+              </Button>
+            )}
+          </div>
         </form>
       </CardContent>
     </Card>
