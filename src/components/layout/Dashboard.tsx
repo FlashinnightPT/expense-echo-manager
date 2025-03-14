@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   BarChart3, 
@@ -7,7 +6,8 @@ import {
   PiggyBank, 
   Landmark,
   CircleDollarSign,
-  Plus
+  Plus,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -36,10 +36,8 @@ import TransactionForm from "@/components/forms/TransactionForm";
 import { 
   monthlyData, 
   yearlyData, 
-  transactions as mockTransactions, 
   flattenedCategories,
-  Transaction,
-  getCategoryById
+  Transaction
 } from "@/utils/mockData";
 import { 
   formatCurrency, 
@@ -47,57 +45,42 @@ import {
   calculateYearlySummary,
   getMonthName
 } from "@/utils/financialCalculations";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const [selectedYear, setSelectedYear] = useState(2024);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [openClearDialog, setOpenClearDialog] = useState(false);
   
   // Load transactions from localStorage if available
   useEffect(() => {
     const storedTransactions = localStorage.getItem('transactions');
     if (storedTransactions) {
       setTransactions(JSON.parse(storedTransactions));
+    } else {
+      localStorage.setItem('transactions', JSON.stringify([]));
+    }
+    
+    const storedCategories = localStorage.getItem('categories');
+    if (storedCategories) {
+      setCategories(JSON.parse(storedCategories));
+    } else {
+      localStorage.setItem('categories', JSON.stringify([]));
     }
   }, []);
   
-  // Get current month and year data
-  const currentMonthData = monthlyData.find(
-    (data) => data.year === selectedYear && data.month === selectedMonth
-  );
-  
-  const currentYearData = yearlyData.find(
-    (data) => data.year === selectedYear
-  );
-  
-  // Calculate financial summaries
-  const monthlySummary = currentMonthData 
-    ? calculateMonthlySummary(currentMonthData)
-    : {
-        income: 0,
-        expense: 0,
-        savings: 0,
-        investment: 0,
-        balance: 0,
-        savingsRate: 0
-      };
-    
-  const yearlySummary = currentYearData
-    ? calculateYearlySummary(currentYearData)
-    : {
-        income: 0,
-        expense: 0,
-        savings: 0,
-        investment: 0,
-        balance: 0,
-        savingsRate: 0
-      };
-  
-  // Recent transactions for the table
-  const recentTransactions = [...transactions]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5);
+  // Get current month and year data - com valores zerados para não mostrar dados
+  const emptySummary = {
+    income: 0,
+    expense: 0,
+    savings: 0,
+    investment: 0,
+    balance: 0,
+    savingsRate: 0
+  };
   
   // Table columns definition
   const transactionColumns = [
@@ -165,6 +148,15 @@ const Dashboard = () => {
     }
   ];
 
+  const handleClearAllData = () => {
+    setTransactions([]);
+    setCategories([]);
+    localStorage.setItem('transactions', JSON.stringify([]));
+    localStorage.setItem('categories', JSON.stringify([]));
+    setOpenClearDialog(false);
+    toast.success("Todos os dados foram apagados com sucesso!");
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
@@ -199,6 +191,27 @@ const Dashboard = () => {
               <CategoryForm />
             </DialogContent>
           </Dialog>
+          
+          <Dialog open={openClearDialog} onOpenChange={setOpenClearDialog}>
+            <DialogTrigger asChild>
+              <Button variant="destructive" className="animate-fade-in-up animation-delay-400">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Limpar Dados
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Apagar Todos os Dados</DialogTitle>
+                <DialogDescription>
+                  Esta ação irá apagar todas as categorias e transações. Esta ação não pode ser revertida.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpenClearDialog(false)}>Cancelar</Button>
+                <Button variant="destructive" onClick={handleClearAllData}>Apagar Dados</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       
@@ -210,7 +223,7 @@ const Dashboard = () => {
                 <CardDescription>Receitas</CardDescription>
                 <div className="text-2xl font-bold mt-2">
                   <AnimatedNumber 
-                    value={monthlySummary.income} 
+                    value={0} 
                     formatter={(val) => formatCurrency(val)} 
                   />
                 </div>
@@ -232,7 +245,7 @@ const Dashboard = () => {
                 <CardDescription>Despesas</CardDescription>
                 <div className="text-2xl font-bold mt-2">
                   <AnimatedNumber 
-                    value={monthlySummary.expense} 
+                    value={0} 
                     formatter={(val) => formatCurrency(val)} 
                   />
                 </div>
@@ -254,7 +267,7 @@ const Dashboard = () => {
                 <CardDescription>Poupanças</CardDescription>
                 <div className="text-2xl font-bold mt-2">
                   <AnimatedNumber 
-                    value={monthlySummary.savings} 
+                    value={0} 
                     formatter={(val) => formatCurrency(val)} 
                   />
                 </div>
@@ -276,7 +289,7 @@ const Dashboard = () => {
                 <CardDescription>Investimentos</CardDescription>
                 <div className="text-2xl font-bold mt-2">
                   <AnimatedNumber 
-                    value={monthlySummary.investment} 
+                    value={0} 
                     formatter={(val) => formatCurrency(val)} 
                   />
                 </div>
@@ -342,7 +355,7 @@ const Dashboard = () => {
                   <CardDescription>Saldo</CardDescription>
                   <div className="text-3xl font-bold tabular-nums">
                     <AnimatedNumber 
-                      value={monthlySummary.balance} 
+                      value={0} 
                       formatter={(val) => formatCurrency(val)} 
                     />
                   </div>
@@ -352,7 +365,7 @@ const Dashboard = () => {
                   <CardDescription>Taxa de Poupança</CardDescription>
                   <div className="text-3xl font-bold tabular-nums">
                     <AnimatedNumber 
-                      value={monthlySummary.savingsRate} 
+                      value={0} 
                       formatter={(val) => `${val.toFixed(1)}%`} 
                     />
                   </div>
@@ -362,7 +375,7 @@ const Dashboard = () => {
                   <CardDescription>Projeção Anual</CardDescription>
                   <div className="text-3xl font-bold tabular-nums">
                     <AnimatedNumber 
-                      value={monthlySummary.balance * 12} 
+                      value={0} 
                       formatter={(val) => formatCurrency(val)} 
                     />
                   </div>
@@ -371,7 +384,7 @@ const Dashboard = () => {
               
               <Separator />
               
-              <MonthlyChart data={monthlyData} year={selectedYear} />
+              <MonthlyChart data={[]} year={selectedYear} />
             </div>
           </CardContent>
         </Card>
@@ -388,13 +401,13 @@ const Dashboard = () => {
                   <div className="flex justify-between items-center">
                     <CardDescription>Receitas</CardDescription>
                     <span className="text-sm font-medium text-finance-income">
-                      {formatCurrency(yearlySummary.income)}
+                      {formatCurrency(0)}
                     </span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-finance-income rounded-full transition-all duration-500"
-                      style={{ width: '100%' }}
+                      style={{ width: '0%' }}
                     />
                   </div>
                 </div>
@@ -403,17 +416,13 @@ const Dashboard = () => {
                   <div className="flex justify-between items-center">
                     <CardDescription>Despesas</CardDescription>
                     <span className="text-sm font-medium text-finance-expense">
-                      {formatCurrency(yearlySummary.expense)}
+                      {formatCurrency(0)}
                     </span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-finance-expense rounded-full transition-all duration-500"
-                      style={{ 
-                        width: `${yearlySummary.income > 0 
-                          ? (yearlySummary.expense / yearlySummary.income) * 100 
-                          : 0}%` 
-                      }}
+                      style={{ width: '0%' }}
                     />
                   </div>
                 </div>
@@ -422,17 +431,13 @@ const Dashboard = () => {
                   <div className="flex justify-between items-center">
                     <CardDescription>Poupanças</CardDescription>
                     <span className="text-sm font-medium text-finance-savings">
-                      {formatCurrency(yearlySummary.savings)}
+                      {formatCurrency(0)}
                     </span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-finance-savings rounded-full transition-all duration-500"
-                      style={{ 
-                        width: `${yearlySummary.income > 0 
-                          ? (yearlySummary.savings / yearlySummary.income) * 100 
-                          : 0}%` 
-                      }}
+                      style={{ width: '0%' }}
                     />
                   </div>
                 </div>
@@ -441,17 +446,13 @@ const Dashboard = () => {
                   <div className="flex justify-between items-center">
                     <CardDescription>Investimentos</CardDescription>
                     <span className="text-sm font-medium text-finance-investment">
-                      {formatCurrency(yearlySummary.investment)}
+                      {formatCurrency(0)}
                     </span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-finance-investment rounded-full transition-all duration-500"
-                      style={{ 
-                        width: `${yearlySummary.income > 0 
-                          ? (yearlySummary.investment / yearlySummary.income) * 100 
-                          : 0}%` 
-                      }}
+                      style={{ width: '0%' }}
                     />
                   </div>
                 </div>
@@ -464,7 +465,7 @@ const Dashboard = () => {
                   <CardDescription>Saldo</CardDescription>
                   <div className="text-3xl font-bold tabular-nums mt-1">
                     <AnimatedNumber 
-                      value={yearlySummary.balance} 
+                      value={0} 
                       formatter={(val) => formatCurrency(val)} 
                     />
                   </div>
@@ -474,7 +475,7 @@ const Dashboard = () => {
                   <CardDescription>Taxa de Poupança</CardDescription>
                   <div className="text-3xl font-bold tabular-nums mt-1">
                     <AnimatedNumber 
-                      value={yearlySummary.savingsRate} 
+                      value={0} 
                       formatter={(val) => `${val.toFixed(1)}%`} 
                     />
                   </div>
@@ -486,7 +487,7 @@ const Dashboard = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <YearlyChart data={yearlyData} className="lg:col-span-2 animate-fade-in-up animation-delay-700" />
+        <YearlyChart data={[]} className="lg:col-span-2 animate-fade-in-up animation-delay-700" />
         
         <Card className="animate-fade-in-up animation-delay-800">
           <CardHeader>
@@ -495,31 +496,35 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {flattenedCategories
-                .filter(category => category.level === 1)
-                .map(category => (
-                  <div key={category.id} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">{category.name}</span>
-                      <span className="text-xs text-muted-foreground capitalize">
-                        {category.type === "income" ? "receita" : 
-                         category.type === "expense" ? "despesa" : 
-                         category.type === "savings" ? "poupança" : 
-                         "investimento"}
-                      </span>
+              {categories.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhuma categoria definida</p>
+              ) : (
+                categories
+                  .filter(category => category.level === 1)
+                  .map(category => (
+                    <div key={category.id} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">{category.name}</span>
+                        <span className="text-xs text-muted-foreground capitalize">
+                          {category.type === "income" ? "receita" : 
+                          category.type === "expense" ? "despesa" : 
+                          category.type === "savings" ? "poupança" : 
+                          "investimento"}
+                        </span>
+                      </div>
+                      <div 
+                        className="h-1 rounded-full"
+                        style={{
+                          background: `hsl(var(--finance-${category.type}))`
+                        }}
+                      />
                     </div>
-                    <div 
-                      className="h-1 rounded-full"
-                      style={{
-                        background: `hsl(var(--finance-${category.type}))`
-                      }}
-                    />
-                  </div>
-                ))}
+                  ))
+              )}
             </div>
           </CardContent>
           <CardFooter>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={() => window.location.href = '/categories'}>
               <Plus className="h-4 w-4 mr-2" />
               Gerir Categorias
             </Button>
@@ -542,10 +547,11 @@ const Dashboard = () => {
           
           <TabsContent value="recent" className="m-0">
             <DataTable 
-              data={recentTransactions}
+              data={transactions.slice(0, 5)}
               columns={transactionColumns}
               searchable
               cardClassName="animate-fade-in-up animation-delay-1000 glass"
+              emptyMessage="Não há transações recentes"
             />
           </TabsContent>
           
@@ -555,6 +561,7 @@ const Dashboard = () => {
               columns={transactionColumns}
               searchable
               cardClassName="animate-fade-in-up animation-delay-1000 glass"
+              emptyMessage="Não há transações cadastradas"
             />
           </TabsContent>
         </Tabs>

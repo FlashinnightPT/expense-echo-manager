@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { monthlyData, transactions as mockTransactions } from "@/utils/mockData";
+import { monthlyData } from "@/utils/mockData";
 import MonthlyChart from "@/components/charts/MonthlyChart";
 import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
@@ -10,31 +10,34 @@ import { formatCurrency, getMonthName } from "@/utils/financialCalculations";
 
 const Monthly = () => {
   const [selectedYear, setSelectedYear] = useState(2024);
-  const [transactions, setTransactions] = useState(mockTransactions);
+  const [transactions, setTransactions] = useState([]);
   
-  // Check for empty transactions in localStorage (set by Categories page)
+  // Carregar transações do localStorage
   useEffect(() => {
     const storedTransactions = localStorage.getItem('transactions');
     if (storedTransactions) {
-      // If we have stored transactions (or empty array) in localStorage, use that
       setTransactions(JSON.parse(storedTransactions));
+    } else {
+      // Se não houver transações no localStorage, definir array vazio
+      setTransactions([]);
+      localStorage.setItem('transactions', JSON.stringify([]));
     }
   }, []);
   
   // Filtrar os dados pelo ano selecionado
   const filteredData = monthlyData.filter(item => item.year === selectedYear);
   
-  // Preparar os dados para a tabela
-  const tableData = filteredData.map(item => ({
+  // Preparar os dados para a tabela - usando dados vazios se não houver no localStorage
+  const tableData = filteredData.length > 0 ? filteredData.map(item => ({
     month: item.month,
     monthName: getMonthName(item.month),
-    income: item.income,
-    expense: item.expense,
-    savings: item.savings,
-    investment: item.investment,
-    balance: item.income - item.expense,
-    savingsRate: ((item.savings + item.investment) / item.income * 100).toFixed(2)
-  }));
+    income: 0, // Definindo todos os valores financeiros como zero
+    expense: 0,
+    savings: 0,
+    investment: 0,
+    balance: 0,
+    savingsRate: "0.00"
+  })) : [];
   
   // Definir as colunas da tabela
   const columns = [
@@ -117,7 +120,7 @@ const Monthly = () => {
         
         <div className="mb-8">
           <Card>
-            <MonthlyChart data={monthlyData} year={selectedYear} />
+            <MonthlyChart data={[]} year={selectedYear} />
           </Card>
         </div>
         

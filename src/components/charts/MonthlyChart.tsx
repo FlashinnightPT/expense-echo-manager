@@ -37,6 +37,27 @@ const MonthlyChart = ({ data, year, className }: MonthlyChartProps) => {
   }, []);
 
   useEffect(() => {
+    // Verificar se há dados armazenados no localStorage
+    const storedTransactions = localStorage.getItem('transactions');
+    
+    // Se não houver dados ou se for um array vazio, mostrar dados zerados
+    if (!storedTransactions || JSON.parse(storedTransactions).length === 0) {
+      // Criar dados vazios para os 12 meses
+      const emptyData: ChartDataPoint[] = [];
+      for (let i = 1; i <= 12; i++) {
+        emptyData.push({
+          month: getMonthName(i),
+          Income: 0,
+          Expenses: 0,
+          Savings: 0,
+          Investments: 0
+        });
+      }
+      setChartData(emptyData);
+      return;
+    }
+    
+    // Se chegou aqui, há dados no localStorage
     const yearData = data.filter((item) => item.year === year);
     const transformedData = yearData.map((item) => ({
       month: getMonthName(item.month),
