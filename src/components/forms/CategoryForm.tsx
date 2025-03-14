@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
@@ -13,9 +12,10 @@ import { PlusCircle } from "lucide-react";
 
 interface CategoryFormProps {
   onSave: (category: Partial<TransactionCategory>) => void;
+  categoryList: TransactionCategory[];
 }
 
-const CategoryForm = ({ onSave }: CategoryFormProps) => {
+const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
   const [type, setType] = useState<"income" | "expense">("expense");
   const [level, setLevel] = useState(2);
   const [categoryName, setCategoryName] = useState("");
@@ -26,27 +26,21 @@ const CategoryForm = ({ onSave }: CategoryFormProps) => {
   const [items, setItems] = useState<TransactionCategory[]>([]);
   
   useEffect(() => {
-    const storedCategories = localStorage.getItem('categories');
-    if (storedCategories) {
-      const allCategories = JSON.parse(storedCategories) as TransactionCategory[];
-      
-      const mainCats = allCategories.filter(cat => cat.level === 2 && cat.type === type);
-      setMainCategories(mainCats);
-      
-      if (parentId) {
-        const subCats = allCategories.filter(cat => cat.parentId === parentId);
+    const mainCats = categoryList.filter(cat => cat.level === 2 && cat.type === type);
+    setMainCategories(mainCats);
+    
+    if (parentId) {
+      if (level === 3) {
+        const subCats = categoryList.filter(cat => cat.parentId === parentId);
         setSubcategories(subCats);
-        
-        if (level === 4) {
-          const selectedSubcategory = allCategories.find(cat => cat.id === parentId);
-          if (selectedSubcategory) {
-            const categoryItems = allCategories.filter(cat => cat.parentId === selectedSubcategory.id);
-            setItems(categoryItems);
-          }
-        }
+      }
+      
+      if (level === 4) {
+        const categoryItems = categoryList.filter(cat => cat.parentId === parentId);
+        setItems(categoryItems);
       }
     }
-  }, [type, parentId, level]);
+  }, [categoryList, type, parentId, level]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,25 +62,6 @@ const CategoryForm = ({ onSave }: CategoryFormProps) => {
     
     onSave(newCategory);
     setCategoryName("");
-    
-    // Refresh the categories immediately after saving
-    const refreshCategories = () => {
-      const storedCategories = localStorage.getItem('categories');
-      if (storedCategories) {
-        const allCategories = JSON.parse(storedCategories) as TransactionCategory[];
-        
-        const mainCats = allCategories.filter(cat => cat.level === 2 && cat.type === type);
-        setMainCategories(mainCats);
-        
-        if (parentId && level > 2) {
-          const subCats = allCategories.filter(cat => cat.parentId === parentId);
-          setSubcategories(subCats);
-        }
-      }
-    };
-    
-    // Small delay to ensure local storage is updated
-    setTimeout(refreshCategories, 100);
     
     toast.success(`${getCategoryLevelName(level)} "${categoryName}" adicionado com sucesso`);
   };
@@ -150,6 +125,153 @@ const CategoryForm = ({ onSave }: CategoryFormProps) => {
     );
   };
   
+  const renderLevel2Form = () => (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="type">Tipo de Categoria (Nível 1)</Label>
+        <RadioGroup
+          value={type}
+          onValueChange={(value: "income" | "expense") => {
+            setType(value);
+            setParentId("");
+          }}
+          className="flex"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="expense" id="expense" />
+            <Label htmlFor="expense">Despesa</Label>
+          </div>
+          <div className="flex items-center space-x-2 ml-4">
+            <RadioGroupItem value="income" id="income" />
+            <Label htmlFor="income">Receita</Label>
+          </div>
+        </RadioGroup>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="categoryName">Nome da Categoria (Nível 2)</Label>
+        <Input
+          id="categoryName"
+          value={categoryName}
+          onChange={(e) => setCategoryName(e.target.value)}
+          placeholder="Ex: Pessoal, Negócios, Lazer..."
+        />
+      </div>
+    </div>
+  );
+  
+  const renderLevel3Form = () => (
+    <div className="space-y-4">
+      {renderLevelSelector()}
+      
+      <div className="space-y-2">
+        <Label htmlFor="parentCategory">Categoria Principal (Nível 2)</Label>
+        <Select
+          value={parentId}
+          onValueChange={(value) => {
+            setParentId(value);
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione uma categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            {mainCategories.length > 0 ? (
+              mainCategories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="empty" disabled>
+                Nenhuma categoria disponível
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="categoryName">Nome da Subcategoria (Nível 3)</Label>
+        <Input
+          id="categoryName"
+          value={categoryName}
+          onChange={(e) => setCategoryName(e.target.value)}
+          placeholder="Ex: Salários, Rendas, Equipamentos..."
+        />
+      </div>
+      
+      {subcategories.length > 0 && (
+        <div className="mt-4">
+          <p className="text-sm font-medium mb-2">Subcategorias Existentes:</p>
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {subcategories.map((subcat) => (
+              <li key={subcat.id} className="text-sm p-2 bg-muted/50 rounded-md">
+                {subcat.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+  
+  const renderLevel4Form = () => (
+    <div className="space-y-4">
+      {renderLevelSelector()}
+      
+      <div className="space-y-2">
+        <Label htmlFor="parentSubcategory">Subcategoria (Nível 3)</Label>
+        <Select
+          value={parentId}
+          onValueChange={(value) => {
+            setParentId(value);
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione uma subcategoria" />
+          </SelectTrigger>
+          <SelectContent>
+            {subcategories.length > 0 ? (
+              subcategories.map((subcat) => (
+                <SelectItem key={subcat.id} value={subcat.id}>
+                  {subcat.name}
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="empty" disabled>
+                Nenhuma subcategoria disponível
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="categoryName">Nome do Item (Nível 4)</Label>
+        <Input
+          id="categoryName"
+          value={categoryName}
+          onChange={(e) => setCategoryName(e.target.value)}
+          placeholder="Ex: Carlos, Antonio, Leandro..."
+        />
+      </div>
+      
+      {items.length > 0 && (
+        <div className="mt-4">
+          <p className="text-sm font-medium mb-2">Itens Existentes:</p>
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {items.map((item) => (
+              <li key={item.id} className="text-sm p-2 bg-muted/70 rounded-md">
+                {item.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+  
   return (
     <Card>
       <CardHeader>
@@ -157,140 +279,9 @@ const CategoryForm = ({ onSave }: CategoryFormProps) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {level === 2 && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="type">Tipo de Categoria (Nível 1)</Label>
-                <RadioGroup
-                  value={type}
-                  onValueChange={(value: "income" | "expense") => {
-                    setType(value);
-                    setParentId("");
-                  }}
-                  className="flex"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="expense" id="expense" />
-                    <Label htmlFor="expense">Despesa</Label>
-                  </div>
-                  <div className="flex items-center space-x-2 ml-4">
-                    <RadioGroupItem value="income" id="income" />
-                    <Label htmlFor="income">Receita</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="categoryName">Nome da Categoria (Nível 2)</Label>
-                <Input
-                  id="categoryName"
-                  value={categoryName}
-                  onChange={(e) => setCategoryName(e.target.value)}
-                  placeholder="Ex: Pessoal, Negócios, Lazer..."
-                />
-              </div>
-            </div>
-          )}
-          
-          {level === 3 && (
-            <div className="space-y-4">
-              {renderLevelSelector()}
-              
-              <div className="space-y-2">
-                <Label htmlFor="parentCategory">Categoria Principal (Nível 2)</Label>
-                <Select
-                  value={parentId}
-                  onValueChange={(value) => {
-                    setParentId(value);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mainCategories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="categoryName">Nome da Subcategoria (Nível 3)</Label>
-                <Input
-                  id="categoryName"
-                  value={categoryName}
-                  onChange={(e) => setCategoryName(e.target.value)}
-                  placeholder="Ex: Salários, Rendas, Equipamentos..."
-                />
-              </div>
-              
-              {subcategories.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-sm font-medium mb-2">Subcategorias Existentes:</p>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {subcategories.map((subcat) => (
-                      <li key={subcat.id} className="text-sm p-2 bg-muted/50 rounded-md">
-                        {subcat.name}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {level === 4 && (
-            <div className="space-y-4">
-              {renderLevelSelector()}
-              
-              <div className="space-y-2">
-                <Label htmlFor="parentSubcategory">Subcategoria (Nível 3)</Label>
-                <Select
-                  value={parentId}
-                  onValueChange={(value) => {
-                    setParentId(value);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma subcategoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subcategories.map((subcat) => (
-                      <SelectItem key={subcat.id} value={subcat.id}>
-                        {subcat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="categoryName">Nome do Item (Nível 4)</Label>
-                <Input
-                  id="categoryName"
-                  value={categoryName}
-                  onChange={(e) => setCategoryName(e.target.value)}
-                  placeholder="Ex: Carlos, Antonio, Leandro..."
-                />
-              </div>
-              
-              {items.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-sm font-medium mb-2">Itens Existentes:</p>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {items.map((item) => (
-                      <li key={item.id} className="text-sm p-2 bg-muted/70 rounded-md">
-                        {item.name}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
+          {level === 2 && renderLevel2Form()}
+          {level === 3 && renderLevel3Form()}
+          {level === 4 && renderLevel4Form()}
           
           <div className="space-y-2">
             <Button 

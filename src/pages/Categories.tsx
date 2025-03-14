@@ -15,7 +15,11 @@ const Categories = () => {
       localStorage.setItem('categories', JSON.stringify(defaultCategories));
       return defaultCategories;
     }
-    return JSON.parse(storedCategories);
+    
+    // Parse the categories and log them for debugging
+    const parsedCategories = JSON.parse(storedCategories);
+    console.log("Loaded categories from localStorage:", parsedCategories);
+    return parsedCategories;
   };
   
   const initTransactions = () => {
@@ -31,6 +35,7 @@ const Categories = () => {
 
   useEffect(() => {
     localStorage.setItem('categories', JSON.stringify(categoryList));
+    console.log("Categories saved to localStorage:", categoryList);
   }, [categoryList]);
   
   useEffect(() => {
@@ -129,7 +134,7 @@ const Categories = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1">
-            <CategoryForm onSave={handleSaveCategory} />
+            <CategoryForm onSave={handleSaveCategory} categoryList={categoryList} />
           </div>
           
           <div className="lg:col-span-2">

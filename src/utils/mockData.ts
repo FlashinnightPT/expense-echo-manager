@@ -1,4 +1,3 @@
-
 // Mock data to represent financial data from spreadsheets
 
 export type TransactionCategory = {
@@ -40,137 +39,131 @@ export type YearlyData = {
   }[];
 };
 
-// Sample categories with up to 4 levels
+// Sample categories
 export const categories: TransactionCategory[] = [
-  // Income categories
+  // Level 2 categories (income)
   {
     id: 'income-1',
     name: 'Salary',
     type: 'income',
-    level: 1,
-    children: [
-      {
-        id: 'income-1-1',
-        name: 'Base Salary',
-        type: 'income',
-        parentId: 'income-1',
-        level: 2,
-      },
-      {
-        id: 'income-1-2',
-        name: 'Bonuses',
-        type: 'income',
-        parentId: 'income-1',
-        level: 2,
-      }
-    ]
+    level: 2
   },
   {
     id: 'income-2',
     name: 'Investments',
     type: 'income',
-    level: 1,
-    children: [
-      {
-        id: 'income-2-1',
-        name: 'Dividends',
-        type: 'income',
-        parentId: 'income-2',
-        level: 2,
-      },
-      {
-        id: 'income-2-2',
-        name: 'Interest',
-        type: 'income',
-        parentId: 'income-2',
-        level: 2,
-      }
-    ]
+    level: 2
   },
   
-  // Expense categories
+  // Level 3 subcategories (income)
+  {
+    id: 'income-1-1',
+    name: 'Base Salary',
+    type: 'income',
+    parentId: 'income-1',
+    level: 3
+  },
+  {
+    id: 'income-1-2',
+    name: 'Bonuses',
+    type: 'income',
+    parentId: 'income-1',
+    level: 3
+  },
+  {
+    id: 'income-2-1',
+    name: 'Dividends',
+    type: 'income',
+    parentId: 'income-2',
+    level: 3
+  },
+  {
+    id: 'income-2-2',
+    name: 'Interest',
+    type: 'income',
+    parentId: 'income-2',
+    level: 3
+  },
+  
+  // Level 2 categories (expense)
   {
     id: 'expense-1',
     name: 'Housing',
     type: 'expense',
-    level: 1,
-    children: [
-      {
-        id: 'expense-1-1',
-        name: 'Rent',
-        type: 'expense',
-        parentId: 'expense-1',
-        level: 2,
-      },
-      {
-        id: 'expense-1-2',
-        name: 'Utilities',
-        type: 'expense',
-        parentId: 'expense-1',
-        level: 2,
-        children: [
-          {
-            id: 'expense-1-2-1',
-            name: 'Electricity',
-            type: 'expense',
-            parentId: 'expense-1-2',
-            level: 3,
-          },
-          {
-            id: 'expense-1-2-2',
-            name: 'Water',
-            type: 'expense',
-            parentId: 'expense-1-2',
-            level: 3,
-          },
-          {
-            id: 'expense-1-2-3',
-            name: 'Internet',
-            type: 'expense',
-            parentId: 'expense-1-2',
-            level: 3,
-            children: [
-              {
-                id: 'expense-1-2-3-1',
-                name: 'Home Internet',
-                type: 'expense',
-                parentId: 'expense-1-2-3',
-                level: 4,
-              },
-              {
-                id: 'expense-1-2-3-2',
-                name: 'Mobile Data',
-                type: 'expense',
-                parentId: 'expense-1-2-3',
-                level: 4,
-              }
-            ]
-          }
-        ]
-      }
-    ]
+    level: 2
   },
   {
-    id: 'expense-2',
+    id: 'expense-2', 
     name: 'Food',
     type: 'expense',
-    level: 1,
-    children: [
-      {
-        id: 'expense-2-1',
-        name: 'Groceries',
-        type: 'expense',
-        parentId: 'expense-2',
-        level: 2,
-      },
-      {
-        id: 'expense-2-2',
-        name: 'Dining Out',
-        type: 'expense',
-        parentId: 'expense-2',
-        level: 2,
-      }
-    ]
+    level: 2
+  },
+  
+  // Level 3 subcategories (expense)
+  {
+    id: 'expense-1-1',
+    name: 'Rent',
+    type: 'expense',
+    parentId: 'expense-1',
+    level: 3
+  },
+  {
+    id: 'expense-1-2',
+    name: 'Utilities',
+    type: 'expense',
+    parentId: 'expense-1',
+    level: 3
+  },
+  {
+    id: 'expense-2-1',
+    name: 'Groceries',
+    type: 'expense',
+    parentId: 'expense-2',
+    level: 3
+  },
+  {
+    id: 'expense-2-2',
+    name: 'Dining Out',
+    type: 'expense',
+    parentId: 'expense-2',
+    level: 3
+  },
+  
+  // Level 4 items (expense)
+  {
+    id: 'expense-1-2-1',
+    name: 'Electricity',
+    type: 'expense',
+    parentId: 'expense-1-2',
+    level: 4
+  },
+  {
+    id: 'expense-1-2-2',
+    name: 'Water',
+    type: 'expense',
+    parentId: 'expense-1-2',
+    level: 4
+  },
+  {
+    id: 'expense-1-2-3',
+    name: 'Internet',
+    type: 'expense',
+    parentId: 'expense-1-2',
+    level: 4
+  },
+  {
+    id: 'expense-1-2-3-1',
+    name: 'Home Internet',
+    type: 'expense',
+    parentId: 'expense-1-2-3',
+    level: 4
+  },
+  {
+    id: 'expense-1-2-3-2',
+    name: 'Mobile Data',
+    type: 'expense',
+    parentId: 'expense-1-2-3',
+    level: 4
   }
 ];
 
