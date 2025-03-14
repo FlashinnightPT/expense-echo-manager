@@ -210,7 +210,7 @@ const Dashboard = () => {
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px]">
-              <CategoryForm onSave={handleSaveCategory} />
+              <CategoryForm onSave={handleSaveCategory} categoryList={categories} />
             </DialogContent>
           </Dialog>
           
