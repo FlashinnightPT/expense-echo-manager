@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import CategoryForm from "@/components/forms/CategoryForm";
@@ -15,15 +16,26 @@ const Categories = () => {
       return defaultCategories;
     }
     
-    // Parse the categories and log them for debugging
-    const parsedCategories = JSON.parse(storedCategories);
-    console.log("Loaded categories from localStorage:", parsedCategories);
-    return parsedCategories;
+    try {
+      // Parse the categories and log them for debugging
+      const parsedCategories = JSON.parse(storedCategories);
+      console.log("Loaded categories from localStorage:", parsedCategories);
+      return parsedCategories;
+    } catch (error) {
+      console.error("Error parsing categories from localStorage:", error);
+      localStorage.setItem('categories', JSON.stringify(defaultCategories));
+      return defaultCategories;
+    }
   };
   
   const initTransactions = () => {
     const storedTransactions = localStorage.getItem('transactions');
-    return storedTransactions ? JSON.parse(storedTransactions) : mockTransactions;
+    try {
+      return storedTransactions ? JSON.parse(storedTransactions) : mockTransactions;
+    } catch (error) {
+      console.error("Error parsing transactions from localStorage:", error);
+      return mockTransactions;
+    }
   };
 
   const [categoryList, setCategoryList] = useState<TransactionCategory[]>(initCategories());
@@ -98,6 +110,12 @@ const Categories = () => {
     }
   };
 
+  const handleResetCategories = () => {
+    localStorage.removeItem('categories');
+    setCategoryList(defaultCategories);
+    toast.success("Categorias reiniciadas para o padrão");
+  };
+
   const handleClearTransactions = () => {
     setOpenClearTransactionsDialog(true);
   };
@@ -107,12 +125,6 @@ const Categories = () => {
     localStorage.setItem('transactions', JSON.stringify([]));
     setOpenClearTransactionsDialog(false);
     toast.success("Todas as transações foram apagadas com sucesso");
-  };
-
-  const handleResetCategories = () => {
-    localStorage.removeItem('categories');
-    setCategoryList(defaultCategories);
-    toast.success("Categorias reiniciadas para o padrão");
   };
 
   return (

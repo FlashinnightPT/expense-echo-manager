@@ -1,3 +1,4 @@
+
 // Mock data to represent financial data from spreadsheets
 
 export type TransactionCategory = {
@@ -172,7 +173,7 @@ export const monthlyData: MonthlyData[] = Array.from({ length: 24 }, (_, i) => {
     income: Math.round(baseIncome * (1 + seasonalFactor) * 100) / 100,
     expense: Math.round(baseExpense * (1 + seasonalFactor * 0.8) * 100) / 100,
     categories: categories
-      .filter(c => !c.parentId) // Only top-level categories
+      .filter(c => c.level === 2) // Only top-level categories (changed from !c.parentId)
       .map(category => ({
         categoryId: category.id,
         amount: Math.round((category.type === 'income' ? baseIncome : baseExpense) * 
@@ -191,7 +192,7 @@ export const yearlyData: YearlyData[] = Array.from({ length: 2 }, (_, i) => {
     income: Math.round(yearMonths.reduce((sum, month) => sum + month.income, 0) * 100) / 100,
     expense: Math.round(yearMonths.reduce((sum, month) => sum + month.expense, 0) * 100) / 100,
     categories: categories
-      .filter(c => !c.parentId) // Only top-level categories
+      .filter(c => c.level === 2) // Only top-level categories (changed from !c.parentId)
       .map(category => {
         const relevantMonths = yearMonths.map(m => {
           const categoryData = m.categories.find(c => c.categoryId === category.id);
@@ -211,25 +212,44 @@ export const transactions: Transaction[] = Array.from({ length: 30 }, (_, i) => 
   const types = ['income', 'expense'] as const;
   const type = types[Math.floor(Math.random() * types.length)];
   
-  // Get a random category of the selected type
+  // Get a random category of the selected type with level >= 3
   const typeCategories = categories.filter(c => c.type === type && c.level >= 3);
+  
+  // Check if we have categories available
+  if (typeCategories.length === 0) {
+    // Fallback to level 2 if no level 3+ categories
+    const fallbackCategories = categories.filter(c => c.type === type);
+    if (fallbackCategories.length === 0) {
+      // Use default category if no categories of this type
+      return {
+        id: `transaction-${i}`,
+        description: `${type === 'income' ? 'Receita' : 'Despesa'} - Item ${i+1}`,
+        amount: Math.round((type === 'income' ? 500 : 200) * (0.5 + Math.random()) * 100) / 100,
+        date: new Date().toISOString().split('T')[0],
+        categoryId: type === 'income' ? 'income-1' : 'expense-pessoal',
+        type
+      };
+    }
+    const category = fallbackCategories[Math.floor(Math.random() * fallbackCategories.length)];
+    return {
+      id: `transaction-${i}`,
+      description: `${type === 'income' ? 'Receita' : 'Despesa'} - ${category.name}`,
+      amount: Math.round((type === 'income' ? 500 : 200) * (0.5 + Math.random()) * 100) / 100,
+      date: new Date().toISOString().split('T')[0],
+      categoryId: category.id,
+      type
+    };
+  }
+  
   const category = typeCategories[Math.floor(Math.random() * typeCategories.length)];
   
   // Generate a date within the last 30 days
   const date = new Date();
   date.setDate(date.getDate() - Math.floor(Math.random() * 30));
   
-  // Create descriptive transaction names
-  let description = `${type === 'income' ? 'Receita' : 'Despesa'} - `;
-  if (category.name) {
-    description += category.name;
-  } else {
-    description += `Item ${i+1}`;
-  }
-  
   return {
     id: `transaction-${i}`,
-    description,
+    description: `${type === 'income' ? 'Receita' : 'Despesa'} - ${category.name}`,
     amount: Math.round((type === 'income' ? 500 : 200) * (0.5 + Math.random()) * 100) / 100,
     date: date.toISOString().split('T')[0],
     categoryId: category.id,
