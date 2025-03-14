@@ -4,8 +4,8 @@ import { yearlyData } from "@/utils/mockData";
 import YearlyChart from "@/components/charts/YearlyChart";
 import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/utils/financialCalculations";
+import DataTable from "@/components/tables/DataTable";
 
 const Yearly = () => {
   const availableYears = [2023, 2024];
@@ -27,6 +27,69 @@ const Yearly = () => {
   const totalExpenses = filteredData.reduce((sum, item) => sum + item.expense, 0);
   const totalSavings = filteredData.reduce((sum, item) => sum + item.savings, 0);
   const totalInvestments = filteredData.reduce((sum, item) => sum + item.investment, 0);
+  
+  // Preparar os dados para a tabela
+  const tableData = filteredData.map(item => ({
+    year: item.year,
+    income: item.income,
+    expense: item.expense,
+    savings: item.savings,
+    investment: item.investment,
+    balance: item.income - item.expense,
+    savingsRate: ((item.savings + item.investment) / item.income * 100).toFixed(2)
+  }));
+  
+  // Definir as colunas da tabela
+  const columns = [
+    {
+      id: "year",
+      header: "Ano",
+      accessorFn: (row) => row.year,
+      sortable: true,
+    },
+    {
+      id: "income",
+      header: "Receitas",
+      accessorFn: (row) => formatCurrency(row.income),
+      sortable: true,
+      className: "text-right",
+    },
+    {
+      id: "expense",
+      header: "Despesas",
+      accessorFn: (row) => formatCurrency(row.expense),
+      sortable: true,
+      className: "text-right",
+    },
+    {
+      id: "balance",
+      header: "Saldo",
+      accessorFn: (row) => formatCurrency(row.balance),
+      sortable: true,
+      className: "text-right",
+    },
+    {
+      id: "savings",
+      header: "Poupanças",
+      accessorFn: (row) => formatCurrency(row.savings),
+      sortable: true,
+      className: "text-right",
+    },
+    {
+      id: "investment",
+      header: "Investimentos",
+      accessorFn: (row) => formatCurrency(row.investment),
+      sortable: true,
+      className: "text-right",
+    },
+    {
+      id: "savingsRate",
+      header: "Taxa de Poupança",
+      accessorFn: (row) => `${row.savingsRate}%`,
+      sortable: true,
+      className: "text-right",
+    },
+  ];
   
   return (
     <div className="min-h-screen bg-background">
@@ -87,6 +150,15 @@ const Yearly = () => {
           <Card>
             <YearlyChart data={filteredData} className="w-full" />
           </Card>
+        </div>
+        
+        <div className="mb-8">
+          <DataTable 
+            data={tableData} 
+            columns={columns} 
+            title="Resumo Anual"
+            emptyMessage="Selecione pelo menos um ano para ver os dados"
+          />
         </div>
       </div>
     </div>
