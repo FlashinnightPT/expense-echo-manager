@@ -38,16 +38,28 @@ const Categories = () => {
   }, [transactionList]);
 
   const handleSaveCategory = (category: Partial<TransactionCategory>) => {
+    // Garantir que temos todos os campos necessários
+    if (!category.name || !category.type || !category.level) {
+      toast.error("Dados de categoria incompletos");
+      return;
+    }
+
     const newCategory: TransactionCategory = {
       id: `${category.type}-${Date.now()}`,
-      name: category.name || "",
-      type: category.type || "expense",
-      level: category.level || 1,
+      name: category.name,
+      type: category.type,
+      level: category.level,
       parentId: category.parentId,
     };
 
-    setCategoryList([...categoryList, newCategory]);
-    toast.success("Categoria adicionada com sucesso");
+    const updatedList = [...categoryList, newCategory];
+    setCategoryList(updatedList);
+    
+    // Debug para verificar se a categoria foi realmente adicionada
+    console.log("Categoria adicionada:", newCategory);
+    console.log("Nova lista de categorias:", updatedList);
+    
+    toast.success(`Categoria "${newCategory.name}" adicionada com sucesso`);
   };
 
   const handleDeleteCategory = (categoryId: string) => {

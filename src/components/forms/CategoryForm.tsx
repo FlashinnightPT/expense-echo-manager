@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ const CategoryForm = ({ onSave }: CategoryFormProps) => {
         setSubcategories(subCats);
         
         if (level === 4) {
-          const selectedSubcategory = subcategories.find(subcat => subcat.id === parentId);
+          const selectedSubcategory = allCategories.find(cat => cat.id === parentId);
           if (selectedSubcategory) {
             const categoryItems = allCategories.filter(cat => cat.parentId === selectedSubcategory.id);
             setItems(categoryItems);
@@ -68,7 +69,26 @@ const CategoryForm = ({ onSave }: CategoryFormProps) => {
     onSave(newCategory);
     setCategoryName("");
     
-    toast.success(`${getCategoryLevelName(level)} "${newCategory.name}" adicionado com sucesso`);
+    // Refresh the categories immediately after saving
+    const refreshCategories = () => {
+      const storedCategories = localStorage.getItem('categories');
+      if (storedCategories) {
+        const allCategories = JSON.parse(storedCategories) as TransactionCategory[];
+        
+        const mainCats = allCategories.filter(cat => cat.level === 2 && cat.type === type);
+        setMainCategories(mainCats);
+        
+        if (parentId && level > 2) {
+          const subCats = allCategories.filter(cat => cat.parentId === parentId);
+          setSubcategories(subCats);
+        }
+      }
+    };
+    
+    // Small delay to ensure local storage is updated
+    setTimeout(refreshCategories, 100);
+    
+    toast.success(`${getCategoryLevelName(level)} "${categoryName}" adicionado com sucesso`);
   };
   
   const getCategoryLevelName = (level: number): string => {
