@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   BarChart3, 
@@ -38,7 +37,8 @@ import {
   monthlyData, 
   yearlyData, 
   flattenedCategories,
-  Transaction
+  Transaction,
+  TransactionCategory
 } from "@/utils/mockData";
 import { 
   formatCurrency, 
@@ -56,7 +56,6 @@ const Dashboard = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [openClearDialog, setOpenClearDialog] = useState(false);
   
-  // Load transactions from localStorage if available
   useEffect(() => {
     const storedTransactions = localStorage.getItem('transactions');
     if (storedTransactions) {
@@ -73,7 +72,6 @@ const Dashboard = () => {
     }
   }, []);
   
-  // Get current month and year data - com valores zerados para não mostrar dados
   const emptySummary = {
     income: 0,
     expense: 0,
@@ -83,12 +81,10 @@ const Dashboard = () => {
     savingsRate: 0
   };
   
-  // Função para obter categoria pelo ID
   const getCategoryById = (categoryId: string) => {
     return categories.find(cat => cat.id === categoryId);
   };
   
-  // Table columns definition
   const transactionColumns = [
     {
       id: "date",
@@ -163,6 +159,26 @@ const Dashboard = () => {
     toast.success("Todos os dados foram apagados com sucesso!");
   };
 
+  const handleSaveCategory = (category: Partial<TransactionCategory>) => {
+    const newCategory: TransactionCategory = {
+      id: `${category.type}-${Date.now()}`,
+      name: category.name || "",
+      type: category.type || "expense",
+      level: category.level || 1,
+      parentId: category.parentId,
+    };
+
+    const storedCategories = localStorage.getItem('categories');
+    const existingCategories = storedCategories ? JSON.parse(storedCategories) : [];
+    
+    const updatedCategories = [...existingCategories, newCategory];
+    
+    localStorage.setItem('categories', JSON.stringify(updatedCategories));
+    setCategories(updatedCategories);
+    
+    toast.success("Categoria adicionada com sucesso");
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
@@ -194,7 +210,7 @@ const Dashboard = () => {
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px]">
-              <CategoryForm />
+              <CategoryForm onSave={handleSaveCategory} />
             </DialogContent>
           </Dialog>
           
