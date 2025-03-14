@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
@@ -25,18 +26,35 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
   const [subcategories, setSubcategories] = useState<TransactionCategory[]>([]);
   const [items, setItems] = useState<TransactionCategory[]>([]);
   
+  // Effect to filter and set categories based on current selections
   useEffect(() => {
-    const mainCats = categoryList.filter(cat => cat.level === 2 && cat.type === type);
+    console.log("Filtering categories for level", level, "and type", type);
+    console.log("Current categoryList:", categoryList);
+    
+    // Filter level 2 categories (main categories)
+    const mainCats = categoryList.filter(cat => 
+      cat.level === 2 && cat.type === type
+    );
+    console.log("Filtered main categories:", mainCats);
     setMainCategories(mainCats);
     
+    // If a parent is selected, filter subcategories appropriately
     if (parentId) {
+      console.log("Filtering subcategories for parentId:", parentId);
+      
       if (level === 3) {
-        const subCats = categoryList.filter(cat => cat.parentId === parentId);
+        const subCats = categoryList.filter(cat => 
+          cat.parentId === parentId
+        );
+        console.log("Filtered subcategories:", subCats);
         setSubcategories(subCats);
       }
       
       if (level === 4) {
-        const categoryItems = categoryList.filter(cat => cat.parentId === parentId);
+        const categoryItems = categoryList.filter(cat => 
+          cat.parentId === parentId
+        );
+        console.log("Filtered items:", categoryItems);
         setItems(categoryItems);
       }
     }
@@ -57,10 +75,17 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
     };
     
     if (level > 2) {
+      if (!parentId) {
+        toast.error(`Selecione uma ${level === 3 ? "categoria principal" : "subcategoria"}`);
+        return;
+      }
       newCategory.parentId = parentId;
     }
     
+    console.log("Submitting new category:", newCategory);
     onSave(newCategory);
+    
+    // Reset form after save
     setCategoryName("");
     
     toast.success(`${getCategoryLevelName(level)} "${categoryName}" adicionado com sucesso`);
