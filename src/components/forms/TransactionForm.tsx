@@ -62,17 +62,17 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
     e.preventDefault();
     
     if (!formData.description) {
-      toast.error("Please enter a description");
+      toast.error("Por favor, insira uma descrição");
       return;
     }
     
     if (!formData.amount || formData.amount <= 0) {
-      toast.error("Please enter a valid amount");
+      toast.error("Por favor, insira um valor válido");
       return;
     }
     
     if (!formData.categoryId) {
-      toast.error("Please select a category");
+      toast.error("Por favor, selecione uma categoria");
       return;
     }
     
@@ -90,7 +90,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
         });
       }
       
-      toast.success(transaction ? "Transaction updated" : "Transaction added");
+      toast.success(transaction ? "Transação atualizada" : "Transação adicionada");
     }
   };
 
@@ -99,41 +99,49 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
     (category) => category.type === formData.type
   );
 
+  // Tipos de transações em português
+  const typeLabels = {
+    income: "Receita",
+    expense: "Despesa",
+    savings: "Poupança",
+    investment: "Investimento"
+  };
+
   return (
     <Card className={cn("animate-fade-in-up", className)}>
       <CardHeader>
         <CardTitle className="text-lg">
-          {transaction ? "Edit Transaction" : "Add New Transaction"}
+          {transaction ? "Editar Transação" : "Adicionar Nova Transação"}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4">
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Descrição</Label>
               <Input
                 id="description"
-                placeholder="Enter description"
+                placeholder="Introduza a descrição"
                 value={formData.description}
                 onChange={(e) => handleChange("description", e.target.value)}
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount</Label>
+              <Label htmlFor="amount">Valor</Label>
               <Input
                 id="amount"
                 type="number"
                 step="0.01"
                 min="0"
-                placeholder="0.00"
+                placeholder="0,00"
                 value={formData.amount || ""}
                 onChange={(e) => handleChange("amount", parseFloat(e.target.value) || 0)}
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date">Data</Label>
               <Input
                 id="date"
                 type="date"
@@ -143,7 +151,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="type">Transaction Type</Label>
+              <Label htmlFor="type">Tipo de Transação</Label>
               <Select
                 value={formData.type}
                 onValueChange={(value) => 
@@ -151,25 +159,25 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="income">Income</SelectItem>
-                  <SelectItem value="expense">Expense</SelectItem>
-                  <SelectItem value="savings">Savings</SelectItem>
-                  <SelectItem value="investment">Investment</SelectItem>
+                  <SelectItem value="income">Receita</SelectItem>
+                  <SelectItem value="expense">Despesa</SelectItem>
+                  <SelectItem value="savings">Poupança</SelectItem>
+                  <SelectItem value="investment">Investimento</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">Categoria</Label>
               <Select
                 value={formData.categoryId}
                 onValueChange={(value) => handleChange("categoryId", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="Selecione a categoria" />
                 </SelectTrigger>
                 <SelectContent>
                   {filteredCategories.map((category) => (
@@ -210,11 +218,11 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
               }}
             >
               <X className="h-4 w-4 mr-2" />
-              Reset
+              Limpar
             </Button>
             <Button type="submit">
               <Save className="h-4 w-4 mr-2" />
-              {transaction ? "Update" : "Add"} Transaction
+              {transaction ? "Atualizar" : "Adicionar"} Transação
             </Button>
           </div>
         </form>

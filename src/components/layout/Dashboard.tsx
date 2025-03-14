@@ -94,7 +94,7 @@ const Dashboard = () => {
   const transactionColumns = [
     {
       id: "date",
-      header: "Date",
+      header: "Data",
       accessorFn: (row: Transaction) => (
         <span>{new Date(row.date).toLocaleDateString("pt-PT")}</span>
       ),
@@ -102,7 +102,7 @@ const Dashboard = () => {
     },
     {
       id: "description",
-      header: "Description",
+      header: "Descrição",
       accessorFn: (row: Transaction) => (
         <span className="font-medium">{row.description}</span>
       ),
@@ -110,16 +110,16 @@ const Dashboard = () => {
     },
     {
       id: "category",
-      header: "Category",
+      header: "Categoria",
       accessorFn: (row: Transaction) => {
         const category = getCategoryById(row.categoryId);
-        return <span>{category?.name || "Uncategorized"}</span>;
+        return <span>{category?.name || "Sem Categoria"}</span>;
       },
       sortable: true
     },
     {
       id: "type",
-      header: "Type",
+      header: "Tipo",
       accessorFn: (row: Transaction) => {
         const badgeClasses = {
           income: "bg-finance-income/10 text-finance-income border-finance-income/20",
@@ -128,9 +128,16 @@ const Dashboard = () => {
           investment: "bg-finance-investment/10 text-finance-investment border-finance-investment/20"
         };
         
+        const typeNames = {
+          income: "Receita",
+          expense: "Despesa",
+          savings: "Poupança",
+          investment: "Investimento"
+        };
+        
         return (
           <span className={`px-2 py-1 rounded-full text-xs font-medium border ${badgeClasses[row.type]}`}>
-            {row.type.charAt(0).toUpperCase() + row.type.slice(1)}
+            {typeNames[row.type]}
           </span>
         );
       },
@@ -138,7 +145,7 @@ const Dashboard = () => {
     },
     {
       id: "amount",
-      header: "Amount",
+      header: "Valor",
       accessorFn: (row: Transaction) => (
         <span className="font-semibold tabular-nums">
           {formatCurrency(row.amount)}
@@ -153,9 +160,9 @@ const Dashboard = () => {
     <div className="container mx-auto px-4 py-8 pt-24">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold animate-fade-in-up">Dashboard</h1>
+          <h1 className="text-3xl font-bold animate-fade-in-up">Painel</h1>
           <p className="text-muted-foreground mt-1 animate-fade-in-up animation-delay-100">
-            Overview of your financial data
+            Visão geral dos seus dados financeiros
           </p>
         </div>
         
@@ -164,7 +171,7 @@ const Dashboard = () => {
             <DialogTrigger asChild>
               <Button className="animate-fade-in-up animation-delay-200">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Transaction
+                Adicionar Transação
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px]">
@@ -176,7 +183,7 @@ const Dashboard = () => {
             <DialogTrigger asChild>
               <Button variant="outline" className="animate-fade-in-up animation-delay-300">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Category
+                Adicionar Categoria
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px]">
@@ -191,7 +198,7 @@ const Dashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <CardDescription>Income</CardDescription>
+                <CardDescription>Receitas</CardDescription>
                 <div className="text-2xl font-bold mt-2">
                   <AnimatedNumber 
                     value={monthlySummary.income} 
@@ -199,7 +206,7 @@ const Dashboard = () => {
                   />
                 </div>
                 <CardDescription className="mt-1">
-                  This month
+                  Este mês
                 </CardDescription>
               </div>
               <div className="h-12 w-12 rounded-full bg-finance-income/10 flex items-center justify-center">
@@ -213,7 +220,7 @@ const Dashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <CardDescription>Expenses</CardDescription>
+                <CardDescription>Despesas</CardDescription>
                 <div className="text-2xl font-bold mt-2">
                   <AnimatedNumber 
                     value={monthlySummary.expense} 
@@ -221,7 +228,7 @@ const Dashboard = () => {
                   />
                 </div>
                 <CardDescription className="mt-1">
-                  This month
+                  Este mês
                 </CardDescription>
               </div>
               <div className="h-12 w-12 rounded-full bg-finance-expense/10 flex items-center justify-center">
@@ -235,7 +242,7 @@ const Dashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <CardDescription>Savings</CardDescription>
+                <CardDescription>Poupanças</CardDescription>
                 <div className="text-2xl font-bold mt-2">
                   <AnimatedNumber 
                     value={monthlySummary.savings} 
@@ -243,7 +250,7 @@ const Dashboard = () => {
                   />
                 </div>
                 <CardDescription className="mt-1">
-                  This month
+                  Este mês
                 </CardDescription>
               </div>
               <div className="h-12 w-12 rounded-full bg-finance-savings/10 flex items-center justify-center">
@@ -257,7 +264,7 @@ const Dashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <CardDescription>Investments</CardDescription>
+                <CardDescription>Investimentos</CardDescription>
                 <div className="text-2xl font-bold mt-2">
                   <AnimatedNumber 
                     value={monthlySummary.investment} 
@@ -265,7 +272,7 @@ const Dashboard = () => {
                   />
                 </div>
                 <CardDescription className="mt-1">
-                  This month
+                  Este mês
                 </CardDescription>
               </div>
               <div className="h-12 w-12 rounded-full bg-finance-investment/10 flex items-center justify-center">
@@ -279,7 +286,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         <Card className="lg:col-span-2 animate-fade-in-up animation-delay-500" glassEffect>
           <CardHeader>
-            <CardTitle>Monthly Summary</CardTitle>
+            <CardTitle>Resumo Mensal</CardTitle>
             <div className="flex items-center justify-between">
               <CardDescription>
                 {getMonthName(selectedMonth)} {selectedYear}
@@ -290,7 +297,7 @@ const Dashboard = () => {
                   onValueChange={(value) => setSelectedMonth(parseInt(value))}
                 >
                   <SelectTrigger className="w-[120px]">
-                    <SelectValue placeholder="Month" />
+                    <SelectValue placeholder="Mês" />
                   </SelectTrigger>
                   <SelectContent>
                     {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
@@ -306,7 +313,7 @@ const Dashboard = () => {
                   onValueChange={(value) => setSelectedYear(parseInt(value))}
                 >
                   <SelectTrigger className="w-[100px]">
-                    <SelectValue placeholder="Year" />
+                    <SelectValue placeholder="Ano" />
                   </SelectTrigger>
                   <SelectContent>
                     {[2023, 2024].map((year) => (
@@ -323,7 +330,7 @@ const Dashboard = () => {
             <div className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <CardDescription>Balance</CardDescription>
+                  <CardDescription>Saldo</CardDescription>
                   <div className="text-3xl font-bold tabular-nums">
                     <AnimatedNumber 
                       value={monthlySummary.balance} 
@@ -333,7 +340,7 @@ const Dashboard = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <CardDescription>Savings Rate</CardDescription>
+                  <CardDescription>Taxa de Poupança</CardDescription>
                   <div className="text-3xl font-bold tabular-nums">
                     <AnimatedNumber 
                       value={monthlySummary.savingsRate} 
@@ -343,7 +350,7 @@ const Dashboard = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <CardDescription>Yearly Projection</CardDescription>
+                  <CardDescription>Projeção Anual</CardDescription>
                   <div className="text-3xl font-bold tabular-nums">
                     <AnimatedNumber 
                       value={monthlySummary.balance * 12} 
@@ -362,7 +369,7 @@ const Dashboard = () => {
         
         <Card className="animate-fade-in-up animation-delay-600" glassEffect>
           <CardHeader>
-            <CardTitle>Yearly Summary</CardTitle>
+            <CardTitle>Resumo Anual</CardTitle>
             <CardDescription>{selectedYear}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -370,7 +377,7 @@ const Dashboard = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <CardDescription>Income</CardDescription>
+                    <CardDescription>Receitas</CardDescription>
                     <span className="text-sm font-medium text-finance-income">
                       {formatCurrency(yearlySummary.income)}
                     </span>
@@ -385,7 +392,7 @@ const Dashboard = () => {
                 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <CardDescription>Expenses</CardDescription>
+                    <CardDescription>Despesas</CardDescription>
                     <span className="text-sm font-medium text-finance-expense">
                       {formatCurrency(yearlySummary.expense)}
                     </span>
@@ -404,7 +411,7 @@ const Dashboard = () => {
                 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <CardDescription>Savings</CardDescription>
+                    <CardDescription>Poupanças</CardDescription>
                     <span className="text-sm font-medium text-finance-savings">
                       {formatCurrency(yearlySummary.savings)}
                     </span>
@@ -423,7 +430,7 @@ const Dashboard = () => {
                 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <CardDescription>Investments</CardDescription>
+                    <CardDescription>Investimentos</CardDescription>
                     <span className="text-sm font-medium text-finance-investment">
                       {formatCurrency(yearlySummary.investment)}
                     </span>
@@ -445,7 +452,7 @@ const Dashboard = () => {
               
               <div className="space-y-4">
                 <div>
-                  <CardDescription>Balance</CardDescription>
+                  <CardDescription>Saldo</CardDescription>
                   <div className="text-3xl font-bold tabular-nums mt-1">
                     <AnimatedNumber 
                       value={yearlySummary.balance} 
@@ -455,7 +462,7 @@ const Dashboard = () => {
                 </div>
                 
                 <div>
-                  <CardDescription>Savings Rate</CardDescription>
+                  <CardDescription>Taxa de Poupança</CardDescription>
                   <div className="text-3xl font-bold tabular-nums mt-1">
                     <AnimatedNumber 
                       value={yearlySummary.savingsRate} 
@@ -474,8 +481,8 @@ const Dashboard = () => {
         
         <Card className="animate-fade-in-up animation-delay-800">
           <CardHeader>
-            <CardTitle>Categories</CardTitle>
-            <CardDescription>Top-level categories</CardDescription>
+            <CardTitle>Categorias</CardTitle>
+            <CardDescription>Categorias de topo</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -486,7 +493,10 @@ const Dashboard = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-medium">{category.name}</span>
                       <span className="text-xs text-muted-foreground capitalize">
-                        {category.type}
+                        {category.type === "income" ? "receita" : 
+                         category.type === "expense" ? "despesa" : 
+                         category.type === "savings" ? "poupança" : 
+                         "investimento"}
                       </span>
                     </div>
                     <div 
@@ -502,7 +512,7 @@ const Dashboard = () => {
           <CardFooter>
             <Button variant="outline" className="w-full">
               <Plus className="h-4 w-4 mr-2" />
-              Manage Categories
+              Gerir Categorias
             </Button>
           </CardFooter>
         </Card>
@@ -512,12 +522,12 @@ const Dashboard = () => {
         <Tabs defaultValue="recent">
           <div className="flex justify-between items-center mb-4">
             <TabsList>
-              <TabsTrigger value="recent">Recent Transactions</TabsTrigger>
-              <TabsTrigger value="all">All Transactions</TabsTrigger>
+              <TabsTrigger value="recent">Transações Recentes</TabsTrigger>
+              <TabsTrigger value="all">Todas as Transações</TabsTrigger>
             </TabsList>
             <Button size="sm">
               <CircleDollarSign className="h-4 w-4 mr-2" />
-              Export Data
+              Exportar Dados
             </Button>
           </div>
           

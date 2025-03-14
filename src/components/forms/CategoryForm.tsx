@@ -48,7 +48,7 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
     e.preventDefault();
     
     if (!formData.name) {
-      toast.error("Please enter a category name");
+      toast.error("Por favor, insira um nome para a categoria");
       return;
     }
     
@@ -63,7 +63,7 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
         level: 1
       });
       
-      toast.success("Category saved successfully");
+      toast.success("Categoria guardada com sucesso");
     }
   };
 
@@ -80,28 +80,36 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
     return c.level < 4;
   });
 
+  // Tipos de categorias em português
+  const typeLabels = {
+    income: "Receita",
+    expense: "Despesa",
+    savings: "Poupança",
+    investment: "Investimento"
+  };
+
   return (
     <Card className={cn("animate-fade-in-up", className)}>
       <CardHeader>
         <CardTitle className="text-lg">
-          {category ? "Edit Category" : "Add New Category"}
+          {category ? "Editar Categoria" : "Adicionar Nova Categoria"}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Category Name</Label>
+              <Label htmlFor="name">Nome da Categoria</Label>
               <Input
                 id="name"
-                placeholder="Enter category name"
+                placeholder="Introduza o nome da categoria"
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
               />
             </div>
             
             <div className="space-y-2">
-              <Label>Category Type</Label>
+              <Label>Tipo de Categoria</Label>
               <RadioGroup
                 value={formData.type}
                 onValueChange={(value) => handleChange("type", value)}
@@ -109,44 +117,44 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="income" id="income" />
-                  <Label htmlFor="income" className="cursor-pointer">Income</Label>
+                  <Label htmlFor="income" className="cursor-pointer">Receita</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="expense" id="expense" />
-                  <Label htmlFor="expense" className="cursor-pointer">Expense</Label>
+                  <Label htmlFor="expense" className="cursor-pointer">Despesa</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="savings" id="savings" />
-                  <Label htmlFor="savings" className="cursor-pointer">Savings</Label>
+                  <Label htmlFor="savings" className="cursor-pointer">Poupança</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="investment" id="investment" />
-                  <Label htmlFor="investment" className="cursor-pointer">Investment</Label>
+                  <Label htmlFor="investment" className="cursor-pointer">Investimento</Label>
                 </div>
               </RadioGroup>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="parent">Parent Category</Label>
+              <Label htmlFor="parent">Categoria Principal</Label>
               <Select
                 value={formData.parentId || "none"}
                 onValueChange={(value) => handleChange("parentId", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="None (Top Level)" />
+                  <SelectValue placeholder="Nenhuma (Nível Superior)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None (Top Level)</SelectItem>
+                  <SelectItem value="none">Nenhuma (Nível Superior)</SelectItem>
                   <Separator className="my-2" />
                   {potentialParents.map((parent) => (
                     <SelectItem key={parent.id} value={parent.id}>
-                      {parent.name} {parent.level > 1 ? `(Level ${parent.level})` : ""}
+                      {parent.name} {parent.level > 1 ? `(Nível ${parent.level})` : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
-                Current level: {formData.level} (Max: 4)
+                Nível atual: {formData.level} (Máx: 4)
               </p>
             </div>
           </div>
@@ -165,11 +173,11 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
               }}
             >
               <X className="h-4 w-4 mr-2" />
-              Reset
+              Limpar
             </Button>
             <Button type="submit">
               <PlusCircle className="h-4 w-4 mr-2" />
-              {category ? "Update" : "Add"} Category
+              {category ? "Atualizar" : "Adicionar"} Categoria
             </Button>
           </div>
         </form>
