@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PlusCircle, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { TransactionCategory, flattenedCategories } from "@/utils/mockData";
+import { TransactionCategory } from "@/utils/mockData";
 import { toast } from "sonner";
 
 interface CategoryFormProps {
@@ -23,14 +23,23 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
     name: category?.name || "",
     type: category?.type || "expense",
     parentId: category?.parentId || undefined,
-    level: category?.parentId ? 
-      (flattenedCategories.find(c => c.id === category.parentId)?.level || 0) + 1 : 
-      1
+    level: category?.parentId ? 0 : 1 // Será calculado quando o parentId for selecionado
   });
+  
+  const [availableCategories, setAvailableCategories] = useState<TransactionCategory[]>([]);
+  
+  useEffect(() => {
+    // Carregar as categorias disponíveis do localStorage
+    const storedCategories = localStorage.getItem('categories');
+    if (storedCategories) {
+      const parsedCategories = JSON.parse(storedCategories);
+      setAvailableCategories(parsedCategories);
+    }
+  }, []);
 
   const handleChange = (field: string, value: string) => {
     if (field === "parentId") {
-      const parentCategory = flattenedCategories.find(c => c.id === value);
+      const parentCategory = availableCategories.find(c => c.id === value);
       setFormData({
         ...formData,
         [field]: value === "none" ? undefined : value,
@@ -69,7 +78,7 @@ const CategoryForm = ({ onSave, category, className }: CategoryFormProps) => {
 
   // Filter potential parent categories
   // Cannot be a child of itself, and cannot be a child of a category that would create too deep nesting
-  const potentialParents = flattenedCategories.filter(c => {
+  const potentialParents = availableCategories.filter(c => {
     // Different category
     if (category && c.id === category.id) return false;
     
