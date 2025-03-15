@@ -235,13 +235,10 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                     onSelect={(date) => date && setSelectedDate(date)}
                     initialFocus
                     className="pointer-events-auto"
-                    // Remova displayMode que estava causando erro
                     showOutsideDays={false}
                     captionLayout="dropdown-buttons"
                     fromYear={2020}
                     toYear={2030}
-                    // Usar view para mostrar apenas mês/ano
-                    view="month"
                   />
                 </PopoverContent>
               </Popover>
