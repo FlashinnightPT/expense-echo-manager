@@ -17,6 +17,7 @@ import { formatCurrency } from "@/utils/financialCalculations";
 interface YearlyChartProps {
   data: YearlyData[];
   className?: string;
+  showValues?: boolean;
 }
 
 interface ChartDataPoint {
@@ -25,7 +26,7 @@ interface ChartDataPoint {
   Expenses: number;
 }
 
-const YearlyChart = ({ data, className }: YearlyChartProps) => {
+const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) => {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [isClient, setIsClient] = useState(false);
 
@@ -60,7 +61,7 @@ const YearlyChart = ({ data, className }: YearlyChartProps) => {
           <p className="font-medium">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={`item-${index}`} style={{ color: entry.color }} className="text-sm">
-              {`${entry.name}: ${formatCurrency(entry.value)}`}
+              {`${entry.name}: ${showValues ? formatCurrency(entry.value) : "•••••••"}`}
             </p>
           ))}
         </div>
@@ -91,7 +92,7 @@ const YearlyChart = ({ data, className }: YearlyChartProps) => {
               <YAxis 
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(value) => `${value}€`}
+                tickFormatter={(value) => showValues ? `${value}€` : "•••"}
                 dx={-10}
               />
               <Tooltip content={<CustomTooltip />} />

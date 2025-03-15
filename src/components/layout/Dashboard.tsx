@@ -86,7 +86,8 @@ const Painel = () => {
         />
         
         <YearlyChartSection 
-          yearlyChartData={yearlyChartData} 
+          yearlyChartData={yearlyChartData}
+          showValues={showValues}
         />
         
         <TransactionsSection 

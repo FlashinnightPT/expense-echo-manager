@@ -23,9 +23,13 @@ interface ComparisonBarChartProps {
     categoryId: string;
     fill: string;
   }[];
+  showValues?: boolean;
 }
 
-const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ chartData }) => {
+const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ 
+  chartData,
+  showValues = true
+}) => {
   if (!chartData || chartData.length === 0) return null;
 
   // Create a config object for the chart with proper typing
@@ -49,7 +53,7 @@ const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ chartData }) =>
           <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
           <XAxis 
             type="number" 
-            tickFormatter={(value) => `€${value}`}
+            tickFormatter={(value) => showValues ? `€${value}` : "•••"}
           />
           <YAxis 
             dataKey="category" 
@@ -61,7 +65,7 @@ const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ chartData }) =>
             content={
               <ChartTooltipContent 
                 formatter={(value) => [
-                  `${formatCurrency(value as number)}`,
+                  `${showValues ? formatCurrency(value as number) : "•••••••"}`,
                   "Valor"
                 ]}
               />

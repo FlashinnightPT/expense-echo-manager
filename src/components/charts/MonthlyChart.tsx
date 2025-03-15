@@ -18,6 +18,7 @@ interface MonthlyChartProps {
   data: MonthlyData[];
   year: number;
   className?: string;
+  showValues?: boolean;
 }
 
 interface ChartDataPoint {
@@ -26,7 +27,7 @@ interface ChartDataPoint {
   Expenses: number;
 }
 
-const MonthlyChart = ({ data, year, className }: MonthlyChartProps) => {
+const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChartProps) => {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [isClient, setIsClient] = useState(false);
 
@@ -81,7 +82,7 @@ const MonthlyChart = ({ data, year, className }: MonthlyChartProps) => {
           <p className="font-medium">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={`item-${index}`} style={{ color: entry.color }} className="text-sm">
-              {`${entry.name}: ${formatCurrency(entry.value)}`}
+              {`${entry.name}: ${showValues ? formatCurrency(entry.value) : "•••••••"}`}
             </p>
           ))}
         </div>
@@ -112,7 +113,7 @@ const MonthlyChart = ({ data, year, className }: MonthlyChartProps) => {
               <YAxis 
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(value) => `${value}€`}
+                tickFormatter={(value) => showValues ? `${value}€` : "•••"}
                 dx={-10}
               />
               <Tooltip content={<CustomTooltip />} />
