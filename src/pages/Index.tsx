@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import Dashboard from "@/components/layout/Dashboard";
+import Painel from "@/components/layout/Dashboard";
 
 const Index = () => {
   // Smooth loading animation
@@ -18,7 +18,7 @@ const Index = () => {
   }, []);
 
   return (
-    <Dashboard />
+    <Painel />
   );
 };
 

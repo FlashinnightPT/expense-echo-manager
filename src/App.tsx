@@ -12,7 +12,7 @@ import Header from "@/components/layout/Header";
 
 // Páginas principais
 import Index from "@/pages/Index";
-const Dashboard = lazy(() => import("@/components/layout/Dashboard"));
+const Painel = lazy(() => import("@/components/layout/Dashboard"));
 const Monthly = lazy(() => import("@/pages/Monthly"));
 const Yearly = lazy(() => import("@/pages/Yearly"));
 const Categories = lazy(() => import("@/pages/Categories"));
@@ -42,7 +42,7 @@ function App() {
               path="/dashboard" 
               element={
                 <RequireAuth>
-                  <Dashboard />
+                  <Painel />
                 </RequireAuth>
               } 
             />

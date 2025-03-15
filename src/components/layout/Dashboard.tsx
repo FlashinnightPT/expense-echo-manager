@@ -10,7 +10,7 @@ import ChartsSection from "@/components/dashboard/sections/ChartsSection";
 import YearlyChartSection from "@/components/dashboard/sections/YearlyChartSection";
 import TransactionsSection from "@/components/dashboard/sections/TransactionsSection";
 
-const Dashboard = () => {
+const Painel = () => {
   const { canEdit } = useAuth();
   const [showValues, setShowValues] = useState(false);
   
@@ -102,4 +102,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Painel;

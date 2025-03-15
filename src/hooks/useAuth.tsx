@@ -1,6 +1,7 @@
-
 import { useEffect, useState, createContext, useContext, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import { useIdleTimer } from "./useIdleTimer";
+import { toast } from "sonner";
 
 // Tipos
 export type UserRole = "editor" | "viewer";
@@ -23,10 +24,34 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Definição do tempo para logout automático (em milissegundos)
+const IDLE_TIMEOUT = 3 * 60 * 1000; // 3 minutos
+const WARNING_TIME = 30 * 1000; // 30 segundos
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+
+  // Função de logout
+  const logout = () => {
+    sessionStorage.removeItem("current_user");
+    setUser(null);
+    setIsAuthenticated(false);
+    navigate("/login");
+  };
+
+  // Configuração do idle timer
+  const { isIdle } = useIdleTimer({
+    timeout: IDLE_TIMEOUT,
+    warningTime: WARNING_TIME,
+    onIdle: () => {
+      toast.error("Sessão terminada por inatividade", {
+        duration: 5000
+      });
+      logout();
+    }
+  });
 
   useEffect(() => {
     // Verificar se existem utilizadores e criar um utilizador padrão se não existir nenhum
@@ -92,9 +117,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const login = async (username: string, password: string): Promise<boolean> => {
-    // Numa aplicação real, faria uma chamada API para autenticar
-    // Esta é apenas uma simulação para fins de demonstração
-    
     try {
       // Buscar utilizadores do localStorage
       const savedUsers = localStorage.getItem("app_users");
@@ -155,13 +177,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Erro no login:", error);
       return false;
     }
-  };
-
-  const logout = () => {
-    sessionStorage.removeItem("current_user");
-    setUser(null);
-    setIsAuthenticated(false);
-    navigate("/login");
   };
 
   // Verificar se o utilizador tem permissões de edição
