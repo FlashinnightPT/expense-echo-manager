@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useDashboardData } from "@/components/dashboard/hooks/useDashboardData";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import SummaryCards from "@/components/dashboard/SummaryCards";
 import Header from "@/components/layout/Header";
 import { useAuth } from "@/hooks/useAuth";
 import { useTransactionHandlers } from "@/components/dashboard/hooks/useTransactionHandlers";
@@ -68,11 +67,6 @@ const Painel = () => {
           onToggleShowValues={toggleShowValues}
         />
         
-        <SummaryCards 
-          monthlySummary={monthlySummary} 
-          showValues={showValues}
-        />
-
         <ChartsSection 
           monthlySummary={monthlySummary}
           yearlySummary={yearlySummary}
