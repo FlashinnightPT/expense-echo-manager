@@ -3,23 +3,46 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
 import { TransactionCategory } from "@/utils/mockData";
-import { ChevronDown, ChevronRight, Folder, FolderOpen, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Edit, Folder, FolderOpen, Trash2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { EditCategoryDialog } from "./EditCategoryDialog";
 
 interface CategoryListProps {
   categoryList: TransactionCategory[];
   handleDeleteCategory: (categoryId: string) => void;
+  updateCategoryName: (categoryId: string, newName: string) => boolean;
+  moveCategory: (categoryId: string, newParentId: string | null) => boolean;
 }
 
-const CategoryList = ({ categoryList, handleDeleteCategory }: CategoryListProps) => {
+const CategoryList = ({ 
+  categoryList, 
+  handleDeleteCategory,
+  updateCategoryName,
+  moveCategory
+}: CategoryListProps) => {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [editingCategory, setEditingCategory] = useState<TransactionCategory | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const toggleCategoryExpansion = (categoryId: string) => {
     setExpandedCategories(prev => ({
       ...prev,
       [categoryId]: !prev[categoryId]
     }));
+  };
+
+  const openEditDialog = (category: TransactionCategory) => {
+    setEditingCategory(category);
+    setEditDialogOpen(true);
+  };
+
+  const handleRename = (categoryId: string, newName: string) => {
+    updateCategoryName(categoryId, newName);
+  };
+
+  const handleMove = (categoryId: string, newParentId: string | null) => {
+    moveCategory(categoryId, newParentId);
   };
 
   const renderCategoriesByType = (type: string) => {
@@ -71,18 +94,32 @@ const CategoryList = ({ categoryList, handleDeleteCategory }: CategoryListProps)
                 <p className="text-xs text-muted-foreground">Nível {category.level}</p>
               </div>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 text-destructive hover:bg-destructive/10"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteCategory(category.id);
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Apagar categoria</span>
-            </Button>
+            <div className="flex">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-primary hover:bg-primary/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openEditDialog(category);
+                }}
+              >
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">Editar categoria</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteCategory(category.id);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Apagar categoria</span>
+              </Button>
+            </div>
           </div>
           
           {children.length > 0 && (
@@ -124,6 +161,15 @@ const CategoryList = ({ categoryList, handleDeleteCategory }: CategoryListProps)
             ))}
           </div>
         )}
+
+        <EditCategoryDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          category={editingCategory}
+          categories={categoryList}
+          onRename={handleRename}
+          onMove={handleMove}
+        />
       </CardContent>
     </Card>
   );

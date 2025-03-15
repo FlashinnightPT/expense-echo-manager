@@ -14,7 +14,9 @@ const Categories = () => {
     categoryList, 
     handleSaveCategory, 
     handleDeleteCategory,
-    confirmDeleteCategory
+    confirmDeleteCategory,
+    updateCategoryName,
+    moveCategory
   } = useCategoryData();
 
   const { 
@@ -69,6 +71,8 @@ const Categories = () => {
             <CategoryList 
               categoryList={categoryList}
               handleDeleteCategory={attemptCategoryDeletion}
+              updateCategoryName={updateCategoryName}
+              moveCategory={moveCategory}
             />
           </div>
         </div>

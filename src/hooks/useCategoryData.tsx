@@ -83,10 +83,93 @@ export const useCategoryData = () => {
     return true;
   };
 
+  const updateCategoryName = (categoryId: string, newName: string) => {
+    if (!newName.trim()) {
+      toast.error("O nome da categoria não pode estar vazio");
+      return false;
+    }
+
+    const updatedList = categoryList.map(cat => 
+      cat.id === categoryId ? { ...cat, name: newName } : cat
+    );
+    
+    setCategoryList(updatedList);
+    toast.success("Nome de categoria atualizado com sucesso");
+    return true;
+  };
+
+  const moveCategory = (categoryId: string, newParentId: string | null) => {
+    // Prevent moving to own child (would create circular reference)
+    if (newParentId) {
+      // Find all descendants of the category to move
+      const findAllDescendants = (catId: string): string[] => {
+        const children = categoryList.filter(c => c.parentId === catId).map(c => c.id);
+        return [
+          ...children,
+          ...children.flatMap(childId => findAllDescendants(childId))
+        ];
+      };
+      
+      const descendants = findAllDescendants(categoryId);
+      if (descendants.includes(newParentId)) {
+        toast.error("Não é possível mover uma categoria para uma das suas subcategorias");
+        return false;
+      }
+    }
+
+    // Get current category to determine new level
+    const categoryToMove = categoryList.find(cat => cat.id === categoryId);
+    if (!categoryToMove) return false;
+
+    // Get new parent to calculate new level
+    const newParent = newParentId ? categoryList.find(cat => cat.id === newParentId) : null;
+    const newLevel = newParent ? newParent.level + 1 : 2; // Level 2 if no parent
+
+    // Update the category and all its descendants
+    const updateCategoryAndDescendants = (cat: TransactionCategory, levelDiff: number): TransactionCategory => {
+      // If this is the category being moved, update its parentId and level
+      if (cat.id === categoryId) {
+        return {
+          ...cat,
+          parentId: newParentId || undefined,
+          level: newLevel
+        };
+      }
+      
+      // For descendants, just update their level
+      const isDescendant = (cId: string): boolean => {
+        const parent = categoryList.find(c => c.id === cId)?.parentId;
+        if (!parent) return false;
+        if (parent === categoryId) return true;
+        return isDescendant(parent);
+      };
+
+      if (isDescendant(cat.id)) {
+        return {
+          ...cat,
+          level: cat.level + levelDiff
+        };
+      }
+
+      return cat;
+    };
+
+    // Calculate level difference for updating descendants
+    const levelDiff = newLevel - categoryToMove.level;
+
+    const updatedList = categoryList.map(cat => updateCategoryAndDescendants(cat, levelDiff));
+    setCategoryList(updatedList);
+    
+    toast.success("Categoria movida com sucesso");
+    return true;
+  };
+
   return {
     categoryList,
     handleSaveCategory,
     handleDeleteCategory,
-    confirmDeleteCategory
+    confirmDeleteCategory,
+    updateCategoryName,
+    moveCategory
   };
 };
