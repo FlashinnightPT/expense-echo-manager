@@ -30,6 +30,7 @@ interface DataTableProps<T> {
   cardClassName?: string;
   tableClassName?: string;
   emptyMessage?: string;
+  onRowClick?: (row: T) => void;
 }
 
 const DataTable = <T extends Record<string, any>>({
@@ -42,6 +43,7 @@ const DataTable = <T extends Record<string, any>>({
   cardClassName,
   tableClassName,
   emptyMessage = "No data available",
+  onRowClick,
 }: DataTableProps<T>) => {
   const [sortBy, setSortBy] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -140,7 +142,11 @@ const DataTable = <T extends Record<string, any>>({
                 filteredData.map((row, rowIndex) => (
                   <TableRow 
                     key={rowIndex}
-                    className="transition-colors hover:bg-accent/50 data-[state=selected]:bg-muted"
+                    className={cn(
+                      "transition-colors hover:bg-accent/50 data-[state=selected]:bg-muted",
+                      onRowClick ? "cursor-pointer" : ""
+                    )}
+                    onClick={onRowClick ? () => onRowClick(row) : undefined}
                   >
                     {columns.map((column) => (
                       <TableCell key={column.id} className={column.className}>

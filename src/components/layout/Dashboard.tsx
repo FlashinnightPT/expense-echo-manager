@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { 
   BarChart3, 
@@ -105,6 +104,24 @@ const Dashboard = () => {
     return categories.find(cat => cat.id === categoryId);
   };
   
+  const getCategoryPath = (categoryId: string, categories: any[]) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    if (!category) return [];
+    
+    const path = [category.name];
+    let currentCategory = category;
+    
+    while (currentCategory.parentId) {
+      const parentCategory = categories.find(cat => cat.id === currentCategory.parentId);
+      if (!parentCategory) break;
+      
+      path.unshift(parentCategory.name);
+      currentCategory = parentCategory;
+    }
+    
+    return path;
+  };
+  
   const transactionColumns = [
     {
       id: "date",
@@ -127,7 +144,10 @@ const Dashboard = () => {
       header: "Categoria",
       accessorFn: (row: Transaction) => {
         const category = getCategoryById(row.categoryId);
-        return <span>{category?.name || "Sem Categoria"}</span>;
+        if (!category) return <span>Sem Categoria</span>;
+        
+        const path = getCategoryPath(row.categoryId, categories);
+        return <span>{path.join(' > ')}</span>;
       },
       sortable: true
     },
@@ -212,6 +232,63 @@ const Dashboard = () => {
     toast.success("Transação adicionada com sucesso");
   };
 
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(transaction => {
+      const transactionDate = new Date(transaction.date);
+      const transactionYear = transactionDate.getFullYear();
+      const transactionMonth = transactionDate.getMonth() + 1;
+      
+      return transactionYear === selectedYear && transactionMonth === selectedMonth;
+    });
+  }, [transactions, selectedYear, selectedMonth]);
+
+  const monthlySummary = useMemo(() => {
+    const income = filteredTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const expense = filteredTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const balance = income - expense;
+    const differenceRate = income > 0 ? ((income - expense) / income) * 100 : 0;
+    
+    return {
+      income,
+      expense,
+      balance,
+      differenceRate
+    };
+  }, [filteredTransactions]);
+
+  const yearlySummary = useMemo(() => {
+    const yearTransactions = transactions.filter(transaction => {
+      const transactionDate = new Date(transaction.date);
+      const transactionYear = transactionDate.getFullYear();
+      
+      return transactionYear === selectedYear;
+    });
+    
+    const income = yearTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const expense = yearTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const balance = income - expense;
+    const differenceRate = income > 0 ? ((income - expense) / income) * 100 : 0;
+    
+    return {
+      income,
+      expense,
+      balance,
+      differenceRate
+    };
+  }, [transactions, selectedYear]);
+
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
@@ -290,7 +367,7 @@ const Dashboard = () => {
                 <CardDescription>Receitas</CardDescription>
                 <div className="text-2xl font-bold mt-2">
                   <AnimatedNumber 
-                    value={0} 
+                    value={monthlySummary.income} 
                     formatter={(val) => formatCurrency(val)} 
                   />
                 </div>
@@ -312,7 +389,7 @@ const Dashboard = () => {
                 <CardDescription>Despesas</CardDescription>
                 <div className="text-2xl font-bold mt-2">
                   <AnimatedNumber 
-                    value={0} 
+                    value={monthlySummary.expense} 
                     formatter={(val) => formatCurrency(val)} 
                   />
                 </div>
@@ -378,7 +455,7 @@ const Dashboard = () => {
                   <CardDescription>Saldo</CardDescription>
                   <div className="text-3xl font-bold tabular-nums">
                     <AnimatedNumber 
-                      value={0} 
+                      value={monthlySummary.balance} 
                       formatter={(val) => formatCurrency(val)} 
                     />
                   </div>
@@ -388,7 +465,7 @@ const Dashboard = () => {
                   <CardDescription>Diferença</CardDescription>
                   <div className="text-3xl font-bold tabular-nums">
                     <AnimatedNumber 
-                      value={0} 
+                      value={monthlySummary.differenceRate} 
                       formatter={(val) => `${val.toFixed(1)}%`} 
                     />
                   </div>
@@ -398,7 +475,7 @@ const Dashboard = () => {
                   <CardDescription>Projeção Anual</CardDescription>
                   <div className="text-3xl font-bold tabular-nums">
                     <AnimatedNumber 
-                      value={0} 
+                      value={monthlySummary.balance * 12} 
                       formatter={(val) => formatCurrency(val)} 
                     />
                   </div>
@@ -407,7 +484,7 @@ const Dashboard = () => {
               
               <Separator />
               
-              <MonthlyChart data={[]} year={selectedYear} />
+              <MonthlyChart data={filteredTransactions} year={selectedYear} />
             </div>
           </CardContent>
         </Card>
@@ -424,13 +501,13 @@ const Dashboard = () => {
                   <div className="flex justify-between items-center">
                     <CardDescription>Receitas</CardDescription>
                     <span className="text-sm font-medium text-finance-income">
-                      {formatCurrency(0)}
+                      {formatCurrency(yearlySummary.income)}
                     </span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-finance-income rounded-full transition-all duration-500"
-                      style={{ width: '0%' }}
+                      style={{ width: `${yearlySummary.income > 0 ? (yearlySummary.income / Math.max(yearlySummary.income, yearlySummary.expense)) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
@@ -439,13 +516,13 @@ const Dashboard = () => {
                   <div className="flex justify-between items-center">
                     <CardDescription>Despesas</CardDescription>
                     <span className="text-sm font-medium text-finance-expense">
-                      {formatCurrency(0)}
+                      {formatCurrency(yearlySummary.expense)}
                     </span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-finance-expense rounded-full transition-all duration-500"
-                      style={{ width: '0%' }}
+                      style={{ width: `${yearlySummary.expense > 0 ? (yearlySummary.expense / Math.max(yearlySummary.income, yearlySummary.expense)) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
@@ -458,7 +535,7 @@ const Dashboard = () => {
                   <CardDescription>Saldo</CardDescription>
                   <div className="text-3xl font-bold tabular-nums mt-1">
                     <AnimatedNumber 
-                      value={0} 
+                      value={yearlySummary.balance} 
                       formatter={(val) => formatCurrency(val)} 
                     />
                   </div>
@@ -468,7 +545,7 @@ const Dashboard = () => {
                   <CardDescription>Diferença</CardDescription>
                   <div className="text-3xl font-bold tabular-nums mt-1">
                     <AnimatedNumber 
-                      value={0} 
+                      value={yearlySummary.differenceRate} 
                       formatter={(val) => `${val.toFixed(1)}%`} 
                     />
                   </div>
@@ -480,7 +557,7 @@ const Dashboard = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <YearlyChart data={[]} className="lg:col-span-3 animate-fade-in-up animation-delay-700" />
+        <YearlyChart data={transactions} className="lg:col-span-3 animate-fade-in-up animation-delay-700" />
       </div>
       
       <div className="animate-fade-in-up animation-delay-900">
@@ -501,6 +578,7 @@ const Dashboard = () => {
               data={transactions.slice(0, 5)}
               columns={transactionColumns}
               searchable
+              searchPlaceholder="Pesquisar..."
               cardClassName="animate-fade-in-up animation-delay-1000 glass"
               emptyMessage="Não há transações recentes"
             />
@@ -511,6 +589,7 @@ const Dashboard = () => {
               data={transactions}
               columns={transactionColumns}
               searchable
+              searchPlaceholder="Pesquisar..."
               cardClassName="animate-fade-in-up animation-delay-1000 glass"
               emptyMessage="Não há transações cadastradas"
             />
