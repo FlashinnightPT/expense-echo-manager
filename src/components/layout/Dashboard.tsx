@@ -1,5 +1,5 @@
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import YearlyChart from "@/components/charts/YearlyChart";
 import { useDashboardData } from "@/components/dashboard/hooks/useDashboardData";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -17,6 +17,21 @@ import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const { canEdit } = useAuth();
+  const [showValues, setShowValues] = useState(false);
+  
+  // Load preference from sessionStorage when component mounts
+  useEffect(() => {
+    const savedPreference = sessionStorage.getItem('showFinancialValues');
+    if (savedPreference) {
+      setShowValues(savedPreference === 'true');
+    }
+  }, []);
+  
+  // Update sessionStorage when preference changes
+  useEffect(() => {
+    sessionStorage.setItem('showFinancialValues', showValues.toString());
+  }, [showValues]);
+  
   const {
     selectedYear,
     selectedMonth,
@@ -34,6 +49,11 @@ const Dashboard = () => {
     getCategoryById,
     getCategoryPath,
   } = useDashboardData();
+
+  // Toggle the visibility of financial values
+  const toggleShowValues = () => {
+    setShowValues(prev => !prev);
+  };
 
   // Define toast handlers first before using them in the columns definition
   const handleSaveTransactionWithToast = (transaction: any) => {
@@ -111,7 +131,7 @@ const Dashboard = () => {
       header: "Valor",
       accessorFn: (row: Transaction) => (
         <span className="font-semibold tabular-nums">
-          {formatCurrency(row.amount)}
+          {showValues ? formatCurrency(row.amount) : "•••••••"}
         </span>
       ),
       sortable: true,
@@ -137,7 +157,7 @@ const Dashboard = () => {
         </div>
       )
     }] : [])
-  ], [getCategoryById, getCategoryPath, handleDeleteTransactionWithToast, canEdit]);
+  ], [getCategoryById, getCategoryPath, handleDeleteTransactionWithToast, canEdit, showValues]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -145,9 +165,14 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <DashboardHeader 
           onSaveTransaction={handleSaveTransactionWithToast}
+          showValues={showValues}
+          onToggleShowValues={toggleShowValues}
         />
         
-        <SummaryCards monthlySummary={monthlySummary} />
+        <SummaryCards 
+          monthlySummary={monthlySummary} 
+          showValues={showValues}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           <MonthlyOverview 
@@ -158,6 +183,7 @@ const Dashboard = () => {
             availableYears={availableYears}
             onMonthChange={setSelectedMonth}
             onYearChange={setSelectedYear}
+            showValues={showValues}
           />
           
           <YearlyOverview 

@@ -25,12 +25,14 @@ interface ComparisonTableProps {
   }[];
   totalAmount: number;
   onRemoveCategory: (categoryId: string) => void;
+  showValues: boolean;
 }
 
 const ComparisonTable: React.FC<ComparisonTableProps> = ({ 
   comparisonData, 
   totalAmount, 
-  onRemoveCategory 
+  onRemoveCategory,
+  showValues
 }) => {
   if (!comparisonData || comparisonData.length === 0) return null;
 
@@ -40,6 +42,8 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     const { start, end } = item.dateRange;
     return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
   };
+
+  const hiddenValue = "•••••••";
 
   return (
     <Table>
@@ -59,10 +63,10 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
               {item.path.split(" (")[0]} {/* Remove date range suffix if present */}
             </TableCell>
             <TableCell className="text-right tabular-nums">
-              {formatCurrency(item.amount)}
+              {showValues ? formatCurrency(item.amount) : hiddenValue}
             </TableCell>
             <TableCell className="text-right tabular-nums">
-              {totalAmount > 0 ? ((item.amount / totalAmount) * 100).toFixed(2) : 0}%
+              {showValues ? (totalAmount > 0 ? ((item.amount / totalAmount) * 100).toFixed(2) : 0) + "%" : hiddenValue}
             </TableCell>
             <TableCell className="text-sm">
               {formatDateRange(item)}
@@ -81,9 +85,11 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
         <TableRow className="font-bold">
           <TableCell>TOTAL</TableCell>
           <TableCell className="text-right tabular-nums">
-            {formatCurrency(totalAmount)}
+            {showValues ? formatCurrency(totalAmount) : hiddenValue}
           </TableCell>
-          <TableCell className="text-right tabular-nums">100%</TableCell>
+          <TableCell className="text-right tabular-nums">
+            {showValues ? "100%" : hiddenValue}
+          </TableCell>
           <TableCell></TableCell>
           <TableCell></TableCell>
         </TableRow>

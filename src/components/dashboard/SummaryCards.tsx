@@ -11,9 +11,12 @@ interface SummaryCardsProps {
     balance: number;
     differenceRate: number;
   };
+  showValues: boolean;
 }
 
-const SummaryCards = ({ monthlySummary }: SummaryCardsProps) => {
+const SummaryCards = ({ monthlySummary, showValues }: SummaryCardsProps) => {
+  const hiddenValue = "•••••••";
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
       <Card animate animationDelay={100} glassEffect>
@@ -22,10 +25,14 @@ const SummaryCards = ({ monthlySummary }: SummaryCardsProps) => {
             <div>
               <CardDescription>Receitas</CardDescription>
               <div className="text-2xl font-bold mt-2">
-                <AnimatedNumber 
-                  value={monthlySummary.income} 
-                  formatter={(val) => formatCurrency(val)} 
-                />
+                {showValues ? (
+                  <AnimatedNumber 
+                    value={monthlySummary.income} 
+                    formatter={(val) => formatCurrency(val)} 
+                  />
+                ) : (
+                  <span>{hiddenValue}</span>
+                )}
               </div>
               <CardDescription className="mt-1">
                 Este mês
@@ -44,10 +51,14 @@ const SummaryCards = ({ monthlySummary }: SummaryCardsProps) => {
             <div>
               <CardDescription>Despesas</CardDescription>
               <div className="text-2xl font-bold mt-2">
-                <AnimatedNumber 
-                  value={monthlySummary.expense} 
-                  formatter={(val) => formatCurrency(val)} 
-                />
+                {showValues ? (
+                  <AnimatedNumber 
+                    value={monthlySummary.expense} 
+                    formatter={(val) => formatCurrency(val)} 
+                  />
+                ) : (
+                  <span>{hiddenValue}</span>
+                )}
               </div>
               <CardDescription className="mt-1">
                 Este mês

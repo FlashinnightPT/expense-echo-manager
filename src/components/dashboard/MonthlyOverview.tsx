@@ -20,6 +20,7 @@ interface MonthlyOverviewProps {
   availableYears: number[];
   onMonthChange: (month: number) => void;
   onYearChange: (year: number) => void;
+  showValues: boolean;
 }
 
 const MonthlyOverview = ({
@@ -29,8 +30,11 @@ const MonthlyOverview = ({
   selectedYear,
   availableYears,
   onMonthChange,
-  onYearChange
+  onYearChange,
+  showValues
 }: MonthlyOverviewProps) => {
+  const hiddenValue = "•••••••";
+
   return (
     <Card className="lg:col-span-2 animate-fade-in-up animation-delay-500" glassEffect>
       <CardHeader>
@@ -80,30 +84,42 @@ const MonthlyOverview = ({
             <div className="space-y-2">
               <CardDescription>Saldo</CardDescription>
               <div className="text-3xl font-bold tabular-nums">
-                <AnimatedNumber 
-                  value={monthlySummary.balance} 
-                  formatter={(val) => formatCurrency(val)} 
-                />
+                {showValues ? (
+                  <AnimatedNumber 
+                    value={monthlySummary.balance} 
+                    formatter={(val) => formatCurrency(val)} 
+                  />
+                ) : (
+                  <span>{hiddenValue}</span>
+                )}
               </div>
             </div>
             
             <div className="space-y-2">
               <CardDescription>Diferença</CardDescription>
               <div className="text-3xl font-bold tabular-nums">
-                <AnimatedNumber 
-                  value={monthlySummary.differenceRate} 
-                  formatter={(val) => `${val.toFixed(1)}%`} 
-                />
+                {showValues ? (
+                  <AnimatedNumber 
+                    value={monthlySummary.differenceRate} 
+                    formatter={(val) => `${val.toFixed(1)}%`} 
+                  />
+                ) : (
+                  <span>{hiddenValue}</span>
+                )}
               </div>
             </div>
             
             <div className="space-y-2">
               <CardDescription>Projeção Anual</CardDescription>
               <div className="text-3xl font-bold tabular-nums">
-                <AnimatedNumber 
-                  value={monthlySummary.balance * 12} 
-                  formatter={(val) => formatCurrency(val)} 
-                />
+                {showValues ? (
+                  <AnimatedNumber 
+                    value={monthlySummary.balance * 12} 
+                    formatter={(val) => formatCurrency(val)} 
+                  />
+                ) : (
+                  <span>{hiddenValue}</span>
+                )}
               </div>
             </div>
           </div>

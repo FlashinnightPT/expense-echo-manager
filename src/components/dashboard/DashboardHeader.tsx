@@ -1,5 +1,5 @@
 
-import { Plus } from "lucide-react";
+import { Plus, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import TransactionForm from "@/components/forms/TransactionForm";
@@ -8,10 +8,14 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardHeaderProps {
   onSaveTransaction: (transaction: Partial<Transaction>) => void;
+  showValues: boolean;
+  onToggleShowValues: () => void;
 }
 
 const DashboardHeader = ({ 
-  onSaveTransaction
+  onSaveTransaction,
+  showValues,
+  onToggleShowValues
 }: DashboardHeaderProps) => {
   const { canEdit } = useAuth();
   
@@ -24,8 +28,26 @@ const DashboardHeader = ({
         </p>
       </div>
       
-      {canEdit && (
-        <div className="flex space-x-2 mt-4 md:mt-0">
+      <div className="flex space-x-2 mt-4 md:mt-0">
+        <Button 
+          variant="outline" 
+          className="animate-fade-in-up animation-delay-150"
+          onClick={onToggleShowValues}
+        >
+          {showValues ? (
+            <>
+              <EyeOff className="h-4 w-4 mr-2" />
+              Esconder Valores
+            </>
+          ) : (
+            <>
+              <Eye className="h-4 w-4 mr-2" />
+              Mostrar Valores
+            </>
+          )}
+        </Button>
+        
+        {canEdit && (
           <Dialog>
             <DialogTrigger asChild>
               <Button className="animate-fade-in-up animation-delay-200">
@@ -43,8 +65,8 @@ const DashboardHeader = ({
               <TransactionForm onSave={onSaveTransaction} />
             </DialogContent>
           </Dialog>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

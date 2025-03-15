@@ -13,6 +13,7 @@ interface CategoryComparisonProps {
   startDate: Date;
   endDate: Date;
   activeTab: "expense" | "income";
+  showValues: boolean;
 }
 
 const CategoryComparison = ({
@@ -21,6 +22,7 @@ const CategoryComparison = ({
   startDate,
   endDate,
   activeTab,
+  showValues
 }: CategoryComparisonProps) => {
   const {
     comparisonData,
@@ -53,6 +55,7 @@ const CategoryComparison = ({
               comparisonData={comparisonData}
               totalAmount={totalAmount}
               onRemoveCategory={removeCategoryFromComparison}
+              showValues={showValues}
             />
           )}
         </CardContent>
