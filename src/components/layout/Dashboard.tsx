@@ -33,6 +33,17 @@ const Dashboard = () => {
     getCategoryPath,
   } = useDashboardData();
 
+  // Define toast handlers first before using them in the columns definition
+  const handleSaveTransactionWithToast = (transaction: any) => {
+    handleSaveTransaction(transaction);
+    toast.success("Transação adicionada com sucesso");
+  };
+
+  const handleDeleteTransactionWithToast = (transactionId: string) => {
+    handleDeleteTransaction(transactionId);
+    toast.success("Transação excluída com sucesso");
+  };
+
   // Define transaction columns for the DataTable
   const transactionColumns = useMemo(() => [
     {
@@ -117,16 +128,6 @@ const Dashboard = () => {
       )
     }
   ], [getCategoryById, getCategoryPath, handleDeleteTransactionWithToast]);
-
-  const handleSaveTransactionWithToast = (transaction: any) => {
-    handleSaveTransaction(transaction);
-    toast.success("Transação adicionada com sucesso");
-  };
-
-  const handleDeleteTransactionWithToast = (transactionId: string) => {
-    handleDeleteTransaction(transactionId);
-    toast.success("Transação excluída com sucesso");
-  };
 
   return (
     <div className="min-h-screen bg-background">
