@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -28,8 +27,15 @@ const Header = () => {
   return (
     <header className="bg-background border-b sticky top-0 z-50">
       <div className="container flex h-16 items-center justify-between py-4">
-        <Link to="/" className="font-bold text-2xl">
-          CDW <span className="text-primary">Financeiro</span>
+        <Link to="/" className="flex items-center gap-2">
+          <img 
+            src="/lovable-uploads/ac-morais-logo.png" 
+            alt="AC Morais Logo" 
+            className="h-10 w-auto" 
+          />
+          <span className="font-bold text-2xl">
+            CDW <span className="text-primary">Financeiro</span>
+          </span>
         </Link>
         <nav className="hidden md:flex items-center space-x-6">
           {navigationItems.map((item) => (
@@ -62,9 +68,16 @@ const Header = () => {
               </SheetTrigger>
               <SheetContent side="left" className="sm:max-w-sm">
                 <div className="grid gap-4 py-4">
-                  <Link to="/" className="font-bold text-2xl">
-                    CDW <span className="text-primary">Financeiro</span>
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <img 
+                      src="/lovable-uploads/ac-morais-logo.png" 
+                      alt="AC Morais Logo" 
+                      className="h-8 w-auto" 
+                    />
+                    <span className="font-bold text-2xl">
+                      CDW <span className="text-primary">Financeiro</span>
+                    </span>
+                  </div>
                   <Button
                     variant="ghost"
                     className="justify-start px-4"
