@@ -6,7 +6,7 @@ import { CircleDollarSign } from "lucide-react";
 import DataTable from "@/components/tables/DataTable";
 import { Transaction } from "@/utils/mockData";
 import { ReactNode } from "react";
-import { exportToCSV, prepareTransactionsForExport } from "@/utils/exportUtils";
+import { exportToExcel, prepareTransactionsForExport } from "@/utils/exportUtils";
 import { toast } from "sonner";
 
 interface TransactionsTableProps {
@@ -48,7 +48,7 @@ const TransactionsTable = ({
   const handleExportTransactions = (transactionsToExport: Transaction[]) => {
     try {
       const exportData = prepareTransactionsForExport(transactionsToExport);
-      exportToCSV(exportData, `transacoes_${new Date().toISOString().split('T')[0]}`);
+      exportToExcel(exportData, `transacoes_${new Date().toISOString().split('T')[0]}`);
       toast.success("Transações exportadas com sucesso");
     } catch (error) {
       console.error("Error exporting transactions:", error);

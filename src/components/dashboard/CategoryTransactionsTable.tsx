@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,7 +14,7 @@ import {
   getSubcategories
 } from "./utils/categoryTableUtils";
 import CategoryTabContent from "./components/CategoryTabContent";
-import { exportToCSV, prepareCategoryDataForExport } from "@/utils/exportUtils";
+import { exportToExcel, prepareCategoryDataForExport } from "@/utils/exportUtils";
 import { toast } from "sonner";
 
 const CategoryTransactionsTable = ({
@@ -30,7 +29,6 @@ const CategoryTransactionsTable = ({
   const [currentGroupedCategories, setCurrentGroupedCategories] = useState<RootCategoryItem[]>([]);
   const [currentTotalAmount, setCurrentTotalAmount] = useState<number>(0);
 
-  // Filter transactions by selected year and month
   const filteredTransactions = useMemo(() => {
     return transactions.filter((transaction) => {
       const transactionDate = new Date(transaction.date);
@@ -41,51 +39,40 @@ const CategoryTransactionsTable = ({
     });
   }, [transactions, selectedYear, selectedMonth]);
 
-  // Group categories by hierarchy for the active tab type
   useEffect(() => {
-    // Filter root categories of the selected type
     const rootCategories = categories.filter(
       (cat) => cat.level === 1 && cat.type === activeTab
     );
 
-    // Structure to store categories and subcategories
     const result: RootCategoryItem[] = [];
 
-    // Build hierarchical structure for each root category
     rootCategories.forEach((rootCat) => {
       const rootAmount = calculateCategoryTotal(rootCat.id, filteredTransactions, categories);
       
-      // Skip if no transactions for this root category
       if (rootAmount === 0) return;
 
       const level2Subcategories = getSubcategories(rootCat.id, categories);
       const level2Items = [];
 
-      // For each level 2 subcategory
       for (const level2Cat of level2Subcategories) {
         const level2Amount = calculateCategoryTotal(level2Cat.id, filteredTransactions, categories);
         
-        // Skip if no transactions for this subcategory
         if (level2Amount === 0) continue;
 
         const level3Subcategories = getSubcategories(level2Cat.id, categories);
         const level3Items = [];
 
-        // For each level 3 subcategory
         for (const level3Cat of level3Subcategories) {
           const level3Amount = calculateCategoryTotal(level3Cat.id, filteredTransactions, categories);
           
-          // Skip if no transactions for this subcategory
           if (level3Amount === 0) continue;
 
           const level4Subcategories = getSubcategories(level3Cat.id, categories);
           const level4Items = [];
 
-          // For each level 4 subcategory
           for (const level4Cat of level4Subcategories) {
             const level4Amount = calculateCategoryTransactionAmount(level4Cat.id, filteredTransactions);
             
-            // Skip if no transactions for this subcategory
             if (level4Amount === 0) continue;
 
             level4Items.push({
@@ -118,7 +105,6 @@ const CategoryTransactionsTable = ({
 
     setCurrentGroupedCategories(result);
     
-    // Calculate the total amount for all transactions of the active type
     const total = filteredTransactions
       .filter((transaction) => transaction.type === activeTab)
       .reduce((total, transaction) => total + transaction.amount, 0);
@@ -129,30 +115,25 @@ const CategoryTransactionsTable = ({
     console.log(`Total (${activeTab}):`, total);
   }, [categories, activeTab, filteredTransactions]);
   
-  // Handle export data
   const handleExportData = () => {
     try {
       const monthName = getMonthName(selectedMonth);
       const dateRange = `${monthName}/${selectedYear}`;
       
-      // Get current tab's transactions
       const tabTransactions = filteredTransactions.filter(t => t.type === activeTab);
       
-      // No transactions to export
       if (tabTransactions.length === 0) {
         toast.error("Não há dados para exportar neste período");
         return;
       }
       
-      // Prepare export data
       const exportData = prepareCategoryDataForExport(
         tabTransactions, 
         activeTab === "expense" ? "Despesas" : "Receitas",
         dateRange
       );
       
-      // Export to CSV
-      exportToCSV(
+      exportToExcel(
         exportData, 
         `${activeTab === "expense" ? "despesas" : "receitas"}_${monthName}_${selectedYear}`
       );

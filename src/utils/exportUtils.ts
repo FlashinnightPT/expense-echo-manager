@@ -1,13 +1,14 @@
 
+import { utils, write } from 'xlsx';
 import { formatCurrency, getMonthName } from "./financialCalculations";
 import { Transaction } from "./mockData";
 
 /**
- * Exports data to a CSV file and triggers a download
+ * Exports data to an Excel file and triggers a download
  * @param data The data to export
  * @param filename The name of the file to download
  */
-export const exportToCSV = (data: any[], filename: string) => {
+export const exportToExcel = (data: any[], filename: string) => {
   // Return early if no data
   if (!data || data.length === 0) {
     console.error("No data to export");
@@ -15,31 +16,23 @@ export const exportToCSV = (data: any[], filename: string) => {
   }
 
   try {
-    // Get the headers from the first object
-    const headers = Object.keys(data[0]);
+    // Create a new workbook
+    const worksheet = utils.json_to_sheet(data);
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'Data');
     
-    // Create CSV header row
-    const headerRow = headers.join(',');
+    // Generate the Excel file as a binary string
+    const excelBuffer = write(workbook, { bookType: 'xlsx', type: 'binary' });
     
-    // Create CSV content rows
-    const rows = data.map(obj => {
-      return headers.map(header => {
-        // Convert value to string and handle commas by wrapping in quotes
-        let value = obj[header] != null ? obj[header].toString() : '';
-        
-        // If value contains commas or quotes, wrap it in quotes
-        if (value.includes(',') || value.includes('"')) {
-          value = `"${value.replace(/"/g, '""')}"`;
-        }
-        return value;
-      }).join(',');
-    });
+    // Convert binary string to ArrayBuffer
+    const arrayBuffer = new ArrayBuffer(excelBuffer.length);
+    const view = new Uint8Array(arrayBuffer);
+    for (let i = 0; i < excelBuffer.length; i++) {
+      view[i] = excelBuffer.charCodeAt(i) & 0xFF;
+    }
     
-    // Combine header row and content rows
-    const csvContent = [headerRow, ...rows].join('\n');
-    
-    // Create a Blob with the CSV content
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // Create a Blob with the Excel content
+    const blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     
     // Create a download URL for the Blob
     const url = URL.createObjectURL(blob);
@@ -47,7 +40,7 @@ export const exportToCSV = (data: any[], filename: string) => {
     // Create a temporary link element to trigger the download
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `${filename}.csv`);
+    link.setAttribute('download', `${filename}.xlsx`);
     document.body.appendChild(link);
     
     // Trigger the download
@@ -57,7 +50,7 @@ export const exportToCSV = (data: any[], filename: string) => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error("Error exporting data to CSV:", error);
+    console.error("Error exporting data to Excel:", error);
   }
 };
 
@@ -106,6 +99,6 @@ export const prepareTransactionsForExport = (
     Amount: formatCurrency(t.amount).replace(/[€$]/g, '').trim(),
     Date: new Date(t.date).toLocaleDateString(),
     Type: t.type === 'income' ? 'Receita' : 'Despesa',
-    Category: t.categoryName || ''
+    Category: t.category?.name || ''
   }));
 };
