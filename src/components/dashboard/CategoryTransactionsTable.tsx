@@ -15,7 +15,6 @@ import {
   getSubcategories
 } from "./utils/categoryTableUtils";
 import CategoryTabContent from "./components/CategoryTabContent";
-import React from "react";
 
 const CategoryTransactionsTable = ({
   transactions,
@@ -61,51 +60,52 @@ const CategoryTransactionsTable = ({
       const level2Items = [];
 
       // For each level 2 subcategory
-      level2Subcategories.forEach((level2Cat) => {
+      for (const level2Cat of level2Subcategories) {
         const level2Amount = calculateCategoryTotal(level2Cat.id, filteredTransactions, categories);
         
         // Skip if no transactions for this subcategory
-        if (level2Amount === 0) return;
+        if (level2Amount === 0) continue;
 
         const level3Subcategories = getSubcategories(level2Cat.id, categories);
         const level3Items = [];
 
         // For each level 3 subcategory
-        level3Subcategories.forEach((level3Cat) => {
+        for (const level3Cat of level3Subcategories) {
           const level3Amount = calculateCategoryTotal(level3Cat.id, filteredTransactions, categories);
           
           // Skip if no transactions for this subcategory
-          if (level3Amount === 0) return;
+          if (level3Amount === 0) continue;
 
           const level4Subcategories = getSubcategories(level3Cat.id, categories);
           const level4Items = [];
 
           // For each level 4 subcategory
-          level4Subcategories.forEach((level4Cat) => {
+          for (const level4Cat of level4Subcategories) {
             const level4Amount = calculateCategoryTransactionAmount(level4Cat.id, filteredTransactions);
             
             // Skip if no transactions for this subcategory
-            if (level4Amount === 0) return;
+            if (level4Amount === 0) continue;
 
             level4Items.push({
               category: level4Cat,
               amount: level4Amount,
+              subcategories: []
             });
-          });
+          }
 
           level3Items.push({
             category: level3Cat,
             subcategories: level4Items,
             amount: level3Amount,
           });
-        });
+        }
 
         level2Items.push({
           category: level2Cat,
           subcategories: level3Items,
           amount: level2Amount,
         });
-      });
+      }
 
       result.push({
         category: rootCat,
