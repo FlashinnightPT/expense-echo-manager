@@ -5,6 +5,7 @@ import { Transaction, TransactionCategory } from "@/utils/mockData";
 type DatabaseBackup = {
   transactions: Transaction[];
   categories: TransactionCategory[];
+  users: any[]; // Adicionando users ao tipo de backup
   timestamp: number;
   version: string;
 };
@@ -17,6 +18,7 @@ export const exportDatabase = () => {
     // Obter dados do localStorage
     const transactions = localStorage.getItem('transactions');
     const categories = localStorage.getItem('categories');
+    const users = localStorage.getItem('app_users');
     
     if (!transactions || !categories) {
       toast.error("Não foi possível encontrar os dados para exportação");
@@ -27,6 +29,7 @@ export const exportDatabase = () => {
     const backup: DatabaseBackup = {
       transactions: JSON.parse(transactions),
       categories: JSON.parse(categories),
+      users: users ? JSON.parse(users) : [],
       timestamp: Date.now(),
       version: "1.0"
     };
@@ -92,6 +95,11 @@ export const importDatabase = (file: File): Promise<boolean> => {
           // Salvar os dados no localStorage
           localStorage.setItem('transactions', JSON.stringify(backup.transactions));
           localStorage.setItem('categories', JSON.stringify(backup.categories));
+          
+          // Importar dados de usuários se existirem
+          if (backup.users && Array.isArray(backup.users)) {
+            localStorage.setItem('app_users', JSON.stringify(backup.users));
+          }
           
           // Disparar evento de storage para atualizar a aplicação
           window.dispatchEvent(new Event('storage'));
