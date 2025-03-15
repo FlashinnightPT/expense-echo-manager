@@ -25,6 +25,30 @@ interface CategoryTransactionsTableProps {
   getCategoryById: (id: string) => TransactionCategory | undefined;
 }
 
+// Define interfaces for our hierarchical data structure
+interface Level4Item {
+  category: TransactionCategory;
+  amount: number;
+}
+
+interface Level3Item {
+  category: TransactionCategory;
+  subcategories: Level4Item[];
+  amount: number;
+}
+
+interface Level2Item {
+  category: TransactionCategory;
+  subcategories: Level3Item[];
+  amount: number;
+}
+
+interface RootCategoryItem {
+  category: TransactionCategory;
+  subcategories: Level2Item[];
+  amount: number;
+}
+
 const CategoryTransactionsTable = ({
   transactions,
   categories,
@@ -59,19 +83,7 @@ const CategoryTransactionsTable = ({
     );
 
     // Estrutura para armazenar categorias e subcategorias
-    const result: {
-      category: TransactionCategory;
-      subcategories: {
-        category: TransactionCategory;
-        subcategories: {
-          category: TransactionCategory;
-          subcategories: TransactionCategory[];
-          amount: number;
-        }[];
-        amount: number;
-      }[];
-      amount: number;
-    }[] = [];
+    const result: RootCategoryItem[] = [];
 
     // Construir a estrutura hierárquica para cada categoria raiz
     rootCategories.forEach((rootCat) => {
@@ -81,7 +93,7 @@ const CategoryTransactionsTable = ({
       if (rootAmount === 0) return;
 
       const level2Subcategories = getSubcategories(rootCat.id);
-      const level2Items: any[] = [];
+      const level2Items: Level2Item[] = [];
 
       // Para cada subcategoria de nível 2
       level2Subcategories.forEach((level2Cat) => {
@@ -91,7 +103,7 @@ const CategoryTransactionsTable = ({
         if (level2Amount === 0) return;
 
         const level3Subcategories = getSubcategories(level2Cat.id);
-        const level3Items: any[] = [];
+        const level3Items: Level3Item[] = [];
 
         // Para cada subcategoria de nível 3
         level3Subcategories.forEach((level3Cat) => {
@@ -101,7 +113,7 @@ const CategoryTransactionsTable = ({
           if (level3Amount === 0) return;
 
           const level4Subcategories = getSubcategories(level3Cat.id);
-          const level4Items: any[] = [];
+          const level4Items: Level4Item[] = [];
 
           // Para cada subcategoria de nível 4
           level4Subcategories.forEach((level4Cat) => {
