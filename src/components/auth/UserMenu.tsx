@@ -53,7 +53,7 @@ const UserMenu = () => {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
+              {user.username}
             </p>
             {canEdit ? (
               <Badge className="bg-blue-500 mt-2 w-fit">Leitura e edição</Badge>
