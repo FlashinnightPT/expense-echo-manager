@@ -1,4 +1,3 @@
-
 import { utils, write, read } from 'xlsx';
 import { formatCurrency, getMonthName } from "./financialCalculations";
 import { Transaction, TransactionCategory } from "./mockData";
@@ -58,34 +57,64 @@ export const exportToExcel = (data: any[], filename: string) => {
  * Creates and exports an Excel template for categories
  */
 export const exportCategoryTemplate = () => {
-  const template = [
-    {
-      "Type": "expense",
-      "Level": 2,
-      "Name": "Alimentação",
-      "ParentName": ""
-    },
-    {
-      "Type": "expense",
-      "Level": 3,
-      "Name": "Supermercado",
-      "ParentName": "Alimentação"
-    },
-    {
-      "Type": "expense", 
-      "Level": 4,
-      "Name": "Carne",
-      "ParentName": "Supermercado"
-    },
-    {
-      "Type": "income",
-      "Level": 2,
-      "Name": "Salário",
-      "ParentName": ""
-    }
+  // Create a workbook with headers matching the image
+  const wb = utils.book_new();
+  
+  // Format the headers and sample data to match the image
+  const headers = ["Tipo", "Nivel 1", "Nivel 2", "Nivel 3", "Nivel 4"];
+  
+  // Sample data based on the image
+  const data = [
+    // Headers
+    headers,
+    // First section - Receita > Pessoal > Salarios > (Carlos, Leandro, Antonio, Isabel, Ana Paula)
+    ["Receita", "", "Pessoal", "", ""],
+    ["", "", "", "Salarios", ""],
+    ["", "", "", "", "Carlos"],
+    ["", "", "", "", "Leandro"],
+    ["", "", "", "", "Antonio"],
+    ["", "", "", "", "Isabel"],
+    ["", "", "", "", "Ana Paula"],
+    
+    // Second section - Receita > Pessoal > Impostos > (IRC, Segurança Social)
+    ["Receita", "", "Pessoal", "", ""],
+    ["", "", "", "Impostos", ""],
+    ["", "", "", "", "IRC"],
+    ["", "", "", "", "Segurança Social"],
+    
+    // Third section - Receita > Contabilista > Avença > Impostos
+    ["Receita", "", "Contabilista", "", ""],
+    ["", "", "", "Avença", ""],
+    ["", "", "", "Impostos", ""],
   ];
   
-  exportToExcel(template, "categories_template");
+  // Create worksheet
+  const ws = utils.aoa_to_sheet(data);
+  
+  // Add worksheet to workbook
+  utils.book_append_sheet(wb, ws, "Template Categorias");
+  
+  // Generate Excel binary
+  const excelBuffer = write(wb, { bookType: 'xlsx', type: 'binary' });
+  
+  // Convert to array buffer
+  const arrayBuffer = new ArrayBuffer(excelBuffer.length);
+  const view = new Uint8Array(arrayBuffer);
+  for (let i = 0; i < excelBuffer.length; i++) {
+    view[i] = excelBuffer.charCodeAt(i) & 0xFF;
+  }
+  
+  // Create blob and download
+  const blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'template_categorias.xlsx');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
 
 /**
@@ -102,94 +131,93 @@ const validateAndProcessCategoryData = (data: any[]): {
     return { valid: false, errors: ["O arquivo está vazio"] };
   }
   
-  // Check for required columns
-  const requiredColumns = ["Type", "Level", "Name"];
-  const sampleRow = data[0];
-  
-  for (const column of requiredColumns) {
-    if (!(column in sampleRow)) {
-      return { valid: false, errors: [`Coluna obrigatória "${column}" não encontrada`] };
-    }
-  }
-  
-  // Process and validate each row
-  const categories: Partial<TransactionCategory>[] = [];
-  const levelTwoCategories = new Map<string, string>(); // name -> id
-  const levelThreeCategories = new Map<string, string>(); // name -> id
-  
-  for (let i = 0; i < data.length; i++) {
-    const row = data[i];
-    const rowNum = i + 1;
+  try {
+    // Transform the Excel format into categories
+    const categories: Partial<TransactionCategory>[] = [];
+    const nivel1Map = new Map<string, string>(); // name -> tempId
+    const nivel2Map = new Map<string, string>(); // name -> tempId
+    const nivel3Map = new Map<string, string>(); // name -> tempId
     
-    // Validate type
-    if (row.Type !== "income" && row.Type !== "expense") {
-      errors.push(`Linha ${rowNum}: Tipo inválido "${row.Type}". Deve ser "income" ou "expense"`);
-      continue;
-    }
-    
-    // Validate level
-    const level = Number(row.Level);
-    if (isNaN(level) || level < 2 || level > 4) {
-      errors.push(`Linha ${rowNum}: Nível inválido "${row.Level}". Deve ser 2, 3 ou 4`);
-      continue;
-    }
-    
-    // Validate name
-    if (!row.Name || row.Name.trim() === "") {
-      errors.push(`Linha ${rowNum}: Nome da categoria não pode estar vazio`);
-      continue;
-    }
-    
-    // Validate parent relationship
-    if (level > 2) {
-      if (!row.ParentName || row.ParentName.trim() === "") {
-        errors.push(`Linha ${rowNum}: Categorias de nível ${level} precisam ter um pai (ParentName)`);
-        continue;
+    // Process each row
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      
+      // Skip header row or empty rows
+      if (!row.Tipo || row.Tipo === "Tipo") continue;
+      
+      // Determine the highest level filled in this row (from right to left)
+      let highestLevel = 0;
+      let categoryName = "";
+      
+      if (row["Nivel 4"] && row["Nivel 4"].trim()) {
+        highestLevel = 4;
+        categoryName = row["Nivel 4"].trim();
+      } else if (row["Nivel 3"] && row["Nivel 3"].trim()) {
+        highestLevel = 3;
+        categoryName = row["Nivel 3"].trim();
+      } else if (row["Nivel 2"] && row["Nivel 2"].trim()) {
+        highestLevel = 2;
+        categoryName = row["Nivel 2"].trim();
+      } else if (row["Nivel 1"] && row["Nivel 1"].trim()) {
+        highestLevel = 1;
+        categoryName = row["Nivel 1"].trim();
       }
       
-      // For level 3, parent must be a level 2 category
-      if (level === 3 && !levelTwoCategories.has(row.ParentName)) {
-        errors.push(`Linha ${rowNum}: Categoria pai "${row.ParentName}" não encontrada ou não é de nível 2`);
-        continue;
+      // Skip if no valid category found
+      if (highestLevel === 0 || !categoryName) continue;
+      
+      // Get the type
+      const type = row.Tipo.toLowerCase() === "receita" ? "income" : "expense";
+      
+      // Create parent relationships
+      let parentId: string | undefined;
+      let parentName: string | undefined;
+      
+      if (highestLevel === 4 && row["Nivel 3"] && row["Nivel 3"].trim()) {
+        parentName = row["Nivel 3"].trim();
+        parentId = nivel3Map.get(parentName);
+      } else if (highestLevel === 3 && row["Nivel 2"] && row["Nivel 2"].trim()) {
+        parentName = row["Nivel 2"].trim();
+        parentId = nivel2Map.get(parentName);
+      } else if (highestLevel === 2 && row["Nivel 1"] && row["Nivel 1"].trim()) {
+        parentName = row["Nivel 1"].trim();
+        parentId = nivel1Map.get(parentName);
       }
       
-      // For level 4, parent must be a level 3 category
-      if (level === 4 && !levelThreeCategories.has(row.ParentName)) {
-        errors.push(`Linha ${rowNum}: Categoria pai "${row.ParentName}" não encontrada ou não é de nível 3`);
-        continue;
+      // Create category
+      const category: Partial<TransactionCategory> = {
+        name: categoryName,
+        type,
+        level: highestLevel + 1, // Adjust level for the app (app uses level 2, 3, 4)
+        parentId,
+        parentName
+      };
+      
+      // Store in map for parent relationships
+      const tempId = `temp-${type}-${categoryName}-${Date.now()}-${Math.random()}`;
+      if (highestLevel === 1) {
+        nivel1Map.set(categoryName, tempId);
+      } else if (highestLevel === 2) {
+        nivel2Map.set(categoryName, tempId);
+      } else if (highestLevel === 3) {
+        nivel3Map.set(categoryName, tempId);
       }
+      
+      categories.push(category);
     }
     
-    // Create category object
-    const category: Partial<TransactionCategory> = {
-      name: row.Name.trim(),
-      type: row.Type,
-      level: level,
+    return {
+      valid: categories.length > 0,
+      categories: categories.length > 0 ? categories : undefined,
+      errors: categories.length === 0 ? ["Nenhuma categoria válida encontrada no arquivo"] : undefined
     };
-    
-    // Set parentId for child categories
-    if (level === 3) {
-      category.parentId = levelTwoCategories.get(row.ParentName);
-    } else if (level === 4) {
-      category.parentId = levelThreeCategories.get(row.ParentName);
-    }
-    
-    // Store category for parent lookups
-    const tempId = `temp-${category.type}-${category.name}-${Date.now()}-${Math.random()}`;
-    if (level === 2) {
-      levelTwoCategories.set(category.name, tempId);
-    } else if (level === 3) {
-      levelThreeCategories.set(category.name, tempId);
-    }
-    
-    categories.push(category);
+  } catch (error) {
+    console.error("Error processing Excel data:", error);
+    return {
+      valid: false,
+      errors: ["Erro ao processar dados do Excel: " + (error instanceof Error ? error.message : String(error))]
+    };
   }
-  
-  return {
-    valid: errors.length === 0,
-    categories: errors.length === 0 ? categories : undefined,
-    errors: errors.length > 0 ? errors : undefined
-  };
 };
 
 /**

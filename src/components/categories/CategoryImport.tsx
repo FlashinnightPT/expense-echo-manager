@@ -107,6 +107,8 @@ const CategoryImport = ({ onImportCategories }: CategoryImportProps) => {
             <DialogTitle>Importar Categorias</DialogTitle>
             <DialogDescription>
               Faça upload do arquivo Excel com as categorias a importar.
+              O template tem colunas para Tipo, Nivel 1, Nivel 2, Nivel 3 e Nivel 4.
+              Preencha apenas os níveis necessários para cada categoria.
             </DialogDescription>
           </DialogHeader>
           
