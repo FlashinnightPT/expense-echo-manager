@@ -28,7 +28,7 @@ interface ComparisonBarChartProps {
 const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ chartData }) => {
   if (!chartData || chartData.length === 0) return null;
 
-  // Create a config object for the chart
+  // Create a config object for the chart with proper typing
   const chartConfig = chartData.reduce((config, item) => {
     config[item.categoryId] = { color: item.fill };
     return config;
