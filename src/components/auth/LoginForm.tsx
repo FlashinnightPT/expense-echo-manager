@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from "react";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, User, Lock, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
 
 interface LoginFormProps {
   onLoginSuccess?: () => void;
@@ -14,14 +15,17 @@ interface LoginFormProps {
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
+  const { login, validatePassword } = useAuth();
   const [form, setForm] = useState({
-    email: "",
+    username: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isFirstLogin, setIsFirstLogin] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+  const [passwordValid, setPasswordValid] = useState(false);
 
   // Verificar se existem utilizadores e criar um utilizador padrão se não existir nenhum
   useEffect(() => {
@@ -33,7 +37,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       const defaultAdmin = {
         id: "1",
         name: "Administrador",
-        email: "admin@exemplo.com",
+        username: "admin",
         role: "editor",
         status: "active",
         lastLogin: new Date().toISOString()
@@ -43,11 +47,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       
       // Preencher o formulário com as credenciais padrão para facilitar o login
       setForm({
-        email: "admin@exemplo.com",
+        username: "admin",
         password: "admin123",
       });
       
-      toast.info("Utilizador administrador criado automaticamente. Email: admin@exemplo.com / Senha: admin123");
+      toast.info("Utilizador administrador criado automaticamente. Username: admin / Senha: admin123");
     }
   }, []);
 
@@ -66,7 +70,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!form.email || !form.password) {
+    if (!form.username || !form.password) {
       toast.error("Por favor, preencha todos os campos");
       return;
     }
@@ -75,7 +79,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     const savedUsers = localStorage.getItem("app_users");
     const users = savedUsers ? JSON.parse(savedUsers) : [];
     
-    const user = users.find((u: any) => u.email === form.email);
+    const user = users.find((u: any) => u.username === form.username);
     
     if (!user) {
       toast.error("Utilizador não encontrado");
@@ -83,7 +87,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     }
     
     // Para o utilizador padrão, permitir acesso com a senha "admin123"
-    const isDefaultAdmin = user.email === "admin@exemplo.com";
+    const isDefaultAdmin = user.username === "admin";
     if (isDefaultAdmin && form.password === "admin123") {
       // Login bem-sucedido para o admin padrão
       sessionStorage.setItem(
@@ -91,7 +95,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         JSON.stringify({
           id: user.id,
           name: user.name,
-          email: user.email,
+          username: user.username,
           role: user.role
         })
       );
@@ -118,7 +122,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
     // Atualizar status para ativo e último login
     const updatedUsers = users.map((u: any) => {
-      if (u.email === form.email) {
+      if (u.username === form.username) {
         return {
           ...u,
           status: "active",
@@ -130,24 +134,27 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     
     localStorage.setItem("app_users", JSON.stringify(updatedUsers));
     
-    // Salvar usuário logado no sessionStorage
-    sessionStorage.setItem(
-      "current_user", 
-      JSON.stringify({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      })
-    );
-    
-    toast.success("Login realizado com sucesso");
-    
-    if (onLoginSuccess) {
-      onLoginSuccess();
-    } else {
-      navigate("/dashboard");
-    }
+    // Autenticação usando o hook useAuth
+    login(form.username, form.password).then((success) => {
+      if (success) {
+        toast.success("Login realizado com sucesso");
+        
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        } else {
+          navigate("/dashboard");
+        }
+      } else {
+        toast.error("Credenciais inválidas");
+      }
+    });
+  };
+
+  const validateNewPassword = (password: string) => {
+    const validation = validatePassword(password);
+    setPasswordErrors(validation.errors);
+    setPasswordValid(validation.isValid);
+    return validation.isValid;
   };
 
   const handlePasswordChange = (e: React.FormEvent) => {
@@ -158,8 +165,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
     
-    if (newPassword.length < 6) {
-      toast.error("A senha deve ter pelo menos 6 caracteres");
+    if (!validateNewPassword(newPassword)) {
       return;
     }
 
@@ -173,11 +179,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     const savedUsers = localStorage.getItem("app_users");
     const users = savedUsers ? JSON.parse(savedUsers) : [];
     
-    const user = users.find((u: any) => u.email === form.email);
+    const user = users.find((u: any) => u.username === form.username);
     
     if (user) {
       const updatedUsers = users.map((u: any) => {
-        if (u.email === form.email) {
+        if (u.username === form.username) {
           return {
             ...u,
             status: "active",
@@ -194,7 +200,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         JSON.stringify({
           id: user.id,
           name: user.name,
-          email: user.email,
+          username: user.username,
           role: user.role
         })
       );
@@ -205,6 +211,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         navigate("/dashboard");
       }
     }
+  };
+
+  const handleNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setNewPassword(value);
+    validateNewPassword(value);
   };
 
   if (isFirstLogin) {
@@ -226,10 +238,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   name="newPassword"
                   type={showPassword ? "text" : "password"}
                   value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  onChange={handleNewPasswordChange}
                   placeholder="Nova senha"
-                  className="pr-10"
+                  className="pr-10 pl-10"
                 />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2"
@@ -242,6 +255,73 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   )}
                 </button>
               </div>
+              
+              {/* Requisitos de senha */}
+              <div className="space-y-1 mt-2 text-sm">
+                <p className="font-medium text-gray-700 dark:text-gray-300">A senha deve conter:</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                  <div className="flex items-center">
+                    {newPassword.length >= 8 ? (
+                      <Check className="h-4 w-4 text-green-500 mr-1" />
+                    ) : (
+                      <X className="h-4 w-4 text-red-500 mr-1" />
+                    )}
+                    <span className={newPassword.length >= 8 ? "text-green-500" : "text-red-500"}>
+                      Mínimo 8 caracteres
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    {(newPassword.match(/[a-zA-Z]/g) || []).length >= 2 ? (
+                      <Check className="h-4 w-4 text-green-500 mr-1" />
+                    ) : (
+                      <X className="h-4 w-4 text-red-500 mr-1" />
+                    )}
+                    <span className={(newPassword.match(/[a-zA-Z]/g) || []).length >= 2 ? "text-green-500" : "text-red-500"}>
+                      Mínimo 2 letras
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    {newPassword.match(/[A-Z]/) ? (
+                      <Check className="h-4 w-4 text-green-500 mr-1" />
+                    ) : (
+                      <X className="h-4 w-4 text-red-500 mr-1" />
+                    )}
+                    <span className={newPassword.match(/[A-Z]/) ? "text-green-500" : "text-red-500"}>
+                      1 letra maiúscula
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    {newPassword.match(/[a-z]/) ? (
+                      <Check className="h-4 w-4 text-green-500 mr-1" />
+                    ) : (
+                      <X className="h-4 w-4 text-red-500 mr-1" />
+                    )}
+                    <span className={newPassword.match(/[a-z]/) ? "text-green-500" : "text-red-500"}>
+                      1 letra minúscula
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    {(newPassword.match(/[0-9]/g) || []).length >= 2 ? (
+                      <Check className="h-4 w-4 text-green-500 mr-1" />
+                    ) : (
+                      <X className="h-4 w-4 text-red-500 mr-1" />
+                    )}
+                    <span className={(newPassword.match(/[0-9]/g) || []).length >= 2 ? "text-green-500" : "text-red-500"}>
+                      Mínimo 2 números
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    {newPassword.match(/[!€@.*]/) ? (
+                      <Check className="h-4 w-4 text-green-500 mr-1" />
+                    ) : (
+                      <X className="h-4 w-4 text-red-500 mr-1" />
+                    )}
+                    <span className={newPassword.match(/[!€@.*]/) ? "text-green-500" : "text-red-500"}>
+                      1 caracter especial (!,€,@,.,*)
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirmar Senha</Label>
@@ -253,13 +333,21 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirme a nova senha"
-                  className="pr-10"
+                  className="pr-10 pl-10"
                 />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               </div>
+              {newPassword && confirmPassword && newPassword !== confirmPassword && (
+                <p className="text-sm text-red-500">As senhas não coincidem</p>
+              )}
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full">
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={!passwordValid || newPassword !== confirmPassword}
+            >
               Confirmar Alteração
             </Button>
           </CardFooter>
@@ -279,15 +367,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       <form onSubmit={handleLogin}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="seu@email.com"
-            />
+            <Label htmlFor="username">Nome de Utilizador</Label>
+            <div className="relative">
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                value={form.username}
+                onChange={handleChange}
+                placeholder="username"
+                className="pl-10"
+              />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Senha</Label>
@@ -299,8 +391,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 value={form.password}
                 onChange={handleChange}
                 placeholder="Sua senha"
-                className="pr-10"
+                className="pr-10 pl-10"
               />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <button
                 type="button"
                 className="absolute right-3 top-1/2 -translate-y-1/2"

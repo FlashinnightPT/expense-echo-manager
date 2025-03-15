@@ -8,16 +8,17 @@ export type UserRole = "editor" | "viewer";
 export interface User {
   id: string;
   name: string;
-  email: string;
+  username: string;
   role: UserRole;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   canEdit: boolean;
+  validatePassword: (password: string) => { isValid: boolean; errors: string[] };
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,7 +38,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const defaultAdmin = {
         id: "1",
         name: "Administrador",
-        email: "admin@exemplo.com",
+        username: "admin",
         role: "editor",
         status: "active",
         lastLogin: new Date().toISOString()
@@ -54,7 +55,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  // Função para validar a senha conforme os requisitos
+  const validatePassword = (password: string) => {
+    const errors: string[] = [];
+    
+    if (password.length < 8) {
+      errors.push("A senha deve ter pelo menos 8 caracteres");
+    }
+    
+    const letterCount = (password.match(/[a-zA-Z]/g) || []).length;
+    if (letterCount < 2) {
+      errors.push("A senha deve ter pelo menos duas letras");
+    }
+    
+    if (!password.match(/[A-Z]/)) {
+      errors.push("A senha deve ter pelo menos uma letra maiúscula");
+    }
+    
+    if (!password.match(/[a-z]/)) {
+      errors.push("A senha deve ter pelo menos uma letra minúscula");
+    }
+    
+    const numberCount = (password.match(/[0-9]/g) || []).length;
+    if (numberCount < 2) {
+      errors.push("A senha deve ter pelo menos dois números");
+    }
+    
+    if (!password.match(/[!€@.*]/)) {
+      errors.push("A senha deve ter pelo menos um caractere especial (!,€,@,.,*)");
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
+  const login = async (username: string, password: string): Promise<boolean> => {
     // Numa aplicação real, faria uma chamada API para autenticar
     // Esta é apenas uma simulação para fins de demonstração
     
@@ -63,18 +100,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const savedUsers = localStorage.getItem("app_users");
       const users = savedUsers ? JSON.parse(savedUsers) : [];
       
-      const foundUser = users.find((u: any) => u.email === email);
+      const foundUser = users.find((u: any) => u.username === username);
       
       if (!foundUser) {
         return false;
       }
       
       // Para o utilizador padrão, permitir acesso com a senha "admin123"
-      if (foundUser.email === "admin@exemplo.com" && password === "admin123") {
+      if (foundUser.username === "admin" && password === "admin123") {
         const userToSave: User = {
           id: foundUser.id,
           name: foundUser.name,
-          email: foundUser.email,
+          username: foundUser.username,
           role: foundUser.role
         };
         
@@ -91,13 +128,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userToSave: User = {
         id: foundUser.id,
         name: foundUser.name,
-        email: foundUser.email,
+        username: foundUser.username,
         role: foundUser.role
       };
       
       // Atualizar o último login
       const updatedUsers = users.map((u: any) => {
-        if (u.email === email) {
+        if (u.username === username) {
           return {
             ...u,
             status: "active",
@@ -137,7 +174,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated,
         login,
         logout,
-        canEdit
+        canEdit,
+        validatePassword
       }}
     >
       {children}

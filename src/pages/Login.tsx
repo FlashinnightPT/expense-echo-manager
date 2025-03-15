@@ -31,7 +31,7 @@ const Login = () => {
           </p>
           <p className="text-sm text-blue-500">
             Se é a primeira vez a acessar o sistema, um utilizador administrador 
-            foi criado automaticamente para você
+            foi criado automaticamente para você (username: admin / senha: admin123)
           </p>
         </div>
         

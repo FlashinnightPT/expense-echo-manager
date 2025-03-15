@@ -1,8 +1,9 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, UserPlus, Mail, Lock, Eye, EyeOff, Pencil, Trash2, Shield } from "lucide-react";
+import { ArrowLeft, UserPlus, Mail, Lock, User, Eye, EyeOff, Pencil, Trash2, Shield } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -61,7 +62,7 @@ type UserRole = "editor" | "viewer";
 interface User {
   id: string;
   name: string;
-  email: string;
+  username: string;
   role: UserRole;
   status: "active" | "pending" | "inactive";
   lastLogin?: string;
@@ -69,13 +70,14 @@ interface User {
 
 const Users = () => {
   const navigate = useNavigate();
+  const { validatePassword } = useAuth();
   const [users, setUsers] = useState<User[]>(() => {
     const savedUsers = localStorage.getItem("app_users");
     return savedUsers ? JSON.parse(savedUsers) : [
       {
         id: "1",
         name: "Administrador",
-        email: "admin@exemplo.com",
+        username: "admin",
         role: "editor" as UserRole,
         status: "active",
         lastLogin: "2023-06-15T10:30:00"
@@ -85,7 +87,7 @@ const Users = () => {
   
   const [newUser, setNewUser] = useState({
     name: "",
-    email: "",
+    username: "",
     role: "viewer" as UserRole
   });
   
@@ -94,24 +96,19 @@ const Users = () => {
   
   // Gerar senha temporária aleatória
   const generateTemporaryPassword = () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let password = "";
-    for (let i = 0; i < 8; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return password;
+    return "temp123"; // Senha temporária fixa para simplicidade
   };
   
   // Adicionar novo utilizador
   const handleAddUser = () => {
-    if (!newUser.name || !newUser.email) {
+    if (!newUser.name || !newUser.username) {
       toast.error("Por favor, preencha todos os campos");
       return;
     }
     
-    // Verificar se o email já existe
-    if (users.some(user => user.email === newUser.email)) {
-      toast.error("Este email já está registado");
+    // Verificar se o username já existe
+    if (users.some(user => user.username === newUser.username)) {
+      toast.error("Este nome de utilizador já está registado");
       return;
     }
     
@@ -119,7 +116,7 @@ const Users = () => {
     const newUserData: User = {
       id: Date.now().toString(),
       name: newUser.name,
-      email: newUser.email,
+      username: newUser.username,
       role: newUser.role,
       status: "pending"
     };
@@ -128,16 +125,16 @@ const Users = () => {
     setUsers(updatedUsers);
     localStorage.setItem("app_users", JSON.stringify(updatedUsers));
     
-    // Simular envio de email
-    console.log(`Email enviado para ${newUser.email} com a senha temporária: ${tempPassword}`);
+    // Simular envio de credenciais
+    console.log(`Credenciais para ${newUser.name}: Username: ${newUser.username}, Senha temporária: ${tempPassword}`);
     
     toast.success(`Utilizador ${newUser.name} adicionado com sucesso`);
-    toast.success(`Email enviado para ${newUser.email} com instruções de acesso`);
+    toast.info(`Username: ${newUser.username} / Senha temporária: ${tempPassword}`);
     
     // Limpar o formulário
     setNewUser({
       name: "",
-      email: "",
+      username: "",
       role: "viewer"
     });
     
@@ -157,10 +154,10 @@ const Users = () => {
   };
   
   // Função de simulação de envio de email
-  const sendPasswordResetEmail = (email: string) => {
+  const sendPasswordResetEmail = (username: string) => {
     const tempPassword = generateTemporaryPassword();
-    console.log(`Nova senha temporária enviada para ${email}: ${tempPassword}`);
-    toast.success(`Email de redefinição de senha enviado para ${email}`);
+    console.log(`Nova senha temporária para ${username}: ${tempPassword}`);
+    toast.success(`Nova senha temporária definida: ${tempPassword}`);
   };
   
   const getRoleBadge = (role: UserRole) => {
@@ -223,7 +220,7 @@ const Users = () => {
                 <DialogHeader>
                   <DialogTitle>Adicionar Novo Utilizador</DialogTitle>
                   <DialogDescription>
-                    Iremos enviar um email com as instruções de acesso para o novo utilizador.
+                    O utilizador receberá uma senha temporária que deverá ser alterada no primeiro acesso.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -237,14 +234,18 @@ const Users = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="email@exemplo.com" 
-                      value={newUser.email}
-                      onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                    />
+                    <Label htmlFor="username">Nome de Utilizador</Label>
+                    <div className="relative">
+                      <Input 
+                        id="username" 
+                        type="text" 
+                        placeholder="username" 
+                        value={newUser.username}
+                        onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                        className="pl-10"
+                      />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="role">Nível de Acesso</Label>
@@ -276,7 +277,7 @@ const Users = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead>Nome de Utilizador</TableHead>
                   <TableHead>Acesso</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Último Acesso</TableHead>
@@ -287,7 +288,7 @@ const Users = () => {
                 {users.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.username}</TableCell>
                     <TableCell>{getRoleBadge(user.role)}</TableCell>
                     <TableCell>{getStatusBadge(user.status)}</TableCell>
                     <TableCell>{user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : "Nunca"}</TableCell>
@@ -296,10 +297,10 @@ const Users = () => {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => sendPasswordResetEmail(user.email)}
-                          title="Enviar email de redefinição de senha"
+                          onClick={() => sendPasswordResetEmail(user.username)}
+                          title="Redefinir senha"
                         >
-                          <Mail className="h-4 w-4" />
+                          <Lock className="h-4 w-4" />
                         </Button>
                         
                         <AlertDialog open={userToDelete === user.id} onOpenChange={(open) => !open && setUserToDelete(null)}>
