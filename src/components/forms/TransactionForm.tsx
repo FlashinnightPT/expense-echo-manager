@@ -263,7 +263,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
-                    mode="default"
+                    mode="single"
                     selected={selectedDate}
                     onSelect={(date) => date && setSelectedDate(date)}
                     initialFocus
@@ -272,9 +272,6 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                     fromYear={2020}
                     toYear={currentYear}
                     defaultMonth={selectedDate}
-                    displayMonth={selectedDate}
-                    // Only show month and year picker, hiding days
-                    // This is now handled by the DayPicker settings
                     month={selectedDate}
                     onMonthChange={setSelectedDate}
                   />
