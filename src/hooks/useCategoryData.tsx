@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { TransactionCategory } from "@/utils/mockData";
 import { defaultCategories } from "@/utils/defaultCategories";
@@ -64,22 +65,6 @@ export const useCategoryData = () => {
     }
   };
 
-  const handleImportCategories = (categories: Partial<TransactionCategory>[]) => {
-    try {
-      if (!categories || categories.length === 0) {
-        toast.warning("Nenhuma categoria para importar");
-        return;
-      }
-
-      toast.info("Funcionalidade de importação desativada");
-      return 0;
-    } catch (error) {
-      console.error("Error importing categories:", error);
-      toast.error("Erro ao importar categorias");
-      throw error;
-    }
-  };
-
   const handleDeleteCategory = (categoryId: string) => {
     const hasChildren = categoryList.some(cat => cat.parentId === categoryId);
     
@@ -107,7 +92,6 @@ export const useCategoryData = () => {
   return {
     categoryList,
     handleSaveCategory,
-    handleImportCategories,
     handleDeleteCategory,
     confirmDeleteCategory,
     handleResetCategories

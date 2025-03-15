@@ -4,7 +4,6 @@ import Header from "@/components/layout/Header";
 import CategoryForm from "@/components/forms/CategoryForm";
 import CategoryList from "@/components/categories/CategoryList";
 import CategoryActions from "@/components/categories/CategoryActions";
-import CategoryImport from "@/components/categories/CategoryImport";
 import { DeleteCategoryDialog } from "@/components/categories/CategoryDialogs";
 import { useCategoryData } from "@/hooks/useCategoryData";
 import { useTransactionData } from "@/hooks/useTransactionData";
@@ -15,7 +14,6 @@ const Categories = () => {
   const { 
     categoryList, 
     handleSaveCategory, 
-    handleImportCategories,
     handleDeleteCategory,
     confirmDeleteCategory,
     handleResetCategories 
@@ -72,7 +70,6 @@ const Categories = () => {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <CategoryImport onImportCategories={handleImportCategories} />
             <CategoryActions 
               handleResetCategories={handleResetCategories}
               openClearTransactionsDialog={openClearTransactionsDialog}
