@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
@@ -30,12 +30,13 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useTheme } from "@/components/ThemeProvider";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [settings, setSettings] = useState({
     language: "pt-PT",
-    theme: "system",
     currency: "EUR",
     currencySymbol: "€",
     dateFormat: "dd/MM/yyyy",
@@ -48,6 +49,10 @@ const Settings = () => {
       ...prevSettings,
       [key]: value
     }));
+  };
+
+  const handleThemeChange = (value: string) => {
+    setTheme(value as "light" | "dark" | "system");
   };
 
   const handleSave = () => {
@@ -114,8 +119,8 @@ const Settings = () => {
               <div className="space-y-2">
                 <Label>Tema</Label>
                 <RadioGroup
-                  value={settings.theme}
-                  onValueChange={(value) => handleChange("theme", value)}
+                  value={theme}
+                  onValueChange={handleThemeChange}
                   className="flex flex-col space-y-1"
                 >
                   <div className="flex items-center space-x-2 rounded-md border p-2">
