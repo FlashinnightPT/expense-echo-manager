@@ -13,8 +13,6 @@ import CompareButton from "@/components/dashboard/components/CompareButton";
 import CategoryComparison from "@/components/dashboard/comparison/CategoryComparison";
 import Header from "@/components/layout/Header";
 
-// Add all other necessary imports and components here
-
 const CategoryAnalysis = () => {
   // State for showing/hiding values
   const [showValues, setShowValues] = useState(() => {
@@ -29,7 +27,7 @@ const CategoryAnalysis = () => {
   const [transactions, setTransactions] = useState([]);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [activeTab, setActiveTab] = useState("expense");
+  const [activeTab, setActiveTab] = useState<"expense" | "income">("expense");
 
   // Toggle function for showing/hiding values
   const toggleShowValues = () => {
