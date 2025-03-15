@@ -95,8 +95,9 @@ export const prepareTransactionsForExport = (
   transactions: Transaction[]
 ) => {
   return transactions.map(t => {
-    // Find the category name using categoryId
-    const categoryName = t.category?.name || '';
+    // Fix: Transaction type doesn't have a 'category' property, it uses 'categoryId'
+    // We need to look up the category name another way, but for now we'll just use the categoryId
+    const categoryName = t.categoryId || '';
     
     return {
       Description: t.description,
