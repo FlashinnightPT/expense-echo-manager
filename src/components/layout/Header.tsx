@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,7 @@ const Header = () => {
       <div className="container flex h-16 items-center justify-between py-4">
         <Link to="/" className="flex items-center gap-2">
           <img 
-            src="/lovable-uploads/ac-morais-logo.png" 
+            src="/lovable-uploads/d5b7136a-b85f-4a1d-9a4f-68f2d49b7347.png" 
             alt="AC Morais Logo" 
             className="h-10 w-auto" 
           />
@@ -70,7 +71,7 @@ const Header = () => {
                 <div className="grid gap-4 py-4">
                   <div className="flex items-center gap-2">
                     <img 
-                      src="/lovable-uploads/ac-morais-logo.png" 
+                      src="/lovable-uploads/d5b7136a-b85f-4a1d-9a4f-68f2d49b7347.png" 
                       alt="AC Morais Logo" 
                       className="h-8 w-auto" 
                     />
