@@ -32,11 +32,10 @@ import DataTable from "@/components/tables/DataTable";
 import CategoryForm from "@/components/forms/CategoryForm";
 import TransactionForm from "@/components/forms/TransactionForm";
 import { 
-  monthlyData, 
-  yearlyData, 
-  flattenedCategories,
   Transaction,
-  TransactionCategory
+  TransactionCategory,
+  MonthlyData,
+  YearlyData
 } from "@/utils/mockData";
 import { 
   formatCurrency, 
@@ -289,6 +288,86 @@ const Dashboard = () => {
     };
   }, [transactions, selectedYear]);
 
+  const monthlyChartData = useMemo(() => {
+    const monthMap = new Map<number, { income: number; expense: number }>();
+    
+    for (let i = 1; i <= 12; i++) {
+      monthMap.set(i, { income: 0, expense: 0 });
+    }
+    
+    const yearTransactions = transactions.filter(transaction => {
+      const transactionDate = new Date(transaction.date);
+      return transactionDate.getFullYear() === selectedYear;
+    });
+    
+    yearTransactions.forEach(transaction => {
+      const transactionDate = new Date(transaction.date);
+      const month = transactionDate.getMonth() + 1;
+      const monthData = monthMap.get(month) || { income: 0, expense: 0 };
+      
+      if (transaction.type === 'income') {
+        monthData.income += transaction.amount;
+      } else {
+        monthData.expense += transaction.amount;
+      }
+      
+      monthMap.set(month, monthData);
+    });
+    
+    const result: MonthlyData[] = [];
+    monthMap.forEach((data, month) => {
+      result.push({
+        year: selectedYear,
+        month,
+        income: data.income,
+        expense: data.expense,
+        categories: []
+      });
+    });
+    
+    return result;
+  }, [transactions, selectedYear]);
+
+  const yearlyChartData = useMemo(() => {
+    const years = new Set<number>();
+    
+    if (transactions.length === 0) {
+      const currentYear = new Date().getFullYear();
+      years.add(currentYear);
+    } else {
+      transactions.forEach(transaction => {
+        const transactionDate = new Date(transaction.date);
+        years.add(transactionDate.getFullYear());
+      });
+    }
+    
+    const sortedYears = Array.from(years).sort();
+    
+    const result: YearlyData[] = sortedYears.map(year => {
+      const yearTransactions = transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        return transactionDate.getFullYear() === year;
+      });
+      
+      const income = yearTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+        
+      const expense = yearTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      return {
+        year,
+        income,
+        expense,
+        categories: []
+      };
+    });
+    
+    return result;
+  }, [transactions]);
+
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
@@ -484,7 +563,7 @@ const Dashboard = () => {
               
               <Separator />
               
-              <MonthlyChart data={filteredTransactions} year={selectedYear} />
+              <MonthlyChart data={monthlyChartData} year={selectedYear} />
             </div>
           </CardContent>
         </Card>
@@ -557,7 +636,7 @@ const Dashboard = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <YearlyChart data={transactions} className="lg:col-span-3 animate-fade-in-up animation-delay-700" />
+        <YearlyChart data={yearlyChartData} className="lg:col-span-3 animate-fade-in-up animation-delay-700" />
       </div>
       
       <div className="animate-fade-in-up animation-delay-900">

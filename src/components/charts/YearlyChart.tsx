@@ -34,10 +34,21 @@ const YearlyChart = ({ data, className }: YearlyChartProps) => {
   }, []);
 
   useEffect(() => {
+    if (!data || data.length === 0) {
+      // If no data, create a placeholder with the current year
+      const currentYear = new Date().getFullYear();
+      setChartData([{
+        year: currentYear.toString(),
+        Income: 0,
+        Expenses: 0
+      }]);
+      return;
+    }
+
     const transformedData = data.map((item) => ({
-      year: item.year.toString(),
-      Income: item.income,
-      Expenses: item.expense
+      year: item.year ? item.year.toString() : "",
+      Income: item.income || 0,
+      Expenses: item.expense || 0
     }));
     setChartData(transformedData);
   }, [data]);
@@ -61,7 +72,7 @@ const YearlyChart = ({ data, className }: YearlyChartProps) => {
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle className="text-lg">Yearly Overview</CardTitle>
+        <CardTitle className="text-lg">Visão Anual</CardTitle>
       </CardHeader>
       <div className="h-[300px] w-full">
         {isClient && (

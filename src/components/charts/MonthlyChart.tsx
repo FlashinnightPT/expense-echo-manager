@@ -35,12 +35,8 @@ const MonthlyChart = ({ data, year, className }: MonthlyChartProps) => {
   }, []);
 
   useEffect(() => {
-    // Verificar se há dados armazenados no localStorage
-    const storedTransactions = localStorage.getItem('transactions');
-    
-    // Se não houver dados ou se for um array vazio, mostrar dados zerados
-    if (!storedTransactions || JSON.parse(storedTransactions).length === 0) {
-      // Criar dados vazios para os 12 meses
+    // If no data or empty array, create empty data for all 12 months
+    if (!data || data.length === 0) {
       const emptyData: ChartDataPoint[] = [];
       for (let i = 1; i <= 12; i++) {
         emptyData.push({
@@ -53,14 +49,29 @@ const MonthlyChart = ({ data, year, className }: MonthlyChartProps) => {
       return;
     }
     
-    // Se chegou aqui, há dados no localStorage
-    const yearData = data.filter((item) => item.year === year);
-    const transformedData = yearData.map((item) => ({
-      month: getMonthName(item.month),
-      Income: item.income,
-      Expenses: item.expense
-    }));
-    setChartData(transformedData);
+    // Transform the provided data
+    const transformedData = data
+      .filter((item) => item.year === year)
+      .map((item) => ({
+        month: getMonthName(item.month),
+        Income: item.income || 0,
+        Expenses: item.expense || 0
+      }));
+    
+    // If filtered data is empty, create empty data
+    if (transformedData.length === 0) {
+      const emptyData: ChartDataPoint[] = [];
+      for (let i = 1; i <= 12; i++) {
+        emptyData.push({
+          month: getMonthName(i),
+          Income: 0,
+          Expenses: 0
+        });
+      }
+      setChartData(emptyData);
+    } else {
+      setChartData(transformedData);
+    }
   }, [data, year]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
