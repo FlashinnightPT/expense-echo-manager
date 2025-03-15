@@ -82,6 +82,29 @@ export const useComparisonData = (
     
     const allCategoryIds = [categoryId, ...getAllSubcategoryIds(categoryId, categories)];
     
+    // Check if we've already reached the maximum of 5 categories
+    if (comparisonData.length >= 5) {
+      toast.error("Máximo de 5 categorias permitidas para comparação");
+      return;
+    }
+    
+    // Check if this category is already in the comparison with the same date range
+    const isDuplicate = comparisonData.some(item => {
+      const categoryIdFromItem = item.id.split('-')[0]; // Extract the categoryId part
+      const sameCategory = categoryIdFromItem === categoryId;
+      
+      const sameDateRange = item.dateRange && 
+        item.dateRange.start.getTime() === effectiveStartDate.getTime() &&
+        item.dateRange.end.getTime() === effectiveEndDate.getTime();
+        
+      return sameCategory && sameDateRange;
+    });
+    
+    if (isDuplicate) {
+      toast.error("Esta categoria já está na comparação para este período");
+      return;
+    }
+
     // Validate if we can add this category
     if (!validateCategoryAddition(categoryId, selectedCategories, filteredTransactions, allCategoryIds)) {
       return;
@@ -103,27 +126,26 @@ export const useComparisonData = (
     
     const amount = categoryTransactions.reduce((sum, t) => sum + t.amount, 0);
     
+    // Add the category ID to our selected list
     setSelectedCategories(prevSelected => [...prevSelected, categoryId]);
     
     const periodLabel = customStartDate && customEndDate 
       ? ` (${effectiveStartDate.toLocaleDateString()} - ${effectiveEndDate.toLocaleDateString()})`
       : '';
       
-    const newComparisonData = [
-      ...comparisonData,
-      {
-        id: `${categoryId}-${Date.now()}`,  // Use unique ID with timestamp
-        name: `${categoryPath.split(" > ").pop() || "Desconhecido"}${periodLabel}`,
-        path: `${categoryPath}${periodLabel}`,
-        amount,
-        dateRange: {
-          start: effectiveStartDate,
-          end: effectiveEndDate
-        }
+    const newComparisonItem = {
+      id: `${categoryId}-${Date.now()}`,  // Use unique ID with timestamp
+      name: `${categoryPath.split(" > ").pop() || "Desconhecido"}${periodLabel}`,
+      path: `${categoryPath}${periodLabel}`,
+      amount,
+      dateRange: {
+        start: effectiveStartDate,
+        end: effectiveEndDate
       }
-    ];
+    };
     
-    setComparisonData(newComparisonData);
+    // Add the new item to the comparison data
+    setComparisonData(prevData => [...prevData, newComparisonItem]);
     
     // Only scroll if shouldScroll is true
     if (shouldScroll) {
