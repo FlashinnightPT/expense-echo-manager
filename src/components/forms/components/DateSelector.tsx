@@ -1,11 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CalendarIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { Input } from "@/components/ui/input";
+import { format, parse } from "date-fns";
 import { pt } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
@@ -15,45 +13,47 @@ interface DateSelectorProps {
 }
 
 const DateSelector = ({ selectedDate, onChange }: DateSelectorProps) => {
-  // Limitar ano máximo para o atual
-  const currentYear = new Date().getFullYear();
+  const [inputValue, setInputValue] = useState(format(selectedDate, "MM/yyyy"));
+  
+  // Update input value when selectedDate changes
+  useEffect(() => {
+    setInputValue(format(selectedDate, "MM/yyyy"));
+  }, [selectedDate]);
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+    
+    // Only try to parse if we have the expected MM/yyyy format
+    if (/^\d{2}\/\d{4}$/.test(value)) {
+      try {
+        const parsedDate = parse(value, "MM/yyyy", new Date());
+        // Check if parsing was successful and date is valid
+        if (!isNaN(parsedDate.getTime())) {
+          onChange(parsedDate);
+        }
+      } catch (error) {
+        // Invalid date format, don't update
+        console.error("Invalid date format", error);
+      }
+    }
+  };
 
   return (
     <div className="space-y-2">
       <Label htmlFor="date">Data</Label>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "w-full justify-start text-left font-normal",
-              !selectedDate && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {selectedDate ? (
-              format(selectedDate, "MMMM yyyy", { locale: pt })
-            ) : (
-              <span>Selecione uma data</span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={(date) => date && onChange(date)}
-            initialFocus
-            className="pointer-events-auto"
-            captionLayout="dropdown-buttons"
-            fromYear={2020}
-            toYear={currentYear}
-            defaultMonth={selectedDate}
-            month={selectedDate}
-            onMonthChange={onChange}
-          />
-        </PopoverContent>
-      </Popover>
+      <div className="relative">
+        <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          id="date"
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          placeholder="MM/AAAA"
+          className="pl-9"
+          maxLength={7}
+        />
+      </div>
     </div>
   );
 };
