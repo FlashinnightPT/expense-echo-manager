@@ -28,6 +28,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Verificar se existem utilizadores e criar um utilizador padrão se não existir nenhum
+    const savedUsers = localStorage.getItem("app_users");
+    const users = savedUsers ? JSON.parse(savedUsers) : [];
+    
+    if (users.length === 0) {
+      // Criar utilizador admin padrão se não existir nenhum utilizador
+      const defaultAdmin = {
+        id: "1",
+        name: "Administrador",
+        email: "admin@exemplo.com",
+        role: "editor",
+        status: "active",
+        lastLogin: new Date().toISOString()
+      };
+      
+      localStorage.setItem("app_users", JSON.stringify([defaultAdmin]));
+    }
+
     // Verificar se o utilizador já está autenticado
     const currentUser = sessionStorage.getItem("current_user");
     if (currentUser) {
@@ -49,6 +67,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       if (!foundUser) {
         return false;
+      }
+      
+      // Para o utilizador padrão, permitir acesso com a senha "admin123"
+      if (foundUser.email === "admin@exemplo.com" && password === "admin123") {
+        const userToSave: User = {
+          id: foundUser.id,
+          name: foundUser.name,
+          email: foundUser.email,
+          role: foundUser.role
+        };
+        
+        setUser(userToSave);
+        setIsAuthenticated(true);
+        sessionStorage.setItem("current_user", JSON.stringify(userToSave));
+        
+        return true;
       }
       
       // Nota: Numa aplicação real, verificaria a senha com hash

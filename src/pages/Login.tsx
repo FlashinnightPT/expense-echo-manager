@@ -26,8 +26,12 @@ const Login = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Gestão Financeira</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-2">
             Aceda à sua conta para gerir as suas finanças
+          </p>
+          <p className="text-sm text-blue-500">
+            Se é a primeira vez a acessar o sistema, um utilizador administrador 
+            foi criado automaticamente para você
           </p>
         </div>
         

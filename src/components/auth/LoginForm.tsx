@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,34 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [isFirstLogin, setIsFirstLogin] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Verificar se existem utilizadores e criar um utilizador padrão se não existir nenhum
+  useEffect(() => {
+    const savedUsers = localStorage.getItem("app_users");
+    const users = savedUsers ? JSON.parse(savedUsers) : [];
+    
+    if (users.length === 0) {
+      // Criar utilizador admin padrão se não existir nenhum utilizador
+      const defaultAdmin = {
+        id: "1",
+        name: "Administrador",
+        email: "admin@exemplo.com",
+        role: "editor",
+        status: "active",
+        lastLogin: new Date().toISOString()
+      };
+      
+      localStorage.setItem("app_users", JSON.stringify([defaultAdmin]));
+      
+      // Preencher o formulário com as credenciais padrão para facilitar o login
+      setForm({
+        email: "admin@exemplo.com",
+        password: "admin123",
+      });
+      
+      toast.info("Utilizador administrador criado automaticamente. Email: admin@exemplo.com / Senha: admin123");
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -51,6 +79,30 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     
     if (!user) {
       toast.error("Utilizador não encontrado");
+      return;
+    }
+    
+    // Para o utilizador padrão, permitir acesso com a senha "admin123"
+    const isDefaultAdmin = user.email === "admin@exemplo.com";
+    if (isDefaultAdmin && form.password === "admin123") {
+      // Login bem-sucedido para o admin padrão
+      sessionStorage.setItem(
+        "current_user", 
+        JSON.stringify({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        })
+      );
+      
+      toast.success("Login realizado com sucesso");
+      
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      } else {
+        navigate("/dashboard");
+      }
       return;
     }
     
