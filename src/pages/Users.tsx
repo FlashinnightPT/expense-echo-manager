@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, UserPlus, Mail, Lock, User, Eye, EyeOff, Pencil, Trash2, Shield } from "lucide-react";
+import { ArrowLeft, UserPlus, Mail, Lock, User as UserIcon, Eye, EyeOff, Pencil, Trash2, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth, User, UserRole, UserStatus } from "@/hooks/auth";
+import { useAuth, UserRole, UserStatus } from "@/hooks/auth";
+import type { User } from "@/hooks/auth";
 import { hashPassword } from "@/hooks/auth/securityUtils";
 
 import Header from "@/components/layout/Header";
@@ -246,7 +247,7 @@ const Users = () => {
                         onChange={(e) => setNewUser({...newUser, username: e.target.value})}
                         className="pl-10"
                       />
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     </div>
                   </div>
                   <div className="space-y-2">
