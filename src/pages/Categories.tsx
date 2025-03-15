@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import Header from "@/components/layout/Header";
 import CategoryForm from "@/components/forms/CategoryForm";
 import CategoryList from "@/components/categories/CategoryList";
 import { DeleteCategoryDialog } from "@/components/categories/CategoryDialogs";
@@ -50,31 +49,28 @@ const Categories = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="container mx-auto px-4 py-8 pt-24">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Gestão de Categorias</h1>
-            <p className="text-muted-foreground mt-1">
-              Adicione, edite ou elimine categorias
-            </p>
-          </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Gestão de Categorias</h1>
+          <p className="text-muted-foreground mt-1">
+            Adicione, edite ou elimine categorias
+          </p>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <CategoryForm onSave={handleSaveCategory} categoryList={categoryList} />
-          </div>
-          
-          <div className="lg:col-span-2">
-            <CategoryList 
-              categoryList={categoryList}
-              handleDeleteCategory={attemptCategoryDeletion}
-              updateCategoryName={updateCategoryName}
-              moveCategory={moveCategory}
-            />
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <CategoryForm onSave={handleSaveCategory} categoryList={categoryList} />
+        </div>
+        
+        <div className="lg:col-span-2">
+          <CategoryList 
+            categoryList={categoryList}
+            handleDeleteCategory={attemptCategoryDeletion}
+            updateCategoryName={updateCategoryName}
+            moveCategory={moveCategory}
+          />
         </div>
       </div>
 

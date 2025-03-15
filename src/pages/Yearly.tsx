@@ -1,7 +1,5 @@
-
 import { useState, useEffect, useMemo } from "react";
 import YearlyChart from "@/components/charts/YearlyChart";
-import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
 import { formatCurrency } from "@/utils/financialCalculations";
 import DataTable from "@/components/tables/DataTable";
@@ -170,62 +168,59 @@ const Yearly = () => {
   ];
   
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="container mx-auto px-4 py-8 pt-24">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Análise Anual</h1>
-            <p className="text-muted-foreground mt-1">
-              Compare os seus dados financeiros entre anos
-            </p>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Análise Anual</h1>
+          <p className="text-muted-foreground mt-1">
+            Compare os seus dados financeiros entre anos
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {availableYears.map(year => (
+            <button
+              key={year}
+              className={`px-4 py-2 rounded-md border transition-colors ${
+                selectedYears.includes(year) 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-background hover:bg-muted'
+              }`}
+              onClick={() => toggleYear(year)}
+            >
+              {year}
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <Card>
+          <div className="p-6">
+            <p className="text-sm text-muted-foreground">Receitas Totais</p>
+            <p className="text-2xl font-bold mt-1">{formatCurrency(totalIncome)}</p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {availableYears.map(year => (
-              <button
-                key={year}
-                className={`px-4 py-2 rounded-md border transition-colors ${
-                  selectedYears.includes(year) 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-background hover:bg-muted'
-                }`}
-                onClick={() => toggleYear(year)}
-              >
-                {year}
-              </button>
-            ))}
+        </Card>
+        <Card>
+          <div className="p-6">
+            <p className="text-sm text-muted-foreground">Despesas Totais</p>
+            <p className="text-2xl font-bold mt-1">{formatCurrency(totalExpenses)}</p>
           </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <Card>
-            <div className="p-6">
-              <p className="text-sm text-muted-foreground">Receitas Totais</p>
-              <p className="text-2xl font-bold mt-1">{formatCurrency(totalIncome)}</p>
-            </div>
-          </Card>
-          <Card>
-            <div className="p-6">
-              <p className="text-sm text-muted-foreground">Despesas Totais</p>
-              <p className="text-2xl font-bold mt-1">{formatCurrency(totalExpenses)}</p>
-            </div>
-          </Card>
-        </div>
-        
-        <div className="mb-8">
-          <Card>
-            <YearlyChart data={filteredData} className="w-full" />
-          </Card>
-        </div>
-        
-        <div className="mb-8">
-          <DataTable 
-            data={tableData} 
-            columns={columns} 
-            title="Resumo Anual"
-            emptyMessage="Selecione pelo menos um ano para ver os dados"
-          />
-        </div>
+        </Card>
+      </div>
+      
+      <div className="mb-8">
+        <Card>
+          <YearlyChart data={filteredData} className="w-full" />
+        </Card>
+      </div>
+      
+      <div className="mb-8">
+        <DataTable 
+          data={tableData} 
+          columns={columns} 
+          title="Resumo Anual"
+          emptyMessage="Selecione pelo menos um ano para ver os dados"
+        />
       </div>
     </div>
   );

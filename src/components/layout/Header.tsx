@@ -83,112 +83,26 @@ const Header = () => {
                       CDW <span className="text-primary">Financeiro</span>
                     </span>
                   </div>
-                  <Button
-                    variant="ghost"
-                    className="justify-start px-4"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Link
-                      to="/dashboard"
-                      className={cn(
-                        "text-sm font-medium transition-colors hover:text-primary",
-                        location.pathname === "/dashboard"
-                          ? "text-primary"
-                          : "text-foreground"
-                      )}
+                  {navigationItems.map((item) => (
+                    <Button
+                      key={item.path}
+                      variant="ghost"
+                      className="justify-start px-4"
+                      onClick={() => setIsMenuOpen(false)}
                     >
-                      Dashboard
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="justify-start px-4"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Link
-                      to="/monthly"
-                      className={cn(
-                        "text-sm font-medium transition-colors hover:text-primary",
-                        location.pathname === "/monthly"
-                          ? "text-primary"
-                          : "text-foreground"
-                      )}
-                    >
-                      Mensal
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="justify-start px-4"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Link
-                      to="/yearly"
-                      className={cn(
-                        "text-sm font-medium transition-colors hover:text-primary",
-                        location.pathname === "/yearly"
-                          ? "text-primary"
-                          : "text-foreground"
-                      )}
-                    >
-                      Anual
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="justify-start px-4"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Link
-                      to="/category-analysis"
-                      className={cn(
-                        "text-sm font-medium transition-colors hover:text-primary",
-                        location.pathname === "/category-analysis"
-                          ? "text-primary"
-                          : "text-foreground"
-                      )}
-                    >
-                      Análise por Categoria
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="justify-start px-4"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Link
-                      to="/categories"
-                      className={cn(
-                        "text-sm font-medium transition-colors hover:text-primary",
-                        location.pathname === "/categories"
-                          ? "text-primary"
-                          : "text-foreground"
-                      )}
-                    >
-                      Gestão de Categorias
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="justify-start px-4"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Link
-                      to="/settings"
-                      className={cn(
-                        "text-sm font-medium transition-colors hover:text-primary",
-                        location.pathname === "/settings"
-                          ? "text-primary"
-                          : "text-foreground"
-                      )}
-                    >
-                      Definições
-                    </Link>
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Entrar
-                  </Button>
-                  <Button size="sm">Criar Conta</Button>
+                      <Link
+                        to={item.path}
+                        className={cn(
+                          "text-sm font-medium transition-colors hover:text-primary",
+                          location.pathname === item.path
+                            ? "text-primary"
+                            : "text-foreground"
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    </Button>
+                  ))}
                 </div>
               </SheetContent>
             </Sheet>
