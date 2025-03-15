@@ -5,6 +5,17 @@ import { exportToExcel } from "@/utils/exportUtils";
 import { formatCurrency } from "@/utils/financialCalculations";
 import { getAllSubcategoryIds, validateCategoryAddition, getRandomColor } from "../utils/comparisonChartUtils";
 
+interface ComparisonItem {
+  id: string;
+  name: string;
+  path: string;
+  amount: number;
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+}
+
 export const useComparisonData = (
   categories: any[],
   transactions: any[],
@@ -13,7 +24,7 @@ export const useComparisonData = (
   activeTab: "expense" | "income"
 ) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [comparisonData, setComparisonData] = useState<any[]>([]);
+  const [comparisonData, setComparisonData] = useState<ComparisonItem[]>([]);
   const [autoScroll, setAutoScroll] = useState<boolean>(false);
 
   const filteredTransactions = useMemo(() => {
@@ -31,20 +42,24 @@ export const useComparisonData = (
     return comparisonData.reduce((sum, item) => sum + item.amount, 0);
   }, [comparisonData]);
 
-  const chartData = useMemo(() => {
-    return comparisonData.map((item) => ({
-      category: item.name,
-      amount: item.amount,
-      categoryId: item.id,
-      fill: getRandomColor(item.id, activeTab)
-    }));
-  }, [comparisonData, activeTab]);
-
   useEffect(() => {
     const handleAddCategoryToComparison = (event: CustomEvent) => {
-      const { categoryId, categoryPath } = event.detail;
+      const { categoryId, categoryPath, customStartDate, customEndDate } = event.detail;
       console.log("Adding category to comparison:", categoryId, categoryPath);
-      addCategoryToComparison(categoryId, categoryPath);
+      
+      // Se datas personalizadas forem fornecidas, usá-las
+      if (customStartDate && customEndDate) {
+        addCategoryToComparison(
+          categoryId, 
+          categoryPath, 
+          false, 
+          new Date(customStartDate), 
+          new Date(customEndDate)
+        );
+      } else {
+        // Caso contrário, usar as datas atuais
+        addCategoryToComparison(categoryId, categoryPath);
+      }
     };
 
     window.addEventListener("addCategoryToComparison", handleAddCategoryToComparison as EventListener);
@@ -54,7 +69,17 @@ export const useComparisonData = (
     };
   }, [filteredTransactions]); // Depends on filteredTransactions which changes with date range
 
-  const addCategoryToComparison = (categoryId: string, categoryPath: string, shouldScroll = autoScroll) => {
+  const addCategoryToComparison = (
+    categoryId: string, 
+    categoryPath: string, 
+    shouldScroll = autoScroll,
+    customStartDate?: Date,
+    customEndDate?: Date
+  ) => {
+    // Use either custom dates or current filter dates
+    const effectiveStartDate = customStartDate || startDate;
+    const effectiveEndDate = customEndDate || endDate;
+    
     const allCategoryIds = [categoryId, ...getAllSubcategoryIds(categoryId, categories)];
     
     // Validate if we can add this category
@@ -62,7 +87,17 @@ export const useComparisonData = (
       return;
     }
 
-    const categoryTransactions = filteredTransactions.filter(t => 
+    // Filter transactions based on effective dates
+    const customFilteredTransactions = transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return (
+        transactionDate >= effectiveStartDate &&
+        transactionDate <= effectiveEndDate &&
+        t.type === activeTab
+      );
+    });
+    
+    const categoryTransactions = customFilteredTransactions.filter(t => 
       allCategoryIds.includes(t.categoryId)
     );
     
@@ -70,13 +105,21 @@ export const useComparisonData = (
     
     setSelectedCategories(prevSelected => [...prevSelected, categoryId]);
     
+    const periodLabel = customStartDate && customEndDate 
+      ? ` (${effectiveStartDate.toLocaleDateString()} - ${effectiveEndDate.toLocaleDateString()})`
+      : '';
+      
     const newComparisonData = [
       ...comparisonData,
       {
-        id: categoryId,
-        name: categoryPath.split(" > ").pop() || "Desconhecido",
-        path: categoryPath,
-        amount
+        id: `${categoryId}-${Date.now()}`,  // Use unique ID with timestamp
+        name: `${categoryPath.split(" > ").pop() || "Desconhecido"}${periodLabel}`,
+        path: `${categoryPath}${periodLabel}`,
+        amount,
+        dateRange: {
+          start: effectiveStartDate,
+          end: effectiveEndDate
+        }
       }
     ];
     
@@ -92,7 +135,13 @@ export const useComparisonData = (
   };
 
   const removeCategoryFromComparison = (categoryId: string) => {
-    setSelectedCategories(selectedCategories.filter(id => id !== categoryId));
+    const itemToRemove = comparisonData.find(item => item.id === categoryId);
+    if (!itemToRemove) return;
+    
+    // Extract the original categoryId without timestamp
+    const originalCategoryId = itemToRemove.id.split('-')[0];
+    
+    setSelectedCategories(selectedCategories.filter(id => id !== originalCategoryId));
     setComparisonData(comparisonData.filter(item => item.id !== categoryId));
   };
 
@@ -105,7 +154,9 @@ export const useComparisonData = (
       
       const exportData = comparisonData.map(item => ({
         Categoria: item.path,
-        Valor: formatCurrency(item.amount).replace(/[€$]/g, '').trim()
+        Valor: formatCurrency(item.amount).replace(/[€$]/g, '').trim(),
+        "Data Início": item.dateRange?.start.toLocaleDateString() || startDate.toLocaleDateString(),
+        "Data Fim": item.dateRange?.end.toLocaleDateString() || endDate.toLocaleDateString()
       }));
       
       exportToExcel(
@@ -128,7 +179,6 @@ export const useComparisonData = (
     selectedCategories,
     comparisonData,
     totalAmount,
-    chartData,
     addCategoryToComparison,
     removeCategoryFromComparison,
     handleExportComparison,

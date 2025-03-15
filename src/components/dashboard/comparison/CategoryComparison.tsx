@@ -3,8 +3,6 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
-import ComparisonBarChart from "./components/ComparisonBarChart";
-import ComparisonPieChart from "./components/ComparisonPieChart";
 import ComparisonTable from "./components/ComparisonTable";
 import EmptyComparison from "./components/EmptyComparison";
 import { useComparisonData } from "./hooks/useComparisonData";
@@ -27,7 +25,6 @@ const CategoryComparison = ({
   const {
     comparisonData,
     totalAmount,
-    chartData,
     removeCategoryFromComparison,
     handleExportComparison
   } = useComparisonData(categories, transactions, startDate, endDate, activeTab);
@@ -52,21 +49,11 @@ const CategoryComparison = ({
           {comparisonData.length === 0 ? (
             <EmptyComparison />
           ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <ComparisonBarChart chartData={chartData} />
-                <ComparisonPieChart 
-                  chartData={chartData} 
-                  totalAmount={totalAmount} 
-                />
-              </div>
-
-              <ComparisonTable 
-                comparisonData={comparisonData}
-                totalAmount={totalAmount}
-                onRemoveCategory={removeCategoryFromComparison}
-              />
-            </>
+            <ComparisonTable 
+              comparisonData={comparisonData}
+              totalAmount={totalAmount}
+              onRemoveCategory={removeCategoryFromComparison}
+            />
           )}
         </CardContent>
       </Card>

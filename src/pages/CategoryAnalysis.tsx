@@ -13,11 +13,10 @@ import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calculator, FileDown, Home, ArrowRightLeft, Plus } from "lucide-react";
-import { exportToExcel, prepareCategoryDataForExport } from "@/utils/exportUtils";
+import { exportToExcel } from "@/utils/exportUtils";
 import { toast } from "sonner";
-import CategoryComparison from "@/components/dashboard/CategoryComparison";
+import CategoryComparison from "@/components/dashboard/comparison/CategoryComparison";
 import CompareButton from "@/components/dashboard/components/CompareButton";
-import { useComparisonData } from "@/components/dashboard/comparison/hooks/useComparisonData";
 
 const RecentCategoriesForComparison = ({ 
   categories, 
@@ -120,17 +119,6 @@ const CategoryAnalysis = () => {
     };
   }, []);
   
-  const {
-    selectedCategories,
-    comparisonData,
-    totalAmount: comparisonTotalAmount,
-    chartData,
-    addCategoryToComparison,
-    removeCategoryFromComparison,
-    handleExportComparison,
-    setScrollToComparison
-  } = useComparisonData(categories, transactions, startDate, endDate, activeTab);
-  
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const categoryParam = searchParams.get('categoryId');
@@ -166,10 +154,6 @@ const CategoryAnalysis = () => {
       }
     }
   }, [categories]);
-  
-  useEffect(() => {
-    setScrollToComparison(false);
-  }, []);
   
   useEffect(() => {
     setSelectedCategoryId("");
@@ -457,15 +441,17 @@ const CategoryAnalysis = () => {
   
   const handleAddToComparison = (categoryId: string, categoryPath: string) => {
     console.log("Dispatching add category to comparison event:", categoryId, categoryPath);
-    addCategoryToComparison(categoryId, categoryPath, false);
-  };
-  
-  const selectedCategoryPathForComparison = useMemo(() => {
-    if (!selectedCategoryForComparison) return "";
     
-    const category = categoryOptions.find(cat => cat.id === selectedCategoryForComparison);
-    return category ? category.path : "";
-  }, [selectedCategoryForComparison, categoryOptions]);
+    const event = new CustomEvent("addCategoryToComparison", {
+      detail: { categoryId, categoryPath }
+    });
+    window.dispatchEvent(event);
+    
+    const comparisonElement = document.getElementById('category-comparison-section');
+    if (comparisonElement) {
+      comparisonElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   
   return (
     <div className="min-h-screen bg-background">
@@ -596,13 +582,7 @@ const CategoryAnalysis = () => {
                   <div className="flex items-center gap-2">
                     <Button 
                       size="sm" 
-                      onClick={() => {
-                        handleAddToComparison(selectedCategoryId, selectedCategoryName);
-                        const comparisonElement = document.getElementById('category-comparison-section');
-                        if (comparisonElement) {
-                          comparisonElement.scrollIntoView({ behavior: 'smooth' });
-                        }
-                      }}
+                      onClick={() => handleAddToComparison(selectedCategoryId, selectedCategoryName)}
                       className="flex items-center gap-1"
                     >
                       <ArrowRightLeft className="h-4 w-4 mr-1" />

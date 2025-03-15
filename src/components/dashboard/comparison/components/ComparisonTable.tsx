@@ -9,7 +9,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Calendar } from "lucide-react";
 import { formatCurrency } from "@/utils/financialCalculations";
 
 interface ComparisonTableProps {
@@ -18,6 +18,10 @@ interface ComparisonTableProps {
     name: string;
     path: string;
     amount: number;
+    dateRange?: {
+      start: Date;
+      end: Date;
+    };
   }[];
   totalAmount: number;
   onRemoveCategory: (categoryId: string) => void;
@@ -30,6 +34,13 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
 }) => {
   if (!comparisonData || comparisonData.length === 0) return null;
 
+  const formatDateRange = (item: any) => {
+    if (!item.dateRange) return "-";
+    
+    const { start, end } = item.dateRange;
+    return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+  };
+
   return (
     <Table>
       <TableHeader>
@@ -37,6 +48,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           <TableHead>Categoria</TableHead>
           <TableHead className="text-right">Valor</TableHead>
           <TableHead className="text-right">% do Total</TableHead>
+          <TableHead>Período</TableHead>
           <TableHead className="w-[50px]"></TableHead>
         </TableRow>
       </TableHeader>
@@ -44,13 +56,16 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
         {comparisonData.map((item) => (
           <TableRow key={item.id}>
             <TableCell className="font-medium">
-              {item.path}
+              {item.path.split(" (")[0]} {/* Remove date range suffix if present */}
             </TableCell>
             <TableCell className="text-right tabular-nums">
               {formatCurrency(item.amount)}
             </TableCell>
             <TableCell className="text-right tabular-nums">
               {totalAmount > 0 ? ((item.amount / totalAmount) * 100).toFixed(2) : 0}%
+            </TableCell>
+            <TableCell className="text-sm">
+              {formatDateRange(item)}
             </TableCell>
             <TableCell>
               <Button
@@ -69,6 +84,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
             {formatCurrency(totalAmount)}
           </TableCell>
           <TableCell className="text-right tabular-nums">100%</TableCell>
+          <TableCell></TableCell>
           <TableCell></TableCell>
         </TableRow>
       </TableBody>
