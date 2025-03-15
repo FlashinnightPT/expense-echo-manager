@@ -46,7 +46,7 @@ export const useCategoryForm = ({ onSave, categoryList }: UseCategoryFormProps) 
     console.log("Submitting new category:", newCategory);
     onSave(newCategory);
     
-    // Keep the same parent but reset the name to allow quick adding of multiple items
+    // Keep the same parent and type, just reset the name to allow quick adding of multiple items
     setCategoryName("");
     
     toast.success(`${getCategoryLevelName(level)} "${categoryName}" adicionado com sucesso`);

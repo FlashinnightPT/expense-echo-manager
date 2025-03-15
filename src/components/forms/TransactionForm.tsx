@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Save, X, CalendarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
@@ -36,6 +35,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
     return new Date(today.getFullYear(), today.getMonth() - 1, 1);
   };
 
+  // Estado inicial para a data e outros campos do formulário
   const [formData, setFormData] = useState<Partial<Transaction>>({
     amount: transaction?.amount || 0,
     date: transaction?.date || format(getDefaultDate(), "yyyy-MM-dd"),
@@ -194,19 +194,17 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
     if (onSave) {
       onSave(formData);
       
-      // Reset form after save if it's a new transaction
-      if (!transaction) {
-        setFormData({
-          amount: 0,
-          date: format(getDefaultDate(), "yyyy-MM-dd"),
-          categoryId: "",
-          type: "expense"
-        });
-        setSelectedDate(getDefaultDate());
-        setCategoryPath([]);
-        setCategoryLevel(2);
-        setIsAtLeafCategory(false);
-      }
+      // Não resetar a data após salvar, mantendo a data selecionada pelo usuário
+      setFormData({
+        ...formData,
+        amount: 0,
+        categoryId: "",
+      });
+      
+      // Manter a mesma data e tipo, resetando apenas os outros campos
+      setCategoryPath([]);
+      setCategoryLevel(2);
+      setIsAtLeafCategory(false);
       
       toast.success(transaction ? "Transação atualizada" : "Transação adicionada");
     }
@@ -375,14 +373,13 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                   });
                   setSelectedDate(new Date(transaction.date));
                 } else {
-                  // Clear form if adding new
+                  // Ao limpar, mantem a data atual, resetando apenas os outros campos
                   setFormData({
+                    ...formData,
                     amount: 0,
-                    date: format(getDefaultDate(), "yyyy-MM-dd"),
                     categoryId: "",
-                    type: "expense"
                   });
-                  setSelectedDate(getDefaultDate());
+                  // Data e tipo são mantidos
                   setCategoryPath([]);
                   setCategoryLevel(2);
                   setIsAtLeafCategory(false);
