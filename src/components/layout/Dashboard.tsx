@@ -1,6 +1,4 @@
-
 import { useMemo } from "react";
-import { BarChart3 } from "lucide-react";
 import YearlyChart from "@/components/charts/YearlyChart";
 import { useDashboardData } from "@/components/dashboard/hooks/useDashboardData";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -8,7 +6,6 @@ import SummaryCards from "@/components/dashboard/SummaryCards";
 import MonthlyOverview from "@/components/dashboard/MonthlyOverview";
 import YearlyOverview from "@/components/dashboard/YearlyOverview";
 import TransactionsTable from "@/components/dashboard/TransactionsTable";
-import CategoryTransactionsTable from "@/components/dashboard/CategoryTransactionsTable";
 import { toast } from "sonner";
 import { formatCurrency } from "@/utils/financialCalculations";
 import { Transaction } from "@/utils/mockData";
@@ -27,9 +24,7 @@ const Dashboard = () => {
     yearlyChartData,
     setSelectedYear,
     setSelectedMonth,
-    handleSaveCategory,
     handleSaveTransaction,
-    handleClearAllData,
     getCategoryById,
     getCategoryPath,
   } = useDashboardData();
@@ -99,16 +94,6 @@ const Dashboard = () => {
     }
   ], [getCategoryById, getCategoryPath]);
 
-  const handleClearDataWithToast = () => {
-    handleClearAllData();
-    toast.success("Todos os dados foram apagados com sucesso!");
-  };
-
-  const handleSaveCategoryWithToast = (category: any) => {
-    handleSaveCategory(category);
-    toast.success("Categoria adicionada com sucesso");
-  };
-
   const handleSaveTransactionWithToast = (transaction: any) => {
     handleSaveTransaction(transaction);
     toast.success("Transação adicionada com sucesso");
@@ -120,9 +105,6 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <DashboardHeader 
           onSaveTransaction={handleSaveTransactionWithToast}
-          onSaveCategory={handleSaveCategoryWithToast}
-          onClearData={handleClearDataWithToast}
-          categories={categories}
         />
         
         <SummaryCards monthlySummary={monthlySummary} />
@@ -146,18 +128,6 @@ const Dashboard = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           <YearlyChart data={yearlyChartData} className="lg:col-span-3 animate-fade-in-up animation-delay-700" />
-        </div>
-        
-        {/* Nova tabela hierárquica de categorias */}
-        <div className="mb-8">
-          <CategoryTransactionsTable 
-            transactions={transactions}
-            categories={categories}
-            selectedYear={selectedYear}
-            selectedMonth={selectedMonth}
-            onMonthChange={setSelectedMonth}
-            getCategoryById={getCategoryById}
-          />
         </div>
         
         <TransactionsTable 
