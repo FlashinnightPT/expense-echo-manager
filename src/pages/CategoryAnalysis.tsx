@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -17,6 +16,7 @@ import { toast } from "sonner";
 import CategoryComparison from "@/components/dashboard/comparison/CategoryComparison";
 import CompareButton from "@/components/dashboard/components/CompareButton";
 import Header from "@/components/layout/Header";
+import DateSelector from "@/components/forms/components/DateSelector";
 
 const RecentCategoriesForComparison = ({ 
   categories, 
@@ -533,40 +533,18 @@ const CategoryAnalysis = () => {
           
           <Card className="p-4">
             <h2 className="font-semibold mb-2">Data Inicial</h2>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal">
-                  <span>{format(startDate, "d 'de' MMMM 'de' yyyy", { locale: pt })}</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={(date) => date && setStartDate(date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <DateSelector
+              selectedDate={startDate}
+              onChange={setStartDate}
+            />
           </Card>
           
           <Card className="p-4">
             <h2 className="font-semibold mb-2">Data Final</h2>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start text-left font-normal">
-                  <span>{format(endDate, "d 'de' MMMM 'de' yyyy", { locale: pt })}</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={endDate}
-                  onSelect={(date) => date && setEndDate(date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <DateSelector
+              selectedDate={endDate}
+              onChange={setEndDate}
+            />
           </Card>
         </div>
         
