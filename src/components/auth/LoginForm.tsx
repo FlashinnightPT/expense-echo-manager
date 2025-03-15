@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Eye, EyeOff, LogIn, User, Lock, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -27,13 +26,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [passwordValid, setPasswordValid] = useState(false);
 
-  // Verificar se existem utilizadores e criar um utilizador padrão se não existir nenhum
   useEffect(() => {
     const savedUsers = localStorage.getItem("app_users");
     const users = savedUsers ? JSON.parse(savedUsers) : [];
     
     if (users.length === 0) {
-      // Criar utilizador admin padrão se não existir nenhum utilizador
       const defaultAdmin = {
         id: "1",
         name: "Administrador",
@@ -45,7 +42,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       
       localStorage.setItem("app_users", JSON.stringify([defaultAdmin]));
       
-      // Preencher o formulário com as credenciais padrão para facilitar o login
       setForm({
         username: "admin",
         password: "admin123",
@@ -75,7 +71,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
 
-    // Buscar utilizadores do localStorage
     const savedUsers = localStorage.getItem("app_users");
     const users = savedUsers ? JSON.parse(savedUsers) : [];
     
@@ -86,10 +81,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
     
-    // Para o utilizador padrão, permitir acesso com a senha "admin123"
     const isDefaultAdmin = user.username === "admin";
     if (isDefaultAdmin && form.password === "admin123") {
-      // Login bem-sucedido para o admin padrão
       sessionStorage.setItem(
         "current_user", 
         JSON.stringify({
@@ -110,17 +103,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
     
-    // Nota: Numa aplicação real, faria verificação de senha com hash
-    // Esta é apenas uma simulação para fins de demonstração
-    
-    // Simulando primeiro login (senha temporária)
     if (form.password === "temp123") {
       setIsFirstLogin(true);
       toast.info("Por favor, altere a sua senha");
       return;
     }
 
-    // Atualizar status para ativo e último login
     const updatedUsers = users.map((u: any) => {
       if (u.username === form.username) {
         return {
@@ -134,7 +122,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     
     localStorage.setItem("app_users", JSON.stringify(updatedUsers));
     
-    // Autenticação usando o hook useAuth
     login(form.username, form.password).then((success) => {
       if (success) {
         toast.success("Login realizado com sucesso");
@@ -169,13 +156,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
 
-    // Na vida real, você atualizaria a senha no banco de dados
-    // Aqui apenas simulamos o fluxo
-    
     toast.success("Senha alterada com sucesso");
     setIsFirstLogin(false);
     
-    // Simular login bem-sucedido após alteração de senha
     const savedUsers = localStorage.getItem("app_users");
     const users = savedUsers ? JSON.parse(savedUsers) : [];
     
@@ -256,7 +239,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 </button>
               </div>
               
-              {/* Requisitos de senha */}
               <div className="space-y-1 mt-2 text-sm">
                 <p className="font-medium text-gray-700 dark:text-gray-300">A senha deve conter:</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-1">

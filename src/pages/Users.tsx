@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserPlus, Mail, Lock, User, Eye, EyeOff, Pencil, Trash2, Shield } from "lucide-react";
@@ -157,7 +156,7 @@ const Users = () => {
   const sendPasswordResetEmail = (username: string) => {
     const tempPassword = generateTemporaryPassword();
     console.log(`Nova senha temporária para ${username}: ${tempPassword}`);
-    toast.success(`Nova senha temporária definida: ${tempPassword}`);
+    toast.success(`Nova senha temporária para ${username}: ${tempPassword}`);
   };
   
   const getRoleBadge = (role: UserRole) => {
