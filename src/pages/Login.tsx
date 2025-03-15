@@ -30,8 +30,8 @@ const Login = () => {
             Aceda à sua conta para gerir as suas finanças
           </p>
           <p className="text-sm text-blue-500">
-            Se é a primeira vez a acessar o sistema, um utilizador administrador 
-            foi criado automaticamente para você (username: admin / senha: admin123)
+            Se é a primeira vez a aceder ao sistema, deve colocar o seu nome de utilizador 
+            e a senha "temp123".
           </p>
         </div>
         
