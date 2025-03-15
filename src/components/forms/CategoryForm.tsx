@@ -43,13 +43,19 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
     }
   };
 
+  // Wrapper for form submit to handle the event
+  const onFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSubmit();
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Adicionar Nova Categoria</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={onFormSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="type">Tipo de Categoria</Label>
             <RadioGroup

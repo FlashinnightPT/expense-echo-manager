@@ -34,7 +34,7 @@ const NewCategoryInput = ({
           className="flex-1"
         />
         <Button 
-          type="submit"
+          type="button"
           disabled={!categoryName.trim()}
           className="whitespace-nowrap"
           onClick={(e) => {

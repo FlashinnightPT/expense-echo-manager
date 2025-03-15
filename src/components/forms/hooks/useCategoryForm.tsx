@@ -23,9 +23,7 @@ export const useCategoryForm = ({ onSave, categoryList }: UseCategoryFormProps) 
     setCategoryName("");
   }, [type]);
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = () => {
     if (!categoryName.trim()) {
       toast.error("Por favor, insira um nome para a categoria");
       return;
