@@ -1,57 +1,68 @@
 
 import { useState, useEffect, useMemo } from "react";
-import { yearlyData } from "@/utils/mockData";
 import YearlyChart from "@/components/charts/YearlyChart";
 import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
 import { formatCurrency } from "@/utils/financialCalculations";
 import DataTable from "@/components/tables/DataTable";
+import { Transaction } from "@/utils/mockData";
 
 const Yearly = () => {
   const currentYear = new Date().getFullYear();
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [selectedYears, setSelectedYears] = useState<number[]>([]);
   
-  // Carregar transações do localStorage
+  // Load transactions from localStorage
   useEffect(() => {
-    const storedTransactions = localStorage.getItem('transactions');
-    if (storedTransactions) {
-      setTransactions(JSON.parse(storedTransactions));
-    } else {
-      // Se não houver transações no localStorage, definir array vazio
-      setTransactions([]);
-      localStorage.setItem('transactions', JSON.stringify([]));
-    }
+    const loadTransactions = () => {
+      const storedTransactions = localStorage.getItem('transactions');
+      if (storedTransactions) {
+        setTransactions(JSON.parse(storedTransactions));
+      } else {
+        setTransactions([]);
+      }
+    };
+
+    // Load initially
+    loadTransactions();
+
+    // Add event listener for storage changes
+    window.addEventListener('storage', loadTransactions);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('storage', loadTransactions);
+    };
   }, []);
   
-  // Extrair os anos disponíveis das transações
+  // Extract available years from transactions
   const availableYears = useMemo(() => {
     const years = new Set<number>();
     
-    // Se não houver transações, retornar apenas o ano atual
+    // If no transactions, return only current year
     if (transactions.length === 0) {
       years.add(currentYear);
-      return Array.from(years).sort((a, b) => b - a); // Ordenar decrescente
+      return Array.from(years).sort((a, b) => b - a);
     }
     
-    // Extrair anos únicos das transações
+    // Extract unique years from transactions
     transactions.forEach(transaction => {
-      const transactionYear = new Date(transaction.date).getFullYear();
-      years.add(transactionYear);
+      const transactionDate = new Date(transaction.date);
+      years.add(transactionDate.getFullYear());
     });
     
-    // Converter Set para array e ordenar decrescente (mais recente primeiro)
+    // Convert Set to array and sort descending (most recent first)
     return Array.from(years).sort((a, b) => b - a);
-  }, [transactions]);
+  }, [transactions, currentYear]);
   
-  const [selectedYears, setSelectedYears] = useState<number[]>([]);
-  
-  // Inicializar selectedYears com o primeiro ano disponível
+  // Initialize selectedYears with the most recent year
   useEffect(() => {
     if (availableYears.length > 0 && selectedYears.length === 0) {
       setSelectedYears([availableYears[0]]);
     }
   }, [availableYears, selectedYears]);
   
+  // Function to toggle selection of a year
   const toggleYear = (year: number) => {
     if (selectedYears.includes(year)) {
       if (selectedYears.length > 1) {
@@ -62,21 +73,65 @@ const Yearly = () => {
     }
   };
   
-  const filteredData = yearlyData.filter(item => selectedYears.includes(item.year));
+  // Generate yearly data from transactions
+  const yearlyData = useMemo(() => {
+    // Get unique years from transactions or use availableYears
+    const years = new Set<number>(availableYears);
+    
+    // Create yearly summary for each year
+    const result = Array.from(years).map(year => {
+      // Filter transactions for this year
+      const yearTransactions = transactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate.getFullYear() === year;
+      });
+      
+      // Calculate totals
+      const income = yearTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+        
+      const expense = yearTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      return {
+        year,
+        income,
+        expense,
+        categories: []
+      };
+    });
+    
+    return result;
+  }, [transactions, availableYears]);
   
-  const totalIncome = filteredData.reduce((sum, item) => sum + item.income, 0);
-  const totalExpenses = filteredData.reduce((sum, item) => sum + item.expense, 0);
+  // Filter data based on selected years
+  const filteredData = useMemo(() => {
+    return yearlyData.filter(item => selectedYears.includes(item.year));
+  }, [yearlyData, selectedYears]);
   
-  // Preparar os dados para a tabela
-  const tableData = filteredData.map(item => ({
-    year: item.year,
-    income: item.income,
-    expense: item.expense,
-    balance: item.income - item.expense,
-    differenceRate: ((item.income - item.expense) / item.income * 100).toFixed(2)
-  }));
+  // Calculate totals for selected years
+  const totalIncome = useMemo(() => {
+    return filteredData.reduce((sum, item) => sum + item.income, 0);
+  }, [filteredData]);
   
-  // Definir as colunas da tabela
+  const totalExpenses = useMemo(() => {
+    return filteredData.reduce((sum, item) => sum + item.expense, 0);
+  }, [filteredData]);
+  
+  // Prepare data for table display
+  const tableData = useMemo(() => {
+    return filteredData.map(item => ({
+      year: item.year,
+      income: item.income,
+      expense: item.expense,
+      balance: item.income - item.expense,
+      differenceRate: item.income > 0 ? ((item.income - item.expense) / item.income * 100).toFixed(2) : "0.00"
+    }));
+  }, [filteredData]);
+  
+  // Define table columns
   const columns = [
     {
       id: "year",
@@ -125,7 +180,7 @@ const Yearly = () => {
               Compare os seus dados financeiros entre anos
             </p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2">
             {availableYears.map(year => (
               <button
                 key={year}

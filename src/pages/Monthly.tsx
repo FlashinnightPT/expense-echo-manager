@@ -1,71 +1,129 @@
 
 import { useState, useEffect, useMemo } from "react";
-import { monthlyData } from "@/utils/mockData";
-import MonthlyChart from "@/components/charts/MonthlyChart";
 import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import DataTable from "@/components/tables/DataTable";
+import MonthlyChart from "@/components/charts/MonthlyChart";
 import { formatCurrency, getMonthName } from "@/utils/financialCalculations";
+import { Transaction } from "@/utils/mockData";
 
 const Monthly = () => {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   
-  // Carregar transações do localStorage
+  // Load transactions from localStorage
   useEffect(() => {
-    const storedTransactions = localStorage.getItem('transactions');
-    if (storedTransactions) {
-      setTransactions(JSON.parse(storedTransactions));
-    } else {
-      // Se não houver transações no localStorage, definir array vazio
-      setTransactions([]);
-      localStorage.setItem('transactions', JSON.stringify([]));
-    }
+    const loadTransactions = () => {
+      const storedTransactions = localStorage.getItem('transactions');
+      if (storedTransactions) {
+        setTransactions(JSON.parse(storedTransactions));
+      } else {
+        setTransactions([]);
+      }
+    };
+
+    // Load initially
+    loadTransactions();
+
+    // Add event listener for storage changes
+    window.addEventListener('storage', loadTransactions);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('storage', loadTransactions);
+    };
   }, []);
   
-  // Extrair os anos disponíveis das transações
+  // Extract available years from transactions
   const availableYears = useMemo(() => {
     const years = new Set<number>();
     
-    // Se não houver transações, retornar apenas o ano atual
+    // If no transactions, return only current year
     if (transactions.length === 0) {
       years.add(currentYear);
-      return Array.from(years).sort((a, b) => b - a); // Ordenar decrescente
+      return Array.from(years).sort((a, b) => b - a);
     }
     
-    // Extrair anos únicos das transações
+    // Extract unique years from transactions
     transactions.forEach(transaction => {
       const transactionYear = new Date(transaction.date).getFullYear();
       years.add(transactionYear);
     });
     
-    // Converter Set para array e ordenar decrescente (mais recente primeiro)
+    // Convert Set to array and sort descending (most recent first)
     return Array.from(years).sort((a, b) => b - a);
-  }, [transactions]);
+  }, [transactions, currentYear]);
   
-  // Ajustar o ano selecionado se necessário
+  // Adjust selected year if necessary
   useEffect(() => {
     if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
       setSelectedYear(availableYears[0]);
     }
   }, [availableYears, selectedYear]);
   
-  // Filtrar os dados pelo ano selecionado
-  const filteredData = monthlyData.filter(item => item.year === selectedYear);
+  // Generate monthly data from transactions
+  const monthlyData = useMemo(() => {
+    // Initialize data for all months
+    const monthlyDataMap = new Map<number, { income: number; expense: number }>();
+    for (let i = 1; i <= 12; i++) {
+      monthlyDataMap.set(i, { income: 0, expense: 0 });
+    }
+    
+    // Filter transactions for selected year and aggregate by month
+    transactions.forEach(transaction => {
+      const transactionDate = new Date(transaction.date);
+      const year = transactionDate.getFullYear();
+      const month = transactionDate.getMonth() + 1;
+      
+      if (year === selectedYear) {
+        const monthData = monthlyDataMap.get(month) || { income: 0, expense: 0 };
+        if (transaction.type === 'income') {
+          monthData.income += transaction.amount;
+        } else {
+          monthData.expense += transaction.amount;
+        }
+        monthlyDataMap.set(month, monthData);
+      }
+    });
+    
+    // Convert to array format for chart and table
+    const result = [];
+    for (let month = 1; month <= 12; month++) {
+      const data = monthlyDataMap.get(month) || { income: 0, expense: 0 };
+      result.push({
+        year: selectedYear,
+        month,
+        income: data.income,
+        expense: data.expense,
+        categories: []
+      });
+    }
+    
+    return result;
+  }, [transactions, selectedYear]);
   
-  // Preparar os dados para a tabela - usando dados vazios se não houver no localStorage
-  const tableData = filteredData.length > 0 ? filteredData.map(item => ({
-    month: item.month,
-    monthName: getMonthName(item.month),
-    income: 0, // Definindo todos os valores financeiros como zero
-    expense: 0,
-    balance: 0,
-    differenceRate: "0.00"
-  })) : [];
+  // Prepare data for table display
+  const tableData = useMemo(() => {
+    return monthlyData.map(item => {
+      const income = item.income;
+      const expense = item.expense;
+      const balance = income - expense;
+      const differenceRate = income > 0 ? ((income - expense) / income * 100).toFixed(2) : "0.00";
+      
+      return {
+        month: item.month,
+        monthName: getMonthName(item.month),
+        income,
+        expense,
+        balance,
+        differenceRate
+      };
+    });
+  }, [monthlyData]);
   
-  // Definir as colunas da tabela
+  // Define table columns
   const columns = [
     {
       id: "monthName",
@@ -133,7 +191,7 @@ const Monthly = () => {
         
         <div className="mb-8">
           <Card>
-            <MonthlyChart data={[]} year={selectedYear} />
+            <MonthlyChart data={monthlyData} year={selectedYear} />
           </Card>
         </div>
         

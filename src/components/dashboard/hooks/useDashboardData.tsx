@@ -194,6 +194,12 @@ export const useDashboardData = () => {
     return result;
   }, [transactions]);
 
+  // Helper function to trigger localStorage event for other components
+  const triggerStorageEvent = (key: string) => {
+    // Dispatch a storage event to notify other components
+    window.dispatchEvent(new Event('storage'));
+  };
+
   // Handle data operations
   const handleSaveCategory = (category: Partial<TransactionCategory>) => {
     const newCategory: TransactionCategory = {
@@ -208,6 +214,7 @@ export const useDashboardData = () => {
     
     localStorage.setItem('categories', JSON.stringify(updatedCategories));
     setCategories(updatedCategories);
+    triggerStorageEvent('categories');
     
     console.log('Category saved:', newCategory);
     return newCategory;
@@ -227,6 +234,7 @@ export const useDashboardData = () => {
     
     localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
     setTransactions(updatedTransactions);
+    triggerStorageEvent('transactions');
     
     console.log('Transaction saved:', newTransaction);
     return newTransaction;
@@ -237,6 +245,8 @@ export const useDashboardData = () => {
     setCategories([]);
     localStorage.setItem('transactions', JSON.stringify([]));
     localStorage.setItem('categories', JSON.stringify([]));
+    triggerStorageEvent('transactions');
+    triggerStorageEvent('categories');
   };
 
   return {
