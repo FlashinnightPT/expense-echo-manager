@@ -8,6 +8,7 @@ import SummaryCards from "@/components/dashboard/SummaryCards";
 import MonthlyOverview from "@/components/dashboard/MonthlyOverview";
 import YearlyOverview from "@/components/dashboard/YearlyOverview";
 import TransactionsTable from "@/components/dashboard/TransactionsTable";
+import CategoryTransactionsTable from "@/components/dashboard/CategoryTransactionsTable";
 import { toast } from "sonner";
 import { formatCurrency } from "@/utils/financialCalculations";
 import { Transaction } from "@/utils/mockData";
@@ -142,6 +143,18 @@ const Dashboard = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         <YearlyChart data={yearlyChartData} className="lg:col-span-3 animate-fade-in-up animation-delay-700" />
+      </div>
+      
+      {/* Nova tabela hierárquica de categorias */}
+      <div className="mb-8">
+        <CategoryTransactionsTable 
+          transactions={transactions}
+          categories={categories}
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
+          onMonthChange={setSelectedMonth}
+          getCategoryById={getCategoryById}
+        />
       </div>
       
       <TransactionsTable 

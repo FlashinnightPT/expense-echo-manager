@@ -22,7 +22,7 @@ const TransactionsTable = ({
   transactionColumns 
 }: TransactionsTableProps) => {
   return (
-    <div className="animate-fade-in-up animation-delay-900">
+    <div className="animate-fade-in-up animation-delay-900 mb-8">
       <Tabs defaultValue="recent">
         <div className="flex justify-between items-center mb-4">
           <TabsList>
