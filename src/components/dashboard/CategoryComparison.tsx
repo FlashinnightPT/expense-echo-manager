@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
@@ -118,7 +119,7 @@ const CategoryComparison = ({
     
     setComparisonData(newComparisonData);
     
-    const comparisonElement = document.getElementById('category-comparison');
+    const comparisonElement = document.getElementById('category-comparison-section');
     if (comparisonElement) {
       comparisonElement.scrollIntoView({ behavior: 'smooth' });
     }
@@ -180,100 +181,102 @@ const CategoryComparison = ({
   }, [comparisonData]);
 
   return (
-    <Card className="mt-8" id="category-comparison">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">
-            Comparação de Categorias (Máximo 5)
-          </CardTitle>
-          {comparisonData.length > 0 && (
-            <Button size="sm" onClick={handleExportComparison}>
-              <FileDown className="h-4 w-4 mr-2" />
-              Exportar Comparação
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        {comparisonData.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            Selecione categorias para comparar clicando no botão "Comparar" ao lado das categorias acima
+    <div id="category-comparison-section">
+      <Card className="mt-8">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-lg">
+              Comparação de Categorias (Máximo 5)
+            </CardTitle>
+            {comparisonData.length > 0 && (
+              <Button size="sm" onClick={handleExportComparison}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Exportar Comparação
+              </Button>
+            )}
           </div>
-        ) : (
-          <>
-            <div className="h-[300px] mb-6">
-              <ChartContainer config={{}}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="category" />
-                    <YAxis 
-                      tickFormatter={(value) => `€${value}`}
-                      width={80}
-                    />
-                    <ChartTooltip
-                      content={
-                        <ChartTooltipContent 
-                          formatter={(value) => [
-                            `${formatCurrency(value as number)}`,
-                            "Valor"
-                          ]}
-                        />
-                      }
-                    />
-                    <Legend />
-                    <Bar dataKey="amount" name="Valor" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+        </CardHeader>
+        <CardContent>
+          {comparisonData.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Selecione categorias para comparar clicando no botão "Comparar" ao lado das categorias acima
             </div>
+          ) : (
+            <>
+              <div className="h-[300px] mb-6">
+                <ChartContainer config={{}}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="category" />
+                      <YAxis 
+                        tickFormatter={(value) => `€${value}`}
+                        width={80}
+                      />
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent 
+                            formatter={(value) => [
+                              `${formatCurrency(value as number)}`,
+                              "Valor"
+                            ]}
+                          />
+                        }
+                      />
+                      <Legend />
+                      <Bar dataKey="amount" name="Valor" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </div>
 
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
-                  <TableHead className="text-right">% do Total</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {comparisonData.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">
-                      {item.path}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatCurrency(item.amount)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {totalAmount > 0 ? ((item.amount / totalAmount) * 100).toFixed(2) : 0}%
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeCategoryFromComparison(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="text-right">% do Total</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
-                ))}
-                <TableRow className="font-bold">
-                  <TableCell>TOTAL</TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {formatCurrency(totalAmount)}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">100%</TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </>
-        )}
-      </CardContent>
-    </Card>
+                </TableHeader>
+                <TableBody>
+                  {comparisonData.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">
+                        {item.path}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatCurrency(item.amount)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {totalAmount > 0 ? ((item.amount / totalAmount) * 100).toFixed(2) : 0}%
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeCategoryFromComparison(item.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="font-bold">
+                    <TableCell>TOTAL</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatCurrency(totalAmount)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">100%</TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

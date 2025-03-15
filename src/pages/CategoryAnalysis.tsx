@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
@@ -12,11 +13,79 @@ import { formatCurrency, getMonthName } from "@/utils/financialCalculations";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calculator, FileDown, Home, ArrowRightLeft } from "lucide-react";
+import { Calculator, FileDown, Home, ArrowRightLeft, Plus } from "lucide-react";
 import { exportToExcel, prepareCategoryDataForExport } from "@/utils/exportUtils";
 import { toast } from "sonner";
 import CategoryComparison from "@/components/dashboard/CategoryComparison";
 import CompareButton from "@/components/dashboard/components/CompareButton";
+
+// Novo componente para exibir uma lista de categorias que podem ser comparadas
+const RecentCategoriesForComparison = ({ 
+  categories, 
+  selectedCategoriesHistory, 
+  onSelectCategory,
+  type
+}: { 
+  categories: any[], 
+  selectedCategoriesHistory: string[], 
+  onSelectCategory: (categoryId: string, categoryPath: string) => void,
+  type: "expense" | "income"
+}) => {
+  if (selectedCategoriesHistory.length === 0) return null;
+  
+  // Remover duplicatas
+  const uniqueIds = [...new Set(selectedCategoriesHistory)];
+  
+  // Limitar a 10 itens mais recentes
+  const recentIds = uniqueIds.slice(-10);
+  
+  const categoryOptions = categories
+    .filter(cat => recentIds.includes(cat.id) && cat.type === type)
+    .map(cat => {
+      // Obter o caminho completo da categoria
+      const getCategoryPath = (categoryId: string): string[] => {
+        const path: string[] = [];
+        let currentCategoryId = categoryId;
+        
+        while (currentCategoryId) {
+          const category = categories.find(cat => cat.id === currentCategoryId);
+          if (!category) break;
+          
+          path.unshift(category.name);
+          currentCategoryId = category.parentId || "";
+        }
+        
+        return path;
+      };
+      
+      return {
+        ...cat,
+        path: getCategoryPath(cat.id).join(" > ")
+      };
+    });
+    
+  if (categoryOptions.length === 0) return null;
+  
+  return (
+    <Card className="p-4 mb-4">
+      <h3 className="text-sm font-medium mb-2">Categorias exploradas recentemente</h3>
+      <div className="flex flex-wrap gap-2">
+        {categoryOptions.map(cat => (
+          <Button 
+            key={cat.id} 
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1 text-xs"
+            onClick={() => onSelectCategory(cat.id, cat.path)}
+          >
+            <Plus className="h-3 w-3" />
+            {cat.name}
+          </Button>
+        ))}
+      </div>
+    </Card>
+  );
+};
 
 const CategoryAnalysis = () => {
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().getFullYear(), 0, 1)); // Jan 1st of current year
@@ -31,6 +100,7 @@ const CategoryAnalysis = () => {
   const [categoryLevel, setCategoryLevel] = useState<number>(2); // Start at level 2 to match TransactionForm
   
   const [selectedCategoryForComparison, setSelectedCategoryForComparison] = useState<string | null>(null);
+  const [selectedCategoriesHistory, setSelectedCategoriesHistory] = useState<string[]>([]);
   
   useEffect(() => {
     const loadData = () => {
@@ -53,6 +123,47 @@ const CategoryAnalysis = () => {
       window.removeEventListener('storage', loadData);
     };
   }, []);
+  
+  useEffect(() => {
+    // Check URL parameters when component mounts
+    const searchParams = new URLSearchParams(window.location.search);
+    const categoryParam = searchParams.get('categoryId');
+    const compareMode = searchParams.get('compareMode');
+    
+    if (categoryParam && compareMode === 'true') {
+      // Find category in our list
+      const category = categories.find(cat => cat.id === categoryParam);
+      if (category) {
+        // Get category path
+        const getCategoryPath = (categoryId: string): string[] => {
+          const path: string[] = [];
+          let currentCategoryId = categoryId;
+          
+          while (currentCategoryId) {
+            const category = categories.find(cat => cat.id === currentCategoryId);
+            if (!category) break;
+            
+            path.unshift(category.name);
+            currentCategoryId = category.parentId || "";
+          }
+          
+          return path;
+        };
+        
+        const pathArray = getCategoryPath(categoryParam);
+        const pathString = pathArray.join(" > ");
+        
+        // Add category to comparison
+        const event = new CustomEvent("addCategoryToComparison", {
+          detail: { categoryId: categoryParam, categoryPath: pathString }
+        });
+        window.dispatchEvent(event);
+        
+        // Clear URL parameters to avoid re-adding on refresh
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, [categories]);
   
   useEffect(() => {
     setSelectedCategoryId("");
@@ -100,6 +211,9 @@ const CategoryAnalysis = () => {
     
     if (selectedCategory) {
       setSelectedCategoryId(categoryId);
+      
+      // Add to history
+      setSelectedCategoriesHistory(prev => [...prev, categoryId]);
       
       const childCategories = categories.filter(cat => cat.parentId === categoryId);
       
@@ -336,11 +450,12 @@ const CategoryAnalysis = () => {
     }
   };
   
-  const handleAddToComparison = (categoryId: string) => {
-    const category = categoryOptions.find(cat => cat.id === categoryId);
-    if (category) {
-      setSelectedCategoryForComparison(categoryId);
-    }
+  const handleAddToComparison = (categoryId: string, categoryPath: string) => {
+    console.log("Dispatching add category to comparison event:", categoryId, categoryPath);
+    const event = new CustomEvent("addCategoryToComparison", {
+      detail: { categoryId, categoryPath }
+    });
+    window.dispatchEvent(event);
   };
   
   const selectedCategoryPathForComparison = useMemo(() => {
@@ -419,6 +534,14 @@ const CategoryAnalysis = () => {
                 )}
               </SelectContent>
             </Select>
+            
+            {/* Lista de categorias recentes para facilitar a comparação */}
+            <RecentCategoriesForComparison 
+              categories={categories}
+              selectedCategoriesHistory={selectedCategoriesHistory}
+              onSelectCategory={(categoryId, categoryPath) => handleAddToComparison(categoryId, categoryPath)}
+              type={activeTab}
+            />
           </Card>
           
           <Card className="p-4">
@@ -472,7 +595,7 @@ const CategoryAnalysis = () => {
                   <div className="flex items-center gap-2">
                     <Button 
                       size="sm" 
-                      onClick={() => handleAddToComparison(selectedCategoryId)}
+                      onClick={() => handleAddToComparison(selectedCategoryId, selectedCategoryName)}
                       className="flex items-center gap-1"
                     >
                       <ArrowRightLeft className="h-4 w-4 mr-1" />
@@ -556,7 +679,7 @@ const CategoryAnalysis = () => {
                             <TableCell className="text-right tabular-nums">{item.percentage.toFixed(2)}%</TableCell>
                             <TableCell>
                               <CompareButton 
-                                onClick={() => handleAddToComparison(item.category.id)}
+                                onClick={() => handleAddToComparison(item.category.id, `${selectedCategoryName} > ${item.category.name}`)}
                                 categoryId={item.category.id}
                                 categoryPath={`${selectedCategoryName} > ${item.category.name}`}
                               />
