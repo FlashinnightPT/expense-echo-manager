@@ -4,6 +4,9 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import "./App.css";
 
+// Auth Provider
+import { AuthProvider, RequireAuth, RequireEditor } from "@/hooks/useAuth";
+
 // Layout component
 import Header from "@/components/layout/Header";
 
@@ -15,6 +18,8 @@ const Yearly = lazy(() => import("@/pages/Yearly"));
 const Categories = lazy(() => import("@/pages/Categories"));
 const CategoryAnalysis = lazy(() => import("@/pages/CategoryAnalysis"));
 const Settings = lazy(() => import("@/pages/Settings"));
+const Users = lazy(() => import("@/pages/Users"));
+const Login = lazy(() => import("@/pages/Login"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 // Layout component that includes the Header
@@ -28,57 +33,85 @@ const WithHeader = ({ children }: { children: React.ReactNode }) => (
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<div className="flex h-screen items-center justify-center">Carregando...</div>}>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route 
-            path="/monthly" 
-            element={
-              <WithHeader>
-                <Monthly />
-              </WithHeader>
-            } 
-          />
-          <Route 
-            path="/yearly" 
-            element={
-              <WithHeader>
-                <Yearly />
-              </WithHeader>
-            } 
-          />
-          <Route 
-            path="/categories" 
-            element={
-              <WithHeader>
-                <Categories />
-              </WithHeader>
-            } 
-          />
-          <Route 
-            path="/category-analysis" 
-            element={
-              <CategoryAnalysis />
-            } 
-          />
-          <Route 
-            path="/settings" 
-            element={
-              <Settings />
-            } 
-          />
-          <Route 
-            path="*" 
-            element={
-              <WithHeader>
-                <NotFound />
-              </WithHeader>
-            } 
-          />
-        </Routes>
-      </Suspense>
-      <Toaster position="top-right" />
+      <AuthProvider>
+        <Suspense fallback={<div className="flex h-screen items-center justify-center">Carregando...</div>}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <RequireAuth>
+                  <Dashboard />
+                </RequireAuth>
+              } 
+            />
+            <Route 
+              path="/monthly" 
+              element={
+                <RequireAuth>
+                  <WithHeader>
+                    <Monthly />
+                  </WithHeader>
+                </RequireAuth>
+              } 
+            />
+            <Route 
+              path="/yearly" 
+              element={
+                <RequireAuth>
+                  <WithHeader>
+                    <Yearly />
+                  </WithHeader>
+                </RequireAuth>
+              } 
+            />
+            <Route 
+              path="/categories" 
+              element={
+                <RequireAuth>
+                  <WithHeader>
+                    <Categories />
+                  </WithHeader>
+                </RequireAuth>
+              } 
+            />
+            <Route 
+              path="/category-analysis" 
+              element={
+                <RequireAuth>
+                  <CategoryAnalysis />
+                </RequireAuth>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <RequireAuth>
+                  <Settings />
+                </RequireAuth>
+              } 
+            />
+            <Route 
+              path="/users" 
+              element={
+                <RequireEditor>
+                  <Users />
+                </RequireEditor>
+              } 
+            />
+            <Route 
+              path="*" 
+              element={
+                <WithHeader>
+                  <NotFound />
+                </WithHeader>
+              } 
+            />
+          </Routes>
+        </Suspense>
+        <Toaster position="top-right" />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
