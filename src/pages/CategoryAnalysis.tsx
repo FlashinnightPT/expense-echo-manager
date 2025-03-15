@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
@@ -7,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatCurrency, getMonthName } from "@/utils/financialCalculations";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
@@ -21,6 +23,7 @@ const CategoryAnalysis = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<TransactionCategory[]>([]);
+  const [activeTab, setActiveTab] = useState<"expense" | "income">("expense");
   
   const [categoryPath, setCategoryPath] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<TransactionCategory[]>([]);
@@ -48,14 +51,18 @@ const CategoryAnalysis = () => {
     };
   }, []);
   
+  // Reset category selection when tab changes
   useEffect(() => {
-    const rootCategories = categories.filter(cat => cat.level === 2);
-    setAvailableCategories(rootCategories);
+    setSelectedCategoryId("");
     setCategoryPath([]);
-  }, [categories]);
+    
+    const rootCategories = categories.filter(cat => cat.level === 2 && cat.type === activeTab);
+    setAvailableCategories(rootCategories);
+    setCategoryLevel(2);
+  }, [categories, activeTab]);
   
   const categoryOptions = useMemo(() => {
-    const result: { id: string; name: string; path: string; level: number }[] = [];
+    const result: { id: string; name: string; path: string; level: number; type: string }[] = [];
     
     const getCategoryPath = (categoryId: string): string[] => {
       const path: string[] = [];
@@ -78,7 +85,8 @@ const CategoryAnalysis = () => {
         id: category.id,
         name: category.name,
         path: path.join(" > "),
-        level: category.level
+        level: category.level,
+        type: category.type
       });
     });
     
@@ -106,7 +114,7 @@ const CategoryAnalysis = () => {
   const handleResetCategoryPath = (index: number) => {
     if (index === -1) {
       setCategoryPath([]);
-      const rootCategories = categories.filter(cat => cat.level === 2);
+      const rootCategories = categories.filter(cat => cat.level === 2 && cat.type === activeTab);
       setAvailableCategories(rootCategories);
       setCategoryLevel(2);
       setSelectedCategoryId("");
@@ -117,7 +125,7 @@ const CategoryAnalysis = () => {
     setCategoryPath(newPath);
     
     if (newPath.length === 0) {
-      const rootCategories = categories.filter(cat => cat.level === 2);
+      const rootCategories = categories.filter(cat => cat.level === 2 && cat.type === activeTab);
       setAvailableCategories(rootCategories);
       setCategoryLevel(2);
     } else {
@@ -334,13 +342,20 @@ const CategoryAnalysis = () => {
           <div>
             <h1 className="text-3xl font-bold">Análise por Categoria</h1>
             <p className="text-muted-foreground mt-1">
-              Analise gastos por categoria em um período específico
+              Analise receitas e despesas por categoria em um período específico
             </p>
           </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="p-4">
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "expense" | "income")}>
+              <TabsList className="mb-3 w-full">
+                <TabsTrigger value="expense" className="flex-1">Despesas</TabsTrigger>
+                <TabsTrigger value="income" className="flex-1">Receitas</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
             <h2 className="font-semibold mb-2">Selecione uma Categoria</h2>
             
             <div className="flex flex-wrap gap-1 mb-3">
@@ -376,7 +391,7 @@ const CategoryAnalysis = () => {
               </SelectTrigger>
               <SelectContent className="max-h-[400px]">
                 {availableCategories.length === 0 ? (
-                  <SelectItem value="none" disabled>
+                  <SelectItem value="no-categories" disabled>
                     Nenhuma categoria disponível
                   </SelectItem>
                 ) : (
@@ -447,10 +462,12 @@ const CategoryAnalysis = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-secondary/20 rounded-lg p-4">
+                  <div className={`rounded-lg p-4 ${activeTab === "expense" ? "bg-red-100/20" : "bg-green-100/20"}`}>
                     <div className="flex items-center gap-2">
-                      <Calculator className="h-5 w-5 text-primary" />
-                      <span className="text-sm font-medium">Total Gasto</span>
+                      <Calculator className={`h-5 w-5 ${activeTab === "expense" ? "text-red-500" : "text-green-500"}`} />
+                      <span className="text-sm font-medium">
+                        {activeTab === "expense" ? "Total Gasto" : "Total Recebido"}
+                      </span>
                     </div>
                     <p className="text-2xl font-bold mt-1">{formatCurrency(totalAmount)}</p>
                   </div>
@@ -480,7 +497,11 @@ const CategoryAnalysis = () => {
                         }}
                       />
                       <Legend />
-                      <Bar dataKey="amount" name="Valor" fill="#8884d8" />
+                      <Bar 
+                        dataKey="amount" 
+                        name="Valor" 
+                        fill={activeTab === "expense" ? "#ef4444" : "#22c55e"} 
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
