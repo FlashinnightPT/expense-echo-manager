@@ -26,27 +26,25 @@ interface CategoryTransactionsTableProps {
 }
 
 // Define interfaces for our hierarchical data structure
-interface Level4Item {
+interface CategoryItem {
   category: TransactionCategory;
   amount: number;
 }
 
-interface Level3Item {
-  category: TransactionCategory;
+interface Level4Item extends CategoryItem {
+  // No additional properties needed
+}
+
+interface Level3Item extends CategoryItem {
   subcategories: Level4Item[];
-  amount: number;
 }
 
-interface Level2Item {
-  category: TransactionCategory;
+interface Level2Item extends CategoryItem {
   subcategories: Level3Item[];
-  amount: number;
 }
 
-interface RootCategoryItem {
-  category: TransactionCategory;
+interface RootCategoryItem extends CategoryItem {
   subcategories: Level2Item[];
-  amount: number;
 }
 
 const CategoryTransactionsTable = ({
