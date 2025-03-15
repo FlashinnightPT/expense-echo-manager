@@ -15,6 +15,8 @@ import {
   getSubcategories
 } from "./utils/categoryTableUtils";
 import CategoryTabContent from "./components/CategoryTabContent";
+import { exportToCSV, prepareCategoryDataForExport } from "@/utils/exportUtils";
+import { toast } from "sonner";
 
 const CategoryTransactionsTable = ({
   transactions,
@@ -126,6 +128,41 @@ const CategoryTransactionsTable = ({
     console.log(`Categorias agrupadas (${activeTab}):`, result.length);
     console.log(`Total (${activeTab}):`, total);
   }, [categories, activeTab, filteredTransactions]);
+  
+  // Handle export data
+  const handleExportData = () => {
+    try {
+      const monthName = getMonthName(selectedMonth);
+      const dateRange = `${monthName}/${selectedYear}`;
+      
+      // Get current tab's transactions
+      const tabTransactions = filteredTransactions.filter(t => t.type === activeTab);
+      
+      // No transactions to export
+      if (tabTransactions.length === 0) {
+        toast.error("Não há dados para exportar neste período");
+        return;
+      }
+      
+      // Prepare export data
+      const exportData = prepareCategoryDataForExport(
+        tabTransactions, 
+        activeTab === "expense" ? "Despesas" : "Receitas",
+        dateRange
+      );
+      
+      // Export to CSV
+      exportToCSV(
+        exportData, 
+        `${activeTab === "expense" ? "despesas" : "receitas"}_${monthName}_${selectedYear}`
+      );
+      
+      toast.success("Dados exportados com sucesso");
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      toast.error("Erro ao exportar dados");
+    }
+  };
 
   return (
     <div className="animate-fade-in-up animation-delay-900">
@@ -151,7 +188,7 @@ const CategoryTransactionsTable = ({
                 ))}
               </SelectContent>
             </Select>
-            <Button size="sm">
+            <Button size="sm" onClick={handleExportData}>
               <FileDown className="h-4 w-4 mr-2" />
               Exportar
             </Button>

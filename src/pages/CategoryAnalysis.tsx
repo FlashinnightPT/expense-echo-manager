@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
@@ -13,6 +12,8 @@ import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calculator, FileDown, Home } from "lucide-react";
+import { exportToCSV } from "@/utils/exportUtils";
+import { toast } from "sonner";
 
 const CategoryAnalysis = () => {
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().getFullYear(), 0, 1)); // Jan 1st of current year
@@ -21,12 +22,10 @@ const CategoryAnalysis = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<TransactionCategory[]>([]);
   
-  // Category navigation state
   const [categoryPath, setCategoryPath] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<TransactionCategory[]>([]);
   const [categoryLevel, setCategoryLevel] = useState<number>(2); // Start at level 2 to match TransactionForm
   
-  // Load data from localStorage
   useEffect(() => {
     const loadData = () => {
       const storedTransactions = localStorage.getItem('transactions');
@@ -40,31 +39,24 @@ const CategoryAnalysis = () => {
       }
     };
     
-    // Load initially
     loadData();
     
-    // Add event listener for storage changes
     window.addEventListener('storage', loadData);
     
-    // Cleanup
     return () => {
       window.removeEventListener('storage', loadData);
     };
   }, []);
   
-  // Initialize top-level categories when categories are loaded
   useEffect(() => {
-    // Initialize with root categories (level 2)
     const rootCategories = categories.filter(cat => cat.level === 2);
     setAvailableCategories(rootCategories);
     setCategoryPath([]);
   }, [categories]);
   
-  // Build category hierarchy for display in the select dropdown
   const categoryOptions = useMemo(() => {
     const result: { id: string; name: string; path: string; level: number }[] = [];
     
-    // Helper function to get category path
     const getCategoryPath = (categoryId: string): string[] => {
       const path: string[] = [];
       let currentCategoryId = categoryId;
@@ -80,7 +72,6 @@ const CategoryAnalysis = () => {
       return path;
     };
     
-    // Add all categories with their full paths
     categories.forEach(category => {
       const path = getCategoryPath(category.id);
       result.push({
@@ -94,32 +85,25 @@ const CategoryAnalysis = () => {
     return result.sort((a, b) => a.path.localeCompare(b.path));
   }, [categories]);
   
-  // Handle category selection
   const handleCategorySelect = (categoryId: string) => {
     const selectedCategory = categories.find(cat => cat.id === categoryId);
     
     if (selectedCategory) {
-      // Set the selected category
       setSelectedCategoryId(categoryId);
       
-      // Check if there are subcategories
       const childCategories = categories.filter(cat => cat.parentId === categoryId);
       
       if (childCategories.length > 0) {
-        // If there are subcategories, update the path and show them
         setCategoryPath([...categoryPath, categoryId]);
         setAvailableCategories(childCategories);
         setCategoryLevel(selectedCategory.level + 1);
       } else {
-        // No subcategories, we're at a leaf node
         setCategoryPath([...categoryPath, categoryId]);
       }
     }
   };
   
-  // Handle resetting the category path to a specific level
   const handleResetCategoryPath = (index: number) => {
-    // Reset to home/start
     if (index === -1) {
       setCategoryPath([]);
       const rootCategories = categories.filter(cat => cat.level === 2);
@@ -129,25 +113,20 @@ const CategoryAnalysis = () => {
       return;
     }
     
-    // Go back to a specific level in the path
     const newPath = categoryPath.slice(0, index + 1);
     setCategoryPath(newPath);
     
     if (newPath.length === 0) {
-      // If back to root, show level 2 categories
       const rootCategories = categories.filter(cat => cat.level === 2);
       setAvailableCategories(rootCategories);
       setCategoryLevel(2);
     } else {
-      // Show subcategories of the selected level
       const parentId = newPath[newPath.length - 1];
       const childCategories = categories.filter(cat => cat.parentId === parentId);
       setAvailableCategories(childCategories);
       
-      // Update the selected category
       setSelectedCategoryId(parentId);
       
-      // Set the correct level
       const parentCategory = categories.find(cat => cat.id === parentId);
       if (parentCategory) {
         setCategoryLevel(parentCategory.level + 1);
@@ -155,7 +134,6 @@ const CategoryAnalysis = () => {
     }
   };
   
-  // Get names for the current category path
   const getCategoryPathNames = () => {
     return categoryPath.map(id => {
       const category = categories.find(cat => cat.id === id);
@@ -163,11 +141,9 @@ const CategoryAnalysis = () => {
     });
   };
   
-  // Calculate data for the selected category and date range
   const filteredData = useMemo(() => {
     if (!selectedCategoryId) return [];
     
-    // Get selected category and its subcategories
     const getAllSubcategoryIds = (categoryId: string): string[] => {
       const subcatIds: string[] = [];
       
@@ -175,7 +151,6 @@ const CategoryAnalysis = () => {
       for (const subcat of directSubcats) {
         subcatIds.push(subcat.id);
         
-        // Get subsubcategories
         const subsubcats = getAllSubcategoryIds(subcat.id);
         for (const subsubcatId of subsubcats) {
           subcatIds.push(subsubcatId);
@@ -187,7 +162,6 @@ const CategoryAnalysis = () => {
     
     const allCategoryIds = [selectedCategoryId, ...getAllSubcategoryIds(selectedCategoryId)];
     
-    // Filter transactions for the selected category and time range
     const relevantTransactions = transactions.filter(t => {
       const transactionDate = new Date(t.date);
       return (
@@ -197,10 +171,8 @@ const CategoryAnalysis = () => {
       );
     });
     
-    // Group by month
     const monthlyData = new Map<string, number>();
     
-    // Initialize all months in the range
     let currentMonth = new Date(startDate);
     while (currentMonth <= endDate) {
       const key = `${currentMonth.getFullYear()}-${currentMonth.getMonth() + 1}`;
@@ -208,7 +180,6 @@ const CategoryAnalysis = () => {
       currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
     }
     
-    // Add transaction amounts to the months
     for (const transaction of relevantTransactions) {
       const transactionDate = new Date(transaction.date);
       const key = `${transactionDate.getFullYear()}-${transactionDate.getMonth() + 1}`;
@@ -218,7 +189,6 @@ const CategoryAnalysis = () => {
       }
     }
     
-    // Convert to array for chart
     const result = Array.from(monthlyData.entries()).map(([key, amount]) => {
       const [year, month] = key.split('-').map(Number);
       return {
@@ -229,23 +199,19 @@ const CategoryAnalysis = () => {
       };
     });
     
-    // Sort by year and month
     return result.sort((a, b) => {
       return a.monthKey.localeCompare(b.monthKey);
     });
   }, [selectedCategoryId, startDate, endDate, transactions, categories]);
   
-  // Get the total amount for the filtered data
   const totalAmount = useMemo(() => {
     return filteredData.reduce((sum, item) => sum + item.amount, 0);
   }, [filteredData]);
   
-  // Format the date range for display
   const dateRangeText = useMemo(() => {
     return `${format(startDate, "d 'de' MMMM 'de' yyyy", { locale: pt })} até ${format(endDate, "d 'de' MMMM 'de' yyyy", { locale: pt })}`;
   }, [startDate, endDate]);
   
-  // Get the selected category name
   const selectedCategoryName = useMemo(() => {
     if (!selectedCategoryId) return "Todas as categorias";
     
@@ -253,15 +219,12 @@ const CategoryAnalysis = () => {
     return category ? category.path : "Categoria desconhecida";
   }, [selectedCategoryId, categoryOptions]);
   
-  // Group transactions by subcategory
   const subcategoryData = useMemo(() => {
     if (!selectedCategoryId) return [];
     
-    // Get direct subcategories of the selected category
     const directSubcats = categories.filter(cat => cat.parentId === selectedCategoryId);
     
     const result = directSubcats.map(subcat => {
-      // Get all subcategories of this subcategory
       const getAllSubcategoryIds = (categoryId: string): string[] => {
         const subcatIds: string[] = [];
         
@@ -269,7 +232,6 @@ const CategoryAnalysis = () => {
         for (const subcat of directSubcats) {
           subcatIds.push(subcat.id);
           
-          // Get subsubcategories
           const subsubcats = getAllSubcategoryIds(subcat.id);
           for (const subsubcatId of subsubcats) {
             subcatIds.push(subsubcatId);
@@ -281,7 +243,6 @@ const CategoryAnalysis = () => {
       
       const allCategoryIds = [subcat.id, ...getAllSubcategoryIds(subcat.id)];
       
-      // Filter transactions for this subcategory and time range
       const relevantTransactions = transactions.filter(t => {
         const transactionDate = new Date(t.date);
         return (
@@ -291,7 +252,6 @@ const CategoryAnalysis = () => {
         );
       });
       
-      // Calculate total amount
       const amount = relevantTransactions.reduce((sum, t) => sum + t.amount, 0);
       
       return {
@@ -301,11 +261,70 @@ const CategoryAnalysis = () => {
       };
     });
     
-    // Filter out subcategories with no transactions
     return result
       .filter(item => item.amount > 0)
       .sort((a, b) => b.amount - a.amount);
   }, [selectedCategoryId, startDate, endDate, transactions, categories, totalAmount]);
+  
+  const handleExportData = () => {
+    try {
+      if (!selectedCategoryId) {
+        toast.error("Selecione uma categoria para exportar");
+        return;
+      }
+      
+      if (filteredData.length === 0) {
+        toast.error("Não há dados para exportar");
+        return;
+      }
+      
+      const exportData = filteredData.map(item => ({
+        Month: item.month,
+        Year: item.year,
+        Amount: formatCurrency(item.amount).replace(/[€$]/g, '').trim()
+      }));
+      
+      exportToCSV(
+        exportData, 
+        `categoria_${selectedCategoryName.replace(/\s+/g, '_').replace(/>/g, '-')}_${startDate.toISOString().split('T')[0]}_a_${endDate.toISOString().split('T')[0]}`
+      );
+      
+      toast.success("Dados exportados com sucesso");
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      toast.error("Erro ao exportar dados");
+    }
+  };
+  
+  const handleExportSubcategoryData = () => {
+    try {
+      if (!selectedCategoryId) {
+        toast.error("Selecione uma categoria para exportar");
+        return;
+      }
+      
+      if (subcategoryData.length === 0) {
+        toast.error("Não há dados de subcategorias para exportar");
+        return;
+      }
+      
+      const exportData = subcategoryData.map(item => ({
+        Subcategory: item.category.name,
+        Amount: formatCurrency(item.amount).replace(/[€$]/g, '').trim(),
+        Percentage: `${item.percentage.toFixed(2)}%`
+      }));
+      
+      exportToCSV(
+        exportData, 
+        `subcategorias_${selectedCategoryName.replace(/\s+/g, '_').replace(/>/g, '-')}_${startDate.toISOString().split('T')[0]}_a_${endDate.toISOString().split('T')[0]}`
+      );
+      
+      toast.success("Dados de subcategorias exportados com sucesso");
+    } catch (error) {
+      console.error("Error exporting subcategory data:", error);
+      toast.error("Erro ao exportar dados de subcategorias");
+    }
+  };
   
   return (
     <div className="min-h-screen bg-background">
@@ -321,11 +340,9 @@ const CategoryAnalysis = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          {/* Category Selection */}
           <Card className="p-4">
             <h2 className="font-semibold mb-2">Selecione uma Categoria</h2>
             
-            {/* Category Navigation Path */}
             <div className="flex flex-wrap gap-1 mb-3">
               <button 
                 type="button"
@@ -373,7 +390,6 @@ const CategoryAnalysis = () => {
             </Select>
           </Card>
           
-          {/* Start Date Selection */}
           <Card className="p-4">
             <h2 className="font-semibold mb-2">Data Inicial</h2>
             <Popover>
@@ -393,7 +409,6 @@ const CategoryAnalysis = () => {
             </Popover>
           </Card>
           
-          {/* End Date Selection */}
           <Card className="p-4">
             <h2 className="font-semibold mb-2">Data Final</h2>
             <Popover>
@@ -416,7 +431,6 @@ const CategoryAnalysis = () => {
         
         {selectedCategoryId && (
           <>
-            {/* Summary */}
             <Card className="mb-8">
               <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
@@ -425,7 +439,7 @@ const CategoryAnalysis = () => {
                     <p className="text-muted-foreground">{dateRangeText}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button size="sm">
+                    <Button size="sm" onClick={handleExportData}>
                       <FileDown className="h-4 w-4 mr-2" />
                       Exportar
                     </Button>
@@ -442,7 +456,6 @@ const CategoryAnalysis = () => {
                   </div>
                 </div>
                 
-                {/* Chart */}
                 <div className="h-[300px] mb-6">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={filteredData}>
@@ -472,10 +485,15 @@ const CategoryAnalysis = () => {
                   </ResponsiveContainer>
                 </div>
                 
-                {/* Subcategories Table */}
                 {subcategoryData.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">Distribuição por Subcategorias</h3>
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-lg font-semibold">Distribuição por Subcategorias</h3>
+                      <Button size="sm" onClick={handleExportSubcategoryData}>
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Exportar Subcategorias
+                      </Button>
+                    </div>
                     <Table>
                       <TableHeader>
                         <TableRow>

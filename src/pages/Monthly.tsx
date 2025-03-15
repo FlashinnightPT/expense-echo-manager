@@ -7,6 +7,10 @@ import DataTable from "@/components/tables/DataTable";
 import MonthlyChart from "@/components/charts/MonthlyChart";
 import { formatCurrency, getMonthName } from "@/utils/financialCalculations";
 import { Transaction } from "@/utils/mockData";
+import { Button } from "@/components/ui/button";
+import { FileDown } from "lucide-react";
+import { exportToCSV, prepareMonthlyDataForExport } from "@/utils/exportUtils";
+import { toast } from "sonner";
 
 const Monthly = () => {
   const currentYear = new Date().getFullYear();
@@ -161,6 +165,23 @@ const Monthly = () => {
     },
   ];
   
+  // Handle export data
+  const handleExportData = () => {
+    try {
+      if (tableData.length === 0) {
+        toast.error("Não há dados para exportar neste período");
+        return;
+      }
+      
+      const exportData = prepareMonthlyDataForExport(tableData, selectedYear);
+      exportToCSV(exportData, `dados_mensais_${selectedYear}`);
+      toast.success("Dados exportados com sucesso");
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      toast.error("Erro ao exportar dados");
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -172,7 +193,7 @@ const Monthly = () => {
               Visualize seus dados financeiros mês a mês
             </p>
           </div>
-          <div>
+          <div className="flex items-center gap-2">
             <Select
               value={selectedYear.toString()}
               onValueChange={(value) => setSelectedYear(parseInt(value))}
@@ -186,6 +207,10 @@ const Monthly = () => {
                 ))}
               </SelectContent>
             </Select>
+            <Button size="sm" onClick={handleExportData}>
+              <FileDown className="h-4 w-4 mr-2" />
+              Exportar
+            </Button>
           </div>
         </div>
         

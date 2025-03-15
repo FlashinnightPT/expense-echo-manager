@@ -6,6 +6,8 @@ import { CircleDollarSign } from "lucide-react";
 import DataTable from "@/components/tables/DataTable";
 import { Transaction } from "@/utils/mockData";
 import { ReactNode } from "react";
+import { exportToCSV, prepareTransactionsForExport } from "@/utils/exportUtils";
+import { toast } from "sonner";
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -41,6 +43,18 @@ const TransactionsTable = ({
     
     console.log("Transações atualizadas:", sortedTransactions.length);
   }, [transactions]);
+  
+  // Handle export transactions
+  const handleExportTransactions = (transactionsToExport: Transaction[]) => {
+    try {
+      const exportData = prepareTransactionsForExport(transactionsToExport);
+      exportToCSV(exportData, `transacoes_${new Date().toISOString().split('T')[0]}`);
+      toast.success("Transações exportadas com sucesso");
+    } catch (error) {
+      console.error("Error exporting transactions:", error);
+      toast.error("Erro ao exportar transações");
+    }
+  };
 
   return (
     <div className="animate-fade-in-up animation-delay-900 mb-8">
@@ -50,7 +64,10 @@ const TransactionsTable = ({
             <TabsTrigger value="recent">Transações Recentes</TabsTrigger>
             <TabsTrigger value="all">Todas as Transações</TabsTrigger>
           </TabsList>
-          <Button size="sm">
+          <Button 
+            size="sm" 
+            onClick={() => handleExportTransactions(allTransactions)}
+          >
             <CircleDollarSign className="h-4 w-4 mr-2" />
             Exportar Dados
           </Button>
