@@ -28,11 +28,14 @@ interface ComparisonBarChartProps {
 const ComparisonBarChart: React.FC<ComparisonBarChartProps> = ({ chartData }) => {
   if (!chartData || chartData.length === 0) return null;
 
-  // Create a simple config object for the chart
+  // Create a config object for the chart
   const chartConfig = chartData.reduce((config, item) => {
     config[item.categoryId] = { color: item.fill };
     return config;
-  }, {});
+  }, {} as Record<string, { color: string }>);
+
+  console.log("Bar chart data:", chartData);
+  console.log("Chart config:", chartConfig);
 
   return (
     <div className="h-[300px]">

@@ -17,8 +17,8 @@ import { exportToExcel, prepareCategoryDataForExport } from "@/utils/exportUtils
 import { toast } from "sonner";
 import CategoryComparison from "@/components/dashboard/CategoryComparison";
 import CompareButton from "@/components/dashboard/components/CompareButton";
+import { useComparisonData } from "@/components/dashboard/comparison/hooks/useComparisonData";
 
-// Novo componente para exibir uma lista de categorias que podem ser comparadas
 const RecentCategoriesForComparison = ({ 
   categories, 
   selectedCategoriesHistory, 
@@ -32,16 +32,13 @@ const RecentCategoriesForComparison = ({
 }) => {
   if (selectedCategoriesHistory.length === 0) return null;
   
-  // Remover duplicatas
   const uniqueIds = [...new Set(selectedCategoriesHistory)];
   
-  // Limitar a 10 itens mais recentes
   const recentIds = uniqueIds.slice(-10);
   
   const categoryOptions = categories
     .filter(cat => recentIds.includes(cat.id) && cat.type === type)
     .map(cat => {
-      // Obter o caminho completo da categoria
       const getCategoryPath = (categoryId: string): string[] => {
         const path: string[] = [];
         let currentCategoryId = categoryId;
@@ -135,16 +132,13 @@ const CategoryAnalysis = () => {
   } = useComparisonData(categories, transactions, startDate, endDate, activeTab);
   
   useEffect(() => {
-    // Check URL parameters when component mounts
     const searchParams = new URLSearchParams(window.location.search);
     const categoryParam = searchParams.get('categoryId');
     const compareMode = searchParams.get('compareMode');
     
     if (categoryParam && compareMode === 'true') {
-      // Find category in our list
       const category = categories.find(cat => cat.id === categoryParam);
       if (category) {
-        // Get category path
         const getCategoryPath = (categoryId: string): string[] => {
           const path: string[] = [];
           let currentCategoryId = categoryId;
@@ -163,13 +157,11 @@ const CategoryAnalysis = () => {
         const pathArray = getCategoryPath(categoryParam);
         const pathString = pathArray.join(" > ");
         
-        // Add category to comparison with automatic scrolling
         const event = new CustomEvent("addCategoryToComparison", {
           detail: { categoryId: categoryParam, categoryPath: pathString }
         });
         window.dispatchEvent(event);
         
-        // Clear URL parameters to avoid re-adding on refresh
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
@@ -226,7 +218,6 @@ const CategoryAnalysis = () => {
     if (selectedCategory) {
       setSelectedCategoryId(categoryId);
       
-      // Add to history
       setSelectedCategoriesHistory(prev => [...prev, categoryId]);
       
       const childCategories = categories.filter(cat => cat.parentId === categoryId);
@@ -466,7 +457,6 @@ const CategoryAnalysis = () => {
   
   const handleAddToComparison = (categoryId: string, categoryPath: string) => {
     console.log("Dispatching add category to comparison event:", categoryId, categoryPath);
-    // When called from the Compare button, don't scroll automatically
     addCategoryToComparison(categoryId, categoryPath, false);
   };
   
@@ -547,7 +537,6 @@ const CategoryAnalysis = () => {
               </SelectContent>
             </Select>
             
-            {/* Lista de categorias recentes para facilitar a comparação */}
             <RecentCategoriesForComparison 
               categories={categories}
               selectedCategoriesHistory={selectedCategoriesHistory}
@@ -609,7 +598,6 @@ const CategoryAnalysis = () => {
                       size="sm" 
                       onClick={() => {
                         handleAddToComparison(selectedCategoryId, selectedCategoryName);
-                        // Manually scroll to the comparison section when the button is clicked
                         const comparisonElement = document.getElementById('category-comparison-section');
                         if (comparisonElement) {
                           comparisonElement.scrollIntoView({ behavior: 'smooth' });
