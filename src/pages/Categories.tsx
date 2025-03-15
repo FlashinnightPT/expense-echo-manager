@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import CategoryForm from "@/components/forms/CategoryForm";
@@ -17,7 +16,6 @@ const Categories = () => {
     }
     
     try {
-      // Parse the categories and log them for debugging
       const parsedCategories = JSON.parse(storedCategories);
       console.log("Loaded categories from localStorage:", parsedCategories);
       return parsedCategories;
@@ -45,40 +43,51 @@ const Categories = () => {
   const [openClearTransactionsDialog, setOpenClearTransactionsDialog] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('categories', JSON.stringify(categoryList));
-    console.log("Categories saved to localStorage:", categoryList);
+    try {
+      localStorage.setItem('categories', JSON.stringify(categoryList));
+      console.log("Categories saved to localStorage:", categoryList);
+    } catch (error) {
+      console.error("Error saving categories to localStorage:", error);
+      toast.error("Erro ao salvar categorias");
+    }
   }, [categoryList]);
   
   useEffect(() => {
-    localStorage.setItem('transactions', JSON.stringify(transactionList));
+    try {
+      localStorage.setItem('transactions', JSON.stringify(transactionList));
+    } catch (error) {
+      console.error("Error saving transactions to localStorage:", error);
+    }
   }, [transactionList]);
 
   const handleSaveCategory = (category: Partial<TransactionCategory>) => {
-    // Ensure that we have all required fields
-    if (!category.name || !category.type || !category.level) {
-      toast.error("Dados de categoria incompletos");
-      return;
+    try {
+      if (!category.name || !category.type || !category.level) {
+        toast.error("Dados de categoria incompletos");
+        return;
+      }
+
+      const newCategory: TransactionCategory = {
+        id: `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        name: category.name,
+        type: category.type,
+        level: category.level,
+        ...(category.parentId && { parentId: category.parentId })
+      };
+
+      console.log("Adding new category:", newCategory);
+      
+      const updatedList = [...categoryList, newCategory];
+      setCategoryList(updatedList);
+      
+      console.log("Categoria adicionada:", newCategory);
+      console.log("Nova lista de categorias:", updatedList);
+      
+      toast.success(`Categoria "${newCategory.name}" adicionada com sucesso`);
+    } catch (error) {
+      console.error("Error adding category:", error);
+      toast.error("Erro ao adicionar categoria");
     }
-
-    // Create the new category with proper handling of parentId
-    const newCategory: TransactionCategory = {
-      id: `${category.type}-${category.level}-${Date.now()}`,
-      name: category.name,
-      type: category.type,
-      level: category.level,
-      ...(category.parentId && { parentId: category.parentId })
-    };
-
-    console.log("Adding new category:", newCategory);
-    
-    const updatedList = [...categoryList, newCategory];
-    setCategoryList(updatedList);
-    
-    // Debug logging
-    console.log("Categoria adicionada:", newCategory);
-    console.log("Nova lista de categorias:", updatedList);
-    
-    toast.success(`Categoria "${newCategory.name}" adicionada com sucesso`);
   };
 
   const handleDeleteCategory = (categoryId: string) => {

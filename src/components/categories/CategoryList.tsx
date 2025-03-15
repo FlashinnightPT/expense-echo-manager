@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
 import { TransactionCategory } from "@/utils/mockData";
-import { ChevronDown, ChevronRight, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Folder, FolderOpen, Trash2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -31,30 +31,44 @@ const CategoryList = ({ categoryList, handleDeleteCategory }: CategoryListProps)
     
     return (
       <div className="space-y-2">
-        {mainCategories.map(category => renderMainCategory(category))}
+        {mainCategories.map(category => renderCategory(category))}
       </div>
     );
   };
 
-  const renderMainCategory = (category: TransactionCategory) => {
-    const subcategories = categoryList.filter(c => c.parentId === category.id);
+  const getChildrenForCategory = (categoryId: string): TransactionCategory[] => {
+    return categoryList.filter(cat => cat.parentId === categoryId);
+  };
+
+  const renderCategory = (category: TransactionCategory) => {
+    const children = getChildrenForCategory(category.id);
     const isExpanded = expandedCategories[category.id] || false;
+    const indentLevel = category.level - 2; // Level 2 has no indent
+    const bgIntensity = Math.max(0, 100 - (indentLevel * 10)); // Decrease intensity by 10% per level
 
     return (
-      <div key={category.id} className="mb-3">
+      <div key={category.id} className="mb-1" style={{ marginLeft: `${indentLevel * 16}px` }}>
         <Collapsible open={isExpanded} onOpenChange={() => toggleCategoryExpansion(category.id)}>
-          <div className="flex items-center justify-between p-3 border rounded-md bg-background hover:bg-accent/20 transition-colors">
+          <div className={`flex items-center justify-between p-2 border rounded-md bg-background hover:bg-accent/20 transition-colors`}>
             <div className="flex items-center space-x-2">
-              {subcategories.length > 0 ? (
+              {children.length > 0 ? (
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  <Button variant="ghost" size="icon" className="h-7 w-7 p-0">
+                    {isExpanded ? (
+                      <FolderOpen className="h-4 w-4 text-amber-500" />
+                    ) : (
+                      <Folder className="h-4 w-4 text-amber-500" />
+                    )}
                   </Button>
                 </CollapsibleTrigger>
-              ) : <div className="w-5" />}
+              ) : (
+                <div className="w-7 flex justify-center">
+                  <div className="h-2 w-2 rounded-full bg-primary/60 mt-1" />
+                </div>
+              )}
               <div>
                 <span className="font-medium">{category.name}</span>
-                <p className="text-xs text-muted-foreground">Nível 2</p>
+                <p className="text-xs text-muted-foreground">Nível {category.level}</p>
               </div>
             </div>
             <Button 
@@ -71,65 +85,10 @@ const CategoryList = ({ categoryList, handleDeleteCategory }: CategoryListProps)
             </Button>
           </div>
           
-          {subcategories.length > 0 && (
+          {children.length > 0 && (
             <CollapsibleContent>
-              <div className="pl-6 mt-2 space-y-2">
-                {subcategories.map(subcat => renderSubcategory(subcat))}
-              </div>
-            </CollapsibleContent>
-          )}
-        </Collapsible>
-      </div>
-    );
-  };
-
-  const renderSubcategory = (category: TransactionCategory) => {
-    const items = categoryList.filter(c => c.parentId === category.id);
-    const isExpanded = expandedCategories[category.id] || false;
-    const isLevel3 = category.level === 3;
-    const isLevel4 = category.level === 4;
-
-    const bgClasses = isLevel3 
-      ? "bg-muted/30" 
-      : "bg-muted/50";
-
-    return (
-      <div key={category.id} className="mb-2">
-        <Collapsible open={isExpanded} onOpenChange={() => toggleCategoryExpansion(category.id)}>
-          <div className={`flex items-center justify-between p-2 border rounded-md ${bgClasses} hover:bg-accent/20 transition-colors`}>
-            <div className="flex items-center space-x-2">
-              {items.length > 0 ? (
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                    {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                  </Button>
-                </CollapsibleTrigger>
-              ) : <div className="w-5" />}
-              <div>
-                <span>{category.name}</span>
-                <p className="text-xs text-muted-foreground">
-                  {isLevel4 ? "Nível 4 (máximo)" : isLevel3 ? "Nível 3" : `Nível ${category.level}`}
-                </p>
-              </div>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-7 w-7 text-destructive hover:bg-destructive/10"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteCategory(category.id);
-              }}
-            >
-              <Trash2 className="h-3 w-3" />
-              <span className="sr-only">Apagar subcategoria</span>
-            </Button>
-          </div>
-          
-          {items.length > 0 && (
-            <CollapsibleContent>
-              <div className="pl-5 mt-2 space-y-2">
-                {items.map(item => renderSubcategory(item))}
+              <div className="mt-1 space-y-1">
+                {children.map(child => renderCategory(child))}
               </div>
             </CollapsibleContent>
           )}
@@ -152,13 +111,13 @@ const CategoryList = ({ categoryList, handleDeleteCategory }: CategoryListProps)
             </AlertDescription>
           </Alert>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {["income", "expense"].map((type) => (
-              <div key={type} className="space-y-2">
-                <h3 className="font-medium text-lg capitalize">
+              <div key={type} className="space-y-3">
+                <h3 className="font-medium text-lg capitalize border-b pb-1">
                   {type === "income" ? "Receitas" : "Despesas"}
                 </h3>
-                <div className="grid grid-cols-1 gap-2">
+                <div>
                   {renderCategoriesByType(type)}
                 </div>
               </div>
