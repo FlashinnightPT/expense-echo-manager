@@ -40,6 +40,20 @@ const CategoryComparison = ({
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [comparisonData, setComparisonData] = useState<any[]>([]);
 
+  // Define getRandomColor function BEFORE it's used in useMemo
+  const getRandomColor = (id: string) => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    const baseColors = activeTab === "expense" 
+      ? ['#ef4444', '#f87171', '#fca5a5', '#fee2e2', '#fecaca'] 
+      : ['#22c55e', '#4ade80', '#86efac', '#dcfce7', '#bbf7d0'];
+    
+    return baseColors[Math.abs(hash) % baseColors.length];
+  };
+
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
       const transactionDate = new Date(t.date);
@@ -138,19 +152,6 @@ const CategoryComparison = ({
       fill: getRandomColor(item.id)
     }));
   }, [comparisonData]);
-
-  const getRandomColor = (id: string) => {
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) {
-      hash = id.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    
-    const baseColors = activeTab === "expense" 
-      ? ['#ef4444', '#f87171', '#fca5a5', '#fee2e2', '#fecaca'] 
-      : ['#22c55e', '#4ade80', '#86efac', '#dcfce7', '#bbf7d0'];
-    
-    return baseColors[Math.abs(hash) % baseColors.length];
-  };
 
   const handleExportComparison = () => {
     try {
