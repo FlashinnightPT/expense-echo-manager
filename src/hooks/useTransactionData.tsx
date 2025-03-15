@@ -15,6 +15,20 @@ export const useTransactionData = () => {
 
   const [transactionList, setTransactionList] = useState(initTransactions());
 
+  // Escutar por eventos de storage para atualizar dados quando importar/exportar
+  useEffect(() => {
+    const handleStorageChange = () => {
+      console.log("Storage changed, updating transaction list");
+      setTransactionList(initTransactions());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem('transactions', JSON.stringify(transactionList));
@@ -28,10 +42,13 @@ export const useTransactionData = () => {
   };
 
   const confirmClearTransactions = () => {
-    setTransactionList([]);
-    localStorage.setItem('transactions', JSON.stringify([]));
-    toast.success("Todas as transações foram apagadas com sucesso");
-    return true;
+    if (window.confirm("Tem certeza que deseja apagar todas as transações? Esta ação não pode ser desfeita.")) {
+      setTransactionList([]);
+      localStorage.setItem('transactions', JSON.stringify([]));
+      toast.success("Todas as transações foram apagadas com sucesso");
+      return true;
+    }
+    return false;
   };
 
   return {

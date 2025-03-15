@@ -23,6 +23,15 @@ export const useCategoryForm = ({ onSave, categoryList }: UseCategoryFormProps) 
     setCategoryName("");
   }, [type]);
   
+  // Reset form when category list changes (e.g., on import)
+  useEffect(() => {
+    console.log("Category list changed, resetting form");
+    setParentId("");
+    setParentPath([]);
+    setLevel(2);
+    setCategoryName("");
+  }, [categoryList]);
+  
   const handleSubmit = () => {
     if (!categoryName.trim()) {
       toast.error("Por favor, insira um nome para a categoria");

@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
@@ -12,7 +11,9 @@ import {
   Sun,
   Laptop,
   Euro,
-  CircleDollarSign
+  CircleDollarSign,
+  FileJson,
+  Upload as ImportIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/layout/Header";
@@ -31,10 +32,15 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useTheme } from "@/components/ThemeProvider";
+import { exportDatabase, importDatabase } from "@/utils/databaseUtils";
+import { useTransactionData } from "@/hooks/useTransactionData";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const { confirmClearTransactions } = useTransactionData();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [settings, setSettings] = useState({
     language: "pt-PT",
     currency: "EUR",
@@ -57,6 +63,39 @@ const Settings = () => {
 
   const handleSave = () => {
     toast.success("Configurações guardadas com sucesso");
+  };
+
+  const handleExportDatabase = () => {
+    exportDatabase();
+  };
+  
+  const handleImportClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
+  const handleImportDatabase = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    
+    try {
+      // Confirmar com o usuário
+      if (window.confirm("Esta ação irá substituir todos os dados existentes. Tem certeza que deseja continuar?")) {
+        await importDatabase(file);
+        // Recarregar a página para garantir que todos os componentes sejam atualizados
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Erro ao importar banco de dados:", error);
+    }
+    
+    // Limpar o input para permitir selecionar o mesmo arquivo novamente
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleBackup = () => {
@@ -89,7 +128,60 @@ const Settings = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card className="animate-fade-in-up animation-delay-200">
+          <Card className="animate-fade-in-up animation-delay-200 md:col-span-2">
+            <CardHeader>
+              <CardTitle>Base de Dados</CardTitle>
+              <CardDescription>
+                Exporte ou importe todos os dados da aplicação
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-muted/50 p-4 rounded-lg border">
+                  <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
+                    <FileJson className="h-5 w-5" />
+                    Exportação de Dados
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Exporte todos os seus dados (categorias e transações) para um arquivo JSON que pode ser salvo no seu computador.
+                  </p>
+                  <Button 
+                    className="w-full"
+                    onClick={handleExportDatabase}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar Base de Dados
+                  </Button>
+                </div>
+                
+                <div className="bg-muted/50 p-4 rounded-lg border">
+                  <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
+                    <ImportIcon className="h-5 w-5" />
+                    Importação de Dados
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Importe dados de um arquivo JSON previamente exportado. Isso substituirá todos os dados atuais.
+                  </p>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept=".json"
+                    onChange={handleImportDatabase}
+                  />
+                  <Button 
+                    className="w-full"
+                    onClick={handleImportClick}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Importar Base de Dados
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="animate-fade-in-up animation-delay-300">
             <CardHeader>
               <CardTitle>Aparência</CardTitle>
               <CardDescription>
@@ -151,7 +243,7 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          <Card className="animate-fade-in-up animation-delay-300">
+          <Card className="animate-fade-in-up animation-delay-400">
             <CardHeader>
               <CardTitle>Moeda e Formato</CardTitle>
               <CardDescription>
@@ -221,7 +313,7 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          <Card className="animate-fade-in-up animation-delay-400">
+          <Card className="animate-fade-in-up animation-delay-500">
             <CardHeader>
               <CardTitle>Backup e Restauro</CardTitle>
               <CardDescription>
@@ -277,7 +369,7 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          <Card className="animate-fade-in-up animation-delay-500">
+          <Card className="animate-fade-in-up animation-delay-600">
             <CardHeader>
               <CardTitle>Preferências</CardTitle>
               <CardDescription>
