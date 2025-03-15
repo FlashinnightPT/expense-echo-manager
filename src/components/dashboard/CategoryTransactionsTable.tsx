@@ -1,3 +1,4 @@
+
 import { useState, useMemo, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -28,7 +29,7 @@ const CategoryTransactionsTable = ({
   const [activeTab, setActiveTab] = useState<"expense" | "income">("expense");
   const [currentGroupedCategories, setCurrentGroupedCategories] = useState<RootCategoryItem[]>([]);
   const [currentTotalAmount, setCurrentTotalAmount] = useState<number>(0);
-
+  
   const filteredTransactions = useMemo(() => {
     return transactions.filter((transaction) => {
       const transactionDate = new Date(transaction.date);
@@ -144,6 +145,22 @@ const CategoryTransactionsTable = ({
       toast.error("Erro ao exportar dados");
     }
   };
+  
+  const handleCompareCategory = (categoryId: string, categoryPath: string) => {
+    // Navigate to category analysis page with this category
+    if (window.location.pathname !== "/category-analysis") {
+      const url = new URL("/category-analysis", window.location.origin);
+      url.searchParams.set("categoryId", categoryId);
+      url.searchParams.set("compareMode", "true");
+      window.location.href = url.toString();
+    } else {
+      // We're already on the category analysis page, so we can dispatch a custom event
+      const event = new CustomEvent("addCategoryToComparison", {
+        detail: { categoryId, categoryPath }
+      });
+      window.dispatchEvent(event);
+    }
+  };
 
   return (
     <div className="animate-fade-in-up animation-delay-900">
@@ -182,6 +199,7 @@ const CategoryTransactionsTable = ({
           totalAmount={activeTab === "expense" ? currentTotalAmount : 0}
           selectedMonth={selectedMonth}
           selectedYear={selectedYear}
+          onCompare={handleCompareCategory}
         />
         
         <CategoryTabContent 
@@ -190,6 +208,7 @@ const CategoryTransactionsTable = ({
           totalAmount={activeTab === "income" ? currentTotalAmount : 0}
           selectedMonth={selectedMonth}
           selectedYear={selectedYear}
+          onCompare={handleCompareCategory}
         />
       </Tabs>
     </div>

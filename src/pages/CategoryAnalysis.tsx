@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
@@ -13,9 +12,11 @@ import { formatCurrency, getMonthName } from "@/utils/financialCalculations";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calculator, FileDown, Home } from "lucide-react";
+import { Calculator, FileDown, Home, ArrowRightLeft } from "lucide-react";
 import { exportToExcel, prepareCategoryDataForExport } from "@/utils/exportUtils";
 import { toast } from "sonner";
+import CategoryComparison from "@/components/dashboard/CategoryComparison";
+import CompareButton from "@/components/dashboard/components/CompareButton";
 
 const CategoryAnalysis = () => {
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().getFullYear(), 0, 1)); // Jan 1st of current year
@@ -28,6 +29,8 @@ const CategoryAnalysis = () => {
   const [categoryPath, setCategoryPath] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<TransactionCategory[]>([]);
   const [categoryLevel, setCategoryLevel] = useState<number>(2); // Start at level 2 to match TransactionForm
+  
+  const [selectedCategoryForComparison, setSelectedCategoryForComparison] = useState<string | null>(null);
   
   useEffect(() => {
     const loadData = () => {
@@ -51,7 +54,6 @@ const CategoryAnalysis = () => {
     };
   }, []);
   
-  // Reset category selection when tab changes
   useEffect(() => {
     setSelectedCategoryId("");
     setCategoryPath([]);
@@ -334,6 +336,20 @@ const CategoryAnalysis = () => {
     }
   };
   
+  const handleAddToComparison = (categoryId: string) => {
+    const category = categoryOptions.find(cat => cat.id === categoryId);
+    if (category) {
+      setSelectedCategoryForComparison(categoryId);
+    }
+  };
+  
+  const selectedCategoryPathForComparison = useMemo(() => {
+    if (!selectedCategoryForComparison) return "";
+    
+    const category = categoryOptions.find(cat => cat.id === selectedCategoryForComparison);
+    return category ? category.path : "";
+  }, [selectedCategoryForComparison, categoryOptions]);
+  
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -454,6 +470,14 @@ const CategoryAnalysis = () => {
                     <p className="text-muted-foreground">{dateRangeText}</p>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button 
+                      size="sm" 
+                      onClick={() => handleAddToComparison(selectedCategoryId)}
+                      className="flex items-center gap-1"
+                    >
+                      <ArrowRightLeft className="h-4 w-4 mr-1" />
+                      Comparar
+                    </Button>
                     <Button size="sm" onClick={handleExportData}>
                       <FileDown className="h-4 w-4 mr-2" />
                       Exportar
@@ -521,6 +545,7 @@ const CategoryAnalysis = () => {
                           <TableHead>Subcategoria</TableHead>
                           <TableHead className="text-right">Valor</TableHead>
                           <TableHead className="text-right">% do Total</TableHead>
+                          <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -529,12 +554,20 @@ const CategoryAnalysis = () => {
                             <TableCell>{item.category.name}</TableCell>
                             <TableCell className="text-right tabular-nums">{formatCurrency(item.amount)}</TableCell>
                             <TableCell className="text-right tabular-nums">{item.percentage.toFixed(2)}%</TableCell>
+                            <TableCell>
+                              <CompareButton 
+                                onClick={() => handleAddToComparison(item.category.id)}
+                                categoryId={item.category.id}
+                                categoryPath={`${selectedCategoryName} > ${item.category.name}`}
+                              />
+                            </TableCell>
                           </TableRow>
                         ))}
                         <TableRow className="font-bold">
                           <TableCell>TOTAL</TableCell>
                           <TableCell className="text-right tabular-nums">{formatCurrency(totalAmount)}</TableCell>
                           <TableCell className="text-right tabular-nums">100%</TableCell>
+                          <TableCell></TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
@@ -542,6 +575,14 @@ const CategoryAnalysis = () => {
                 )}
               </div>
             </Card>
+            
+            <CategoryComparison
+              categories={categories}
+              transactions={transactions}
+              startDate={startDate}
+              endDate={endDate}
+              activeTab={activeTab}
+            />
           </>
         )}
       </div>

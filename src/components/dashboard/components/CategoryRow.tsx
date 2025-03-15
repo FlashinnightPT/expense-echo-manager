@@ -1,23 +1,43 @@
 
-import { TableCell, TableRow } from "@/components/ui/table";
-import { TransactionCategory } from "@/utils/mockData";
+import React from "react";
 import { formatCurrency } from "@/utils/financialCalculations";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { Category } from "@/utils/mockData";
+import CompareButton from "./CompareButton";
 
 interface CategoryRowProps {
-  category: TransactionCategory;
+  category: Category;
   amount: number;
   level: number;
+  onCompare?: (categoryId: string, categoryPath: string) => void;
+  categoryPath?: string;
 }
 
-const CategoryRow = ({ category, amount, level }: CategoryRowProps) => {
-  // Usamos o nível passado como prop para determinar a indentação,
-  // já que este nível representa a posição na hierarquia visual da tabela
-  const indentClass = `pl-${level * 4}`;
-
+const CategoryRow = ({ 
+  category,
+  amount,
+  level,
+  onCompare,
+  categoryPath = category.name
+}: CategoryRowProps) => {
+  const paddingLeft = level * 1.5;
+  
   return (
     <TableRow>
-      <TableCell className={indentClass}>
-        <span className="font-medium">{category.name}</span>
+      <TableCell>
+        <div 
+          className="flex items-center justify-between"
+          style={{ paddingLeft: `${paddingLeft}rem` }}
+        >
+          <span>{category.name}</span>
+          {onCompare && (
+            <CompareButton 
+              onClick={() => onCompare(category.id, categoryPath)}
+              categoryId={category.id}
+              categoryPath={categoryPath}
+            />
+          )}
+        </div>
       </TableCell>
       <TableCell className="text-right tabular-nums">
         {formatCurrency(amount)}

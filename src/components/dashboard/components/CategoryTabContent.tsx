@@ -12,6 +12,7 @@ interface CategoryTabContentProps {
   totalAmount: number;
   selectedMonth: number;
   selectedYear: number;
+  onCompare?: (categoryId: string, categoryPath: string) => void;
 }
 
 const CategoryTabContent = ({
@@ -20,6 +21,7 @@ const CategoryTabContent = ({
   totalAmount,
   selectedMonth,
   selectedYear,
+  onCompare,
 }: CategoryTabContentProps) => {
   const typeLabel = value === "expense" ? "Despesas" : "Receitas";
   const emptyMessage = value === "expense" 
@@ -39,6 +41,7 @@ const CategoryTabContent = ({
             groupedCategories={groupedCategories}
             totalAmount={totalAmount}
             showEmptyMessage={emptyMessage}
+            onCompare={onCompare}
           />
         </CardContent>
       </Card>

@@ -16,12 +16,14 @@ interface CategoryTableProps {
   groupedCategories: RootCategoryItem[];
   totalAmount: number;
   showEmptyMessage: string;
+  onCompare?: (categoryId: string, categoryPath: string) => void;
 }
 
 const CategoryTable = ({ 
   groupedCategories, 
   totalAmount, 
-  showEmptyMessage 
+  showEmptyMessage,
+  onCompare 
 }: CategoryTableProps) => {
   return (
     <Table>
@@ -45,7 +47,8 @@ const CategoryTable = ({
                 <CategoryRow 
                   category={rootCat.category} 
                   amount={rootCat.amount} 
-                  level={0} 
+                  level={0}
+                  onCompare={onCompare}
                 />
                 
                 {rootCat.subcategories.map((level2Cat) => (
@@ -53,7 +56,9 @@ const CategoryTable = ({
                     <CategoryRow 
                       category={level2Cat.category} 
                       amount={level2Cat.amount} 
-                      level={1} 
+                      level={1}
+                      onCompare={onCompare}
+                      categoryPath={`${rootCat.category.name} > ${level2Cat.category.name}`}
                     />
                     
                     {level2Cat.subcategories.map((level3Cat) => (
@@ -61,7 +66,9 @@ const CategoryTable = ({
                         <CategoryRow 
                           category={level3Cat.category} 
                           amount={level3Cat.amount} 
-                          level={2} 
+                          level={2}
+                          onCompare={onCompare}
+                          categoryPath={`${rootCat.category.name} > ${level2Cat.category.name} > ${level3Cat.category.name}`}
                         />
                         
                         {level3Cat.subcategories.map((level4Item) => (
@@ -69,7 +76,9 @@ const CategoryTable = ({
                             key={`level4-${level4Item.category.id}`}
                             category={level4Item.category} 
                             amount={level4Item.amount} 
-                            level={3} 
+                            level={3}
+                            onCompare={onCompare}
+                            categoryPath={`${rootCat.category.name} > ${level2Cat.category.name} > ${level3Cat.category.name} > ${level4Item.category.name}`}
                           />
                         ))}
                       </React.Fragment>
