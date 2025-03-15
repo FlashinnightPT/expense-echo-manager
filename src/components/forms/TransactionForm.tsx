@@ -52,15 +52,18 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
   const [categoryPath, setCategoryPath] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<TransactionCategory[]>([]);
   const [categoryLevel, setCategoryLevel] = useState<number>(1);
+  const [isAtLeafCategory, setIsAtLeafCategory] = useState<boolean>(false);
 
   useEffect(() => {
     // Inicializar categorias de primeiro nível baseadas no tipo selecionado
     const firstLevelCategories = flattenedCategories.filter(
       (category) => category.type === formData.type && category.level === 1
     );
+    console.log("First level categories:", firstLevelCategories);
     setAvailableCategories(firstLevelCategories);
     setCategoryLevel(1);
     setCategoryPath([]);
+    setIsAtLeafCategory(false);
   }, [formData.type]);
 
   useEffect(() => {
@@ -92,14 +95,21 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
           setCategoryPath([...categoryPath, value as string]);
           setAvailableCategories(childCategories);
           setCategoryLevel(categoryLevel + 1);
+          setIsAtLeafCategory(false);
+        } else {
+          // Se não existirem subcategorias, estamos em uma categoria folha
+          setCategoryPath([...categoryPath, value as string]);
+          setIsAtLeafCategory(true);
         }
       }
     } else if (field === "type") {
       setFormData({
         ...formData,
         type: value as "income" | "expense",
-        categoryId: "" // Resetar categoria quando o tipo muda
+        categoryId: "", // Resetar categoria quando o tipo muda
+        amount: 0 // Resetar valor quando o tipo muda
       });
+      setIsAtLeafCategory(false);
     } else {
       setFormData({
         ...formData,
@@ -120,6 +130,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
       );
       setAvailableCategories(firstLevelCategories);
       setCategoryLevel(1);
+      setIsAtLeafCategory(false);
     } else {
       // Senão, mostrar subcategorias do nível selecionado
       const parentId = newPath[newPath.length - 1];
@@ -128,11 +139,20 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
       );
       setAvailableCategories(childCategories);
       setCategoryLevel(index + 1);
+      
+      // Verificar se a categoria selecionada é folha
+      const hasChildren = flattenedCategories.some(cat => cat.parentId === parentId);
+      setIsAtLeafCategory(!hasChildren);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isAtLeafCategory) {
+      toast.error("Por favor, selecione uma categoria de último nível");
+      return;
+    }
     
     if (!formData.amount || formData.amount <= 0) {
       toast.error("Por favor, insira um valor válido");
@@ -158,6 +178,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
         setSelectedDate(getDefaultDate());
         setCategoryPath([]);
         setCategoryLevel(1);
+        setIsAtLeafCategory(false);
       }
       
       toast.success(transaction ? "Transação atualizada" : "Transação adicionada");
@@ -214,8 +235,13 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                     onSelect={(date) => date && setSelectedDate(date)}
                     initialFocus
                     className="pointer-events-auto"
-                    displayMode="month"
+                    // Remova displayMode que estava causando erro
                     showOutsideDays={false}
+                    captionLayout="dropdown-buttons"
+                    fromYear={2020}
+                    toYear={2030}
+                    // Usar view para mostrar apenas mês/ano
+                    view="month"
                   />
                 </PopoverContent>
               </Popover>
@@ -292,7 +318,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="amount">Valor</Label>
+              <Label htmlFor="amount" className={!isAtLeafCategory ? "text-muted-foreground" : ""}>Valor</Label>
               <Input
                 id="amount"
                 type="number"
@@ -301,7 +327,12 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                 placeholder="0,00"
                 value={formData.amount || ""}
                 onChange={(e) => handleChange("amount", parseFloat(e.target.value) || 0)}
+                disabled={!isAtLeafCategory}
+                className={!isAtLeafCategory ? "bg-muted cursor-not-allowed" : ""}
               />
+              {!isAtLeafCategory && (
+                <p className="text-xs text-muted-foreground">Selecione uma categoria de último nível para inserir o valor</p>
+              )}
             </div>
           </div>
           
@@ -330,13 +361,14 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                   setSelectedDate(getDefaultDate());
                   setCategoryPath([]);
                   setCategoryLevel(1);
+                  setIsAtLeafCategory(false);
                 }
               }}
             >
               <X className="h-4 w-4 mr-2" />
               Limpar
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={!isAtLeafCategory}>
               <Save className="h-4 w-4 mr-2" />
               {transaction ? "Atualizar" : "Adicionar"}
             </Button>
