@@ -22,6 +22,13 @@ const CategoryRow = ({
 }: CategoryRowProps) => {
   const paddingLeft = level * 1.5;
   
+  const handleCompare = () => {
+    if (onCompare) {
+      console.log("Category row: calling onCompare with", category.id, categoryPath);
+      onCompare(category.id, categoryPath);
+    }
+  };
+  
   return (
     <TableRow>
       <TableCell>
@@ -32,7 +39,7 @@ const CategoryRow = ({
           <span>{category.name}</span>
           {onCompare && (
             <CompareButton 
-              onClick={() => onCompare(category.id, categoryPath)}
+              onClick={handleCompare}
               categoryId={category.id}
               categoryPath={categoryPath}
             />

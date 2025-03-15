@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRightLeft } from "lucide-react";
+import { GitCompare } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CompareButtonProps {
@@ -18,10 +18,13 @@ const CompareButton = ({ onClick, categoryId, categoryPath }: CompareButtonProps
           <Button
             variant="ghost"
             size="icon"
-            onClick={onClick}
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent event bubbling
+              onClick();
+            }}
             className="h-5 w-5"
           >
-            <ArrowRightLeft className="h-3.5 w-3.5" />
+            <GitCompare className="h-3.5 w-3.5" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>

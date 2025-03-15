@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
 import { Trash2, FileDown } from "lucide-react";
@@ -51,6 +50,20 @@ const CategoryComparison = ({
     });
   }, [transactions, startDate, endDate, activeTab]);
 
+  useEffect(() => {
+    const handleAddCategoryToComparison = (event: CustomEvent) => {
+      const { categoryId, categoryPath } = event.detail;
+      console.log("Adding category to comparison:", categoryId, categoryPath);
+      addCategoryToComparison(categoryId, categoryPath);
+    };
+
+    window.addEventListener("addCategoryToComparison", handleAddCategoryToComparison as EventListener);
+    
+    return () => {
+      window.removeEventListener("addCategoryToComparison", handleAddCategoryToComparison as EventListener);
+    };
+  }, []);
+
   const addCategoryToComparison = (categoryId: string, categoryPath: string) => {
     if (selectedCategories.length >= 5) {
       toast.error("Você já selecionou o máximo de 5 categorias para comparação");
@@ -86,13 +99,12 @@ const CategoryComparison = ({
     
     const amount = categoryTransactions.reduce((sum, t) => sum + t.amount, 0);
     
-    // Only add category if it has transactions
     if (amount === 0) {
       toast.error("Esta categoria não tem transações no período selecionado");
       return;
     }
 
-    setSelectedCategories([...selectedCategories, categoryId]);
+    setSelectedCategories(prevSelected => [...prevSelected, categoryId]);
     
     const newComparisonData = [
       ...comparisonData,
@@ -105,6 +117,11 @@ const CategoryComparison = ({
     ];
     
     setComparisonData(newComparisonData);
+    
+    const comparisonElement = document.getElementById('category-comparison');
+    if (comparisonElement) {
+      comparisonElement.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const removeCategoryFromComparison = (categoryId: string) => {
@@ -122,7 +139,6 @@ const CategoryComparison = ({
   }, [comparisonData]);
 
   const getRandomColor = (id: string) => {
-    // Generate a deterministic color based on the category ID
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
       hash = id.charCodeAt(i) + ((hash << 5) - hash);
@@ -164,7 +180,7 @@ const CategoryComparison = ({
   }, [comparisonData]);
 
   return (
-    <Card className="mt-8">
+    <Card className="mt-8" id="category-comparison">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg">
