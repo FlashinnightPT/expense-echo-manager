@@ -40,27 +40,24 @@ const CategoryTable = ({
         ) : (
           <>
             {groupedCategories.map((rootCat) => (
-              <>
+              <React.Fragment key={`level1-${rootCat.category.id}`}>
                 <CategoryRow 
-                  key={`level1-${rootCat.category.id}`}
                   category={rootCat.category} 
                   amount={rootCat.amount} 
                   level={0} 
                 />
                 
                 {rootCat.subcategories.map((level2Cat) => (
-                  <>
+                  <React.Fragment key={`level2-${level2Cat.category.id}`}>
                     <CategoryRow 
-                      key={`level2-${level2Cat.category.id}`}
                       category={level2Cat.category} 
                       amount={level2Cat.amount} 
                       level={1} 
                     />
                     
                     {level2Cat.subcategories.map((level3Cat) => (
-                      <>
+                      <React.Fragment key={`level3-${level3Cat.category.id}`}>
                         <CategoryRow 
-                          key={`level3-${level3Cat.category.id}`}
                           category={level3Cat.category} 
                           amount={level3Cat.amount} 
                           level={2} 
@@ -74,11 +71,11 @@ const CategoryTable = ({
                             level={3} 
                           />
                         ))}
-                      </>
+                      </React.Fragment>
                     ))}
-                  </>
+                  </React.Fragment>
                 ))}
-              </>
+              </React.Fragment>
             ))}
             
             <TableRow className="font-bold">

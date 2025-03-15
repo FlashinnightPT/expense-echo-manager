@@ -7,7 +7,7 @@ export const useDashboardData = () => {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<TransactionCategory[]>([]);
   
   // Load data from localStorage
   useEffect(() => {
@@ -15,6 +15,7 @@ export const useDashboardData = () => {
     if (storedTransactions) {
       setTransactions(JSON.parse(storedTransactions));
     } else {
+      // Initialize with empty array if no data
       localStorage.setItem('transactions', JSON.stringify([]));
     }
     
@@ -22,7 +23,13 @@ export const useDashboardData = () => {
     if (storedCategories) {
       setCategories(JSON.parse(storedCategories));
     } else {
+      // Initialize with empty array if no data
       localStorage.setItem('categories', JSON.stringify([]));
+      
+      // You might want to add some default categories here
+      // const defaultCategories = [...];
+      // setCategories(defaultCategories);
+      // localStorage.setItem('categories', JSON.stringify(defaultCategories));
     }
   }, []);
   
@@ -206,6 +213,9 @@ export const useDashboardData = () => {
     
     localStorage.setItem('categories', JSON.stringify(updatedCategories));
     setCategories(updatedCategories);
+    
+    console.log('Category saved:', newCategory);
+    return newCategory;
   };
 
   const handleSaveTransaction = (transaction: Partial<Transaction>) => {
@@ -222,6 +232,9 @@ export const useDashboardData = () => {
     
     localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
     setTransactions(updatedTransactions);
+    
+    console.log('Transaction saved:', newTransaction);
+    return newTransaction;
   };
 
   const handleClearAllData = () => {

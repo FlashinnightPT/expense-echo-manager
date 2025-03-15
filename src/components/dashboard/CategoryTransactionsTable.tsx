@@ -15,6 +15,7 @@ import {
   getSubcategories
 } from "./utils/categoryTableUtils";
 import CategoryTabContent from "./components/CategoryTabContent";
+import React from "react";
 
 const CategoryTransactionsTable = ({
   transactions,
@@ -26,7 +27,7 @@ const CategoryTransactionsTable = ({
 }: CategoryTransactionsTableProps) => {
   const [activeTab, setActiveTab] = useState<"expense" | "income">("expense");
 
-  // Filtrar transações pelo ano e mês selecionados
+  // Filter transactions by selected year and month
   const filteredTransactions = useMemo(() => {
     return transactions.filter((transaction) => {
       const transactionDate = new Date(transaction.date);
@@ -37,51 +38,51 @@ const CategoryTransactionsTable = ({
     });
   }, [transactions, selectedYear, selectedMonth]);
 
-  // Agrupar categorias por hierarquia
+  // Group categories by hierarchy for the active tab type
   const groupedCategories = useMemo(() => {
-    // Filtrar categorias raiz do tipo selecionado
+    // Filter root categories of the selected type
     const rootCategories = categories.filter(
       (cat) => cat.level === 1 && cat.type === activeTab
     );
 
-    // Estrutura para armazenar categorias e subcategorias
+    // Structure to store categories and subcategories
     const result: RootCategoryItem[] = [];
 
-    // Construir a estrutura hierárquica para cada categoria raiz
+    // Build hierarchical structure for each root category
     rootCategories.forEach((rootCat) => {
       const rootAmount = calculateCategoryTotal(rootCat.id, filteredTransactions, categories);
       
-      // Se não há transações para esta categoria raiz, pule
+      // Skip if no transactions for this root category
       if (rootAmount === 0) return;
 
       const level2Subcategories = getSubcategories(rootCat.id, categories);
       const level2Items = [];
 
-      // Para cada subcategoria de nível 2
+      // For each level 2 subcategory
       level2Subcategories.forEach((level2Cat) => {
         const level2Amount = calculateCategoryTotal(level2Cat.id, filteredTransactions, categories);
         
-        // Se não há transações para esta subcategoria, pule
+        // Skip if no transactions for this subcategory
         if (level2Amount === 0) return;
 
         const level3Subcategories = getSubcategories(level2Cat.id, categories);
         const level3Items = [];
 
-        // Para cada subcategoria de nível 3
+        // For each level 3 subcategory
         level3Subcategories.forEach((level3Cat) => {
           const level3Amount = calculateCategoryTotal(level3Cat.id, filteredTransactions, categories);
           
-          // Se não há transações para esta subcategoria, pule
+          // Skip if no transactions for this subcategory
           if (level3Amount === 0) return;
 
           const level4Subcategories = getSubcategories(level3Cat.id, categories);
           const level4Items = [];
 
-          // Para cada subcategoria de nível 4
+          // For each level 4 subcategory
           level4Subcategories.forEach((level4Cat) => {
             const level4Amount = calculateCategoryTransactionAmount(level4Cat.id, filteredTransactions);
             
-            // Se não há transações para esta subcategoria, pule
+            // Skip if no transactions for this subcategory
             if (level4Amount === 0) return;
 
             level4Items.push({
@@ -114,7 +115,7 @@ const CategoryTransactionsTable = ({
     return result;
   }, [categories, activeTab, filteredTransactions]);
 
-  // Calcular o valor total de todas as transações do tipo ativo
+  // Calculate the total amount for all transactions of the active type
   const totalAmount = useMemo(() => {
     return filteredTransactions
       .filter((transaction) => transaction.type === activeTab)

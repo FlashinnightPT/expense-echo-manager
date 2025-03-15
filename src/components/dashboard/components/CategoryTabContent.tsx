@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { getMonthName } from "@/utils/financialCalculations";
 import { TabsContent } from "@/components/ui/tabs";

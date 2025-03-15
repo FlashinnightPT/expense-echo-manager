@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import CategoryRow from '../components/CategoryRow';
 import { TransactionCategory } from '@/utils/mockData';

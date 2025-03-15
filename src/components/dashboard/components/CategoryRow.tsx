@@ -10,10 +10,12 @@ interface CategoryRowProps {
 }
 
 const CategoryRow = ({ category, amount, level }: CategoryRowProps) => {
+  // Calculate the appropriate padding based on the level
+  // Each level increases the padding by 4 units
   const indentClass = `pl-${level * 4}`;
 
   return (
-    <TableRow key={category.id}>
+    <TableRow>
       <TableCell className={indentClass}>
         <span className="font-medium">{category.name}</span>
       </TableCell>
