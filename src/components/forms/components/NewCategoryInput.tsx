@@ -32,6 +32,12 @@ const NewCategoryInput = ({
           onChange={(e) => onCategoryNameChange(e.target.value)}
           placeholder={`Nome do ${levelName.toLowerCase()}`}
           className="flex-1"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && categoryName.trim()) {
+              e.preventDefault();
+              onSubmit();
+            }
+          }}
         />
         <Button 
           type="button"

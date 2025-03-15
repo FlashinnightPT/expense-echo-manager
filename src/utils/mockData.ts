@@ -1,13 +1,12 @@
-
 // Mock data to represent financial data from spreadsheets
 
 export type TransactionCategory = {
   id: string;
   name: string;
-  type: 'income' | 'expense';
-  parentId?: string;
+  type: "income" | "expense";
   level: number;
-  children?: TransactionCategory[];
+  parentId?: string;
+  parentName?: string; // Used for Excel import
 };
 
 export type Transaction = {
@@ -16,7 +15,7 @@ export type Transaction = {
   amount: number;
   date: string;
   categoryId: string;
-  type: 'income' | 'expense';
+  type: "income" | "expense";
 };
 
 export type MonthlyData = {

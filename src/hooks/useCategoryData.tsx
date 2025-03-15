@@ -65,6 +65,109 @@ export const useCategoryData = () => {
     }
   };
 
+  const handleImportCategories = (categories: Partial<TransactionCategory>[]) => {
+    try {
+      if (!categories || categories.length === 0) {
+        toast.warning("Nenhuma categoria para importar");
+        return;
+      }
+
+      const newCategories: TransactionCategory[] = [];
+      
+      // First import level 2 categories
+      const level2Categories = categories.filter(cat => cat.level === 2);
+      const level2Map = new Map<string, string>(); // name -> id
+      
+      level2Categories.forEach(category => {
+        if (category.name && category.type && category.level) {
+          const newCategory: TransactionCategory = {
+            id: `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            name: category.name,
+            type: category.type,
+            level: category.level
+          };
+          
+          newCategories.push(newCategory);
+          level2Map.set(category.name, newCategory.id);
+        }
+      });
+      
+      // Then import level 3 categories
+      const level3Categories = categories.filter(cat => cat.level === 3);
+      const level3Map = new Map<string, string>(); // name -> id
+      
+      level3Categories.forEach(category => {
+        if (category.name && category.type && category.level) {
+          // Find the correct parent ID from our new map
+          let parentId = category.parentId;
+          
+          // If this was from Excel import, the parent ID might not be set yet
+          if (!parentId && category.parentName) {
+            parentId = level2Map.get(category.parentName);
+          }
+          
+          if (!parentId) {
+            console.warn(`Could not find parent for level 3 category ${category.name}`);
+            return;
+          }
+          
+          const newCategory: TransactionCategory = {
+            id: `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            name: category.name,
+            type: category.type,
+            level: category.level,
+            parentId
+          };
+          
+          newCategories.push(newCategory);
+          level3Map.set(category.name, newCategory.id);
+        }
+      });
+      
+      // Finally import level 4 categories
+      const level4Categories = categories.filter(cat => cat.level === 4);
+      
+      level4Categories.forEach(category => {
+        if (category.name && category.type && category.level) {
+          // Find the correct parent ID from our new map
+          let parentId = category.parentId;
+          
+          // If this was from Excel import, the parent ID might not be set yet
+          if (!parentId && category.parentName) {
+            parentId = level3Map.get(category.parentName);
+          }
+          
+          if (!parentId) {
+            console.warn(`Could not find parent for level 4 category ${category.name}`);
+            return;
+          }
+          
+          const newCategory: TransactionCategory = {
+            id: `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            name: category.name,
+            type: category.type,
+            level: category.level,
+            parentId
+          };
+          
+          newCategories.push(newCategory);
+        }
+      });
+      
+      const updatedList = [...categoryList, ...newCategories];
+      setCategoryList(updatedList);
+      
+      console.log(`${newCategories.length} categorias importadas`);
+      console.log("Nova lista de categorias:", updatedList);
+      
+      return newCategories.length;
+    } catch (error) {
+      console.error("Error importing categories:", error);
+      toast.error("Erro ao importar categorias");
+      throw error;
+    }
+  };
+
   const handleDeleteCategory = (categoryId: string) => {
     const hasChildren = categoryList.some(cat => cat.parentId === categoryId);
     
@@ -92,6 +195,7 @@ export const useCategoryData = () => {
   return {
     categoryList,
     handleSaveCategory,
+    handleImportCategories,
     handleDeleteCategory,
     confirmDeleteCategory,
     handleResetCategories
