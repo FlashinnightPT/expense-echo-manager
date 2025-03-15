@@ -18,7 +18,19 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from "recharts";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Legend, 
+  ResponsiveContainer,
+  Cell,
+  PieChart,
+  Pie,
+  Sector
+} from "recharts";
 import { toast } from "sonner";
 import { exportToExcel } from "@/utils/exportUtils";
 
@@ -39,6 +51,7 @@ const CategoryComparison = ({
 }: CategoryComparisonProps) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [comparisonData, setComparisonData] = useState<any[]>([]);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
 
   // Define getRandomColor function BEFORE it's used in useMemo
   const getRandomColor = (id: string) => {
@@ -145,7 +158,7 @@ const CategoryComparison = ({
   };
 
   const chartData = useMemo(() => {
-    return comparisonData.map(item => ({
+    return comparisonData.map((item, index) => ({
       category: item.name,
       amount: item.amount,
       categoryId: item.id,
@@ -181,6 +194,47 @@ const CategoryComparison = ({
     return comparisonData.reduce((sum, item) => sum + item.amount, 0);
   }, [comparisonData]);
 
+  // Custom active shape for the PieChart
+  const renderActiveShape = (props: any) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+  
+    return (
+      <g>
+        <text x={cx} y={cy - 10} dy={8} textAnchor="middle" fill={fill} className="text-lg font-semibold">
+          {payload.category}
+        </text>
+        <text x={cx} y={cy + 15} textAnchor="middle" fill="#999" className="text-sm">
+          {formatCurrency(value)}
+        </text>
+        <text x={cx} y={cy + 35} textAnchor="middle" fill="#999" className="text-xs">
+          {`${(percent * 100).toFixed(2)}%`}
+        </text>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius + 10}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+        />
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius - 5}
+          outerRadius={innerRadius - 1}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+        />
+      </g>
+    );
+  };
+
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
+
   return (
     <div id="category-comparison-section">
       <Card className="mt-8">
@@ -204,31 +258,83 @@ const CategoryComparison = ({
             </div>
           ) : (
             <>
-              <div className="h-[300px] mb-6">
-                <ChartContainer config={{}}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Bar Chart */}
+                <div className="h-[300px]">
+                  <p className="text-sm text-muted-foreground mb-2 text-center">Comparação por valores</p>
+                  <ChartContainer config={{}}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart 
+                        data={chartData}
+                        layout="vertical"
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                        <XAxis 
+                          type="number" 
+                          tickFormatter={(value) => `€${value}`}
+                        />
+                        <YAxis 
+                          dataKey="category" 
+                          type="category" 
+                          width={100}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <ChartTooltip
+                          content={
+                            <ChartTooltipContent 
+                              formatter={(value) => [
+                                `${formatCurrency(value as number)}`,
+                                "Valor"
+                              ]}
+                            />
+                          }
+                        />
+                        <Bar dataKey="amount" name="Valor">
+                          {chartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </div>
+
+                {/* Pie Chart */}
+                <div className="h-[300px]">
+                  <p className="text-sm text-muted-foreground mb-2 text-center">Distribuição percentual</p>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="category" />
-                      <YAxis 
-                        tickFormatter={(value) => `€${value}`}
-                        width={80}
-                      />
+                    <PieChart>
+                      <Pie
+                        activeIndex={activeIndex}
+                        activeShape={renderActiveShape}
+                        data={chartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="amount"
+                        onMouseEnter={onPieEnter}
+                      >
+                        {chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
                       <ChartTooltip
                         content={
                           <ChartTooltipContent 
-                            formatter={(value) => [
-                              `${formatCurrency(value as number)}`,
-                              "Valor"
-                            ]}
+                            formatter={(value, name, entry) => {
+                              const percent = entry && entry.payload ? 
+                                ((entry.payload.amount / totalAmount) * 100).toFixed(2) + '%' : '';
+                              return [`${formatCurrency(value as number)} (${percent})`, entry.payload.category];
+                            }}
                           />
                         }
                       />
-                      <Legend />
-                      <Bar dataKey="amount" name="Valor" />
-                    </BarChart>
+                    </PieChart>
                   </ResponsiveContainer>
-                </ChartContainer>
+                </div>
               </div>
 
               <Table>
