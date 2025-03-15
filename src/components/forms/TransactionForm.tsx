@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Save, X, CalendarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
@@ -84,10 +85,14 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
   }, [formData.type, allCategories]);
 
   useEffect(() => {
-    // Quando a data muda, atualiza o formData
+    // Quando a data muda, atualiza o formData com uma data padrão (primeiro dia do mês)
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+    const firstDayOfMonth = new Date(year, month, 1);
+    
     setFormData(prev => ({
       ...prev,
-      date: format(selectedDate, "yyyy-MM-dd")
+      date: format(firstDayOfMonth, "yyyy-MM-dd")
     }));
   }, [selectedDate]);
 
@@ -264,6 +269,9 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                     captionLayout="dropdown-buttons"
                     fromYear={2020}
                     toYear={2030}
+                    ISOWeek={false}
+                    defaultMonth={selectedDate}
+                    views={["month", "year"]}
                   />
                 </PopoverContent>
               </Popover>
