@@ -16,17 +16,19 @@ import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const { canEdit } = useAuth();
-  const [showValues, setShowValues] = useState(true);
+  const [showValues, setShowValues] = useState(false);
   
   useEffect(() => {
-    const savedPreference = localStorage.getItem('showFinancialValues');
+    const savedPreference = sessionStorage.getItem('showFinancialValues');
     if (savedPreference) {
       setShowValues(savedPreference === 'true');
+    } else {
+      sessionStorage.setItem('showFinancialValues', 'false');
     }
   }, []);
   
   useEffect(() => {
-    localStorage.setItem('showFinancialValues', showValues.toString());
+    sessionStorage.setItem('showFinancialValues', showValues.toString());
   }, [showValues]);
   
   const {

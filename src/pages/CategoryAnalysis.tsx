@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -16,7 +15,8 @@ import Header from "@/components/layout/Header";
 const CategoryAnalysis = () => {
   // State for showing/hiding values
   const [showValues, setShowValues] = useState(() => {
-    return sessionStorage.getItem("showValues") === "true";
+    const savedPreference = sessionStorage.getItem("showFinancialValues");
+    return savedPreference ? savedPreference === "true" : false;
   });
 
   // Add state for other variables referenced in the component
@@ -33,7 +33,7 @@ const CategoryAnalysis = () => {
   const toggleShowValues = () => {
     const newValue = !showValues;
     setShowValues(newValue);
-    sessionStorage.setItem("showValues", String(newValue));
+    sessionStorage.setItem("showFinancialValues", String(newValue));
   };
 
   // Function to handle adding a category to comparison

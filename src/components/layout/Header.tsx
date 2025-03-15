@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -20,7 +19,7 @@ function Header() {
   };
 
   const navigation = [
-    { name: "Dashboard", href: "/dashboard" },
+    { name: "Painel", href: "/dashboard" },
     { name: "Mensal", href: "/monthly" },
     { name: "Anual", href: "/yearly" },
     { name: "Categorias", href: "/categories" },
