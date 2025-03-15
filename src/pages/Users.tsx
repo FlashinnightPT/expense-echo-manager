@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, UserPlus, Mail, Lock, User as UserIcon, Eye, EyeOff, Pencil, Trash2, Shield } from "lucide-react";
+import { ArrowLeft, UserPlus, Mail, Lock, User, Eye, EyeOff, Pencil, Trash2, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth, UserRole, UserStatus } from "@/hooks/auth";
-import type { User } from "@/hooks/auth";
-import { hashPassword } from "@/hooks/auth/securityUtils";
+import { useAuth } from "@/hooks/useAuth";
 
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -57,6 +55,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 
+// Tipos
+type UserRole = "editor" | "viewer";
+
+interface User {
+  id: string;
+  name: string;
+  username: string;
+  role: UserRole;
+  status: "active" | "pending" | "inactive";
+  lastLogin?: string;
+}
+
 const Users = () => {
   const navigate = useNavigate();
   const { validatePassword } = useAuth();
@@ -68,7 +78,7 @@ const Users = () => {
         name: "Administrador",
         username: "admin",
         role: "editor" as UserRole,
-        status: "active" as UserStatus,
+        status: "active",
         lastLogin: "2023-06-15T10:30:00"
       }
     ];
@@ -83,43 +93,44 @@ const Users = () => {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   
+  // Gerar senha temporária aleatória
   const generateTemporaryPassword = () => {
     return "temp123"; // Senha temporária fixa para simplicidade
   };
   
-  const handleAddUser = async () => {
+  // Adicionar novo utilizador
+  const handleAddUser = () => {
     if (!newUser.name || !newUser.username) {
       toast.error("Por favor, preencha todos os campos");
       return;
     }
     
+    // Verificar se o username já existe
     if (users.some(user => user.username === newUser.username)) {
       toast.error("Este nome de utilizador já está registado");
       return;
     }
     
     const tempPassword = generateTemporaryPassword();
-    
-    const hashedPassword = await hashPassword(tempPassword);
-    
     const newUserData: User = {
       id: Date.now().toString(),
       name: newUser.name,
       username: newUser.username,
       role: newUser.role,
-      status: "pending" as UserStatus,
-      hashedPassword
+      status: "pending"
     };
     
     const updatedUsers = [...users, newUserData];
     setUsers(updatedUsers);
     localStorage.setItem("app_users", JSON.stringify(updatedUsers));
     
+    // Simular envio de credenciais
     console.log(`Credenciais para ${newUser.name}: Username: ${newUser.username}, Senha temporária: ${tempPassword}`);
     
     toast.success(`Utilizador ${newUser.name} adicionado com sucesso`);
     toast.info(`Username: ${newUser.username} / Senha temporária: ${tempPassword}`);
     
+    // Limpar o formulário
     setNewUser({
       name: "",
       username: "",
@@ -129,6 +140,7 @@ const Users = () => {
     setIsAddUserOpen(false);
   };
   
+  // Eliminar utilizador
   const handleDeleteUser = () => {
     if (!userToDelete) return;
     
@@ -140,25 +152,9 @@ const Users = () => {
     setUserToDelete(null);
   };
   
-  const sendPasswordResetEmail = async (username: string) => {
+  // Função de simulação de envio de email
+  const sendPasswordResetEmail = (username: string) => {
     const tempPassword = generateTemporaryPassword();
-    
-    const hashedPassword = await hashPassword(tempPassword);
-    
-    const updatedUsers = users.map(user => {
-      if (user.username === username) {
-        return {
-          ...user,
-          hashedPassword,
-          status: "pending" as UserStatus
-        };
-      }
-      return user;
-    });
-    
-    setUsers(updatedUsers);
-    localStorage.setItem("app_users", JSON.stringify(updatedUsers));
-    
     console.log(`Nova senha temporária para ${username}: ${tempPassword}`);
     toast.success(`Nova senha temporária para ${username}: ${tempPassword}`);
   };
@@ -170,7 +166,7 @@ const Users = () => {
     return <Badge variant="outline">Leitura</Badge>;
   };
   
-  const getStatusBadge = (status: UserStatus) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
         return <Badge className="bg-green-500">Ativo</Badge>;
@@ -247,7 +243,7 @@ const Users = () => {
                         onChange={(e) => setNewUser({...newUser, username: e.target.value})}
                         className="pl-10"
                       />
-                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     </div>
                   </div>
                   <div className="space-y-2">

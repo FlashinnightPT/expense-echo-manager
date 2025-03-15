@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useDashboardData } from "@/components/dashboard/hooks/useDashboardData";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import Header from "@/components/layout/Header";
-import { useAuth } from "@/hooks/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { useTransactionHandlers } from "@/components/dashboard/hooks/useTransactionHandlers";
 import ChartsSection from "@/components/dashboard/sections/ChartsSection";
 import YearlyChartSection from "@/components/dashboard/sections/YearlyChartSection";

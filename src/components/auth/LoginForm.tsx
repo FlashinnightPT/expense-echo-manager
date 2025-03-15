@@ -6,8 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/auth";
-import { hashPassword } from "@/hooks/auth/securityUtils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface LoginFormProps {
   onLoginSuccess?: () => void;
@@ -26,7 +25,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [passwordValid, setPasswordValid] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const savedUsers = localStorage.getItem("app_users");
@@ -65,50 +63,66 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setShowPassword(!showPassword);
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsProcessing(true);
     
-    try {
-      if (!form.username || !form.password) {
-        toast.error("Por favor, preencha todos os campos");
-        return;
-      }
+    if (!form.username || !form.password) {
+      toast.error("Por favor, preencha todos os campos");
+      return;
+    }
 
-      const savedUsers = localStorage.getItem("app_users");
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
+    const savedUsers = localStorage.getItem("app_users");
+    const users = savedUsers ? JSON.parse(savedUsers) : [];
+    
+    const user = users.find((u: any) => u.username === form.username);
+    
+    if (!user) {
+      toast.error("Utilizador não encontrado");
+      return;
+    }
+    
+    const isDefaultAdmin = user.username === "admin";
+    if (isDefaultAdmin && form.password === "admin123") {
+      sessionStorage.setItem(
+        "current_user", 
+        JSON.stringify({
+          id: user.id,
+          name: user.name,
+          username: user.username,
+          role: user.role
+        })
+      );
       
-      const user = users.find((u: any) => u.username === form.username);
+      toast.success("Login realizado com sucesso");
       
-      if (!user) {
-        toast.error("Utilizador não encontrado");
-        return;
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      } else {
+        navigate("/dashboard");
       }
-      
-      const isDefaultAdmin = user.username === "admin";
-      if (isDefaultAdmin && form.password === "admin123") {
-        const success = await login(form.username, form.password);
-        if (success) {
-          toast.success("Login realizado com sucesso");
-          
-          if (onLoginSuccess) {
-            onLoginSuccess();
-          } else {
-            navigate("/dashboard");
-          }
-        } else {
-          toast.error("Erro ao realizar login");
-        }
-        return;
-      }
-      
-      if (form.password === "temp123") {
-        setIsFirstLogin(true);
-        toast.info("Por favor, altere a sua senha");
-        return;
-      }
+      return;
+    }
+    
+    if (form.password === "temp123") {
+      setIsFirstLogin(true);
+      toast.info("Por favor, altere a sua senha");
+      return;
+    }
 
-      const success = await login(form.username, form.password);
+    const updatedUsers = users.map((u: any) => {
+      if (u.username === form.username) {
+        return {
+          ...u,
+          status: "active",
+          lastLogin: new Date().toISOString()
+        };
+      }
+      return u;
+    });
+    
+    localStorage.setItem("app_users", JSON.stringify(updatedUsers));
+    
+    login(form.username, form.password).then((success) => {
       if (success) {
         toast.success("Login realizado com sucesso");
         
@@ -120,9 +134,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       } else {
         toast.error("Credenciais inválidas");
       }
-    } finally {
-      setIsProcessing(false);
-    }
+    });
   };
 
   const validateNewPassword = (password: string) => {
@@ -132,59 +144,55 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     return validation.isValid;
   };
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
+  const handlePasswordChange = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsProcessing(true);
     
-    try {
-      if (newPassword !== confirmPassword) {
-        toast.error("As senhas não coincidem");
-        return;
-      }
-      
-      if (!validateNewPassword(newPassword)) {
-        return;
-      }
+    if (newPassword !== confirmPassword) {
+      toast.error("As senhas não coincidem");
+      return;
+    }
+    
+    if (!validateNewPassword(newPassword)) {
+      return;
+    }
 
-      const hashedPassword = await hashPassword(newPassword);
-      
-      const savedUsers = localStorage.getItem("app_users");
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
-      
-      const user = users.find((u: any) => u.username === form.username);
-      
-      if (user) {
-        const updatedUsers = users.map((u: any) => {
-          if (u.username === form.username) {
-            return {
-              ...u,
-              hashedPassword,
-              status: "active",
-              lastLogin: new Date().toISOString()
-            };
-          }
-          return u;
-        });
-        
-        localStorage.setItem("app_users", JSON.stringify(updatedUsers));
-        
-        const success = await login(form.username, newPassword);
-        
-        if (success) {
-          toast.success("Senha alterada com sucesso");
-          setIsFirstLogin(false);
-          
-          if (onLoginSuccess) {
-            onLoginSuccess();
-          } else {
-            navigate("/dashboard");
-          }
-        } else {
-          toast.error("Erro ao realizar login após alteração de senha");
+    toast.success("Senha alterada com sucesso");
+    setIsFirstLogin(false);
+    
+    const savedUsers = localStorage.getItem("app_users");
+    const users = savedUsers ? JSON.parse(savedUsers) : [];
+    
+    const user = users.find((u: any) => u.username === form.username);
+    
+    if (user) {
+      const updatedUsers = users.map((u: any) => {
+        if (u.username === form.username) {
+          return {
+            ...u,
+            status: "active",
+            lastLogin: new Date().toISOString()
+          };
         }
+        return u;
+      });
+      
+      localStorage.setItem("app_users", JSON.stringify(updatedUsers));
+      
+      sessionStorage.setItem(
+        "current_user", 
+        JSON.stringify({
+          id: user.id,
+          name: user.name,
+          username: user.username,
+          role: user.role
+        })
+      );
+      
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      } else {
+        navigate("/dashboard");
       }
-    } finally {
-      setIsProcessing(false);
     }
   };
 
