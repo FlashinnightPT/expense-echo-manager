@@ -10,9 +10,9 @@ interface CategoryRowProps {
 }
 
 const CategoryRow = ({ category, amount, level }: CategoryRowProps) => {
-  // Calculamos a indentação baseada no nível da categoria diretamente
-  // Cada nível deve corresponder à hierarquia real na estrutura de dados
-  const indentClass = `pl-${(category.level - 1) * 4}`;
+  // Usamos o nível passado como prop para determinar a indentação,
+  // já que este nível representa a posição na hierarquia visual da tabela
+  const indentClass = `pl-${level * 4}`;
 
   return (
     <TableRow>
