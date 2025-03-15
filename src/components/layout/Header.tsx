@@ -32,7 +32,7 @@ const Header = () => {
           <img 
             src="/lovable-uploads/d5b7136a-b85f-4a1d-9a4f-68f2d49b7347.png" 
             alt="AC Morais Logo" 
-            className="h-10 w-auto" 
+            className="h-14 w-auto" 
           />
           <span className="font-bold text-2xl">
             CDW <span className="text-primary">Financeiro</span>
@@ -73,7 +73,7 @@ const Header = () => {
                     <img 
                       src="/lovable-uploads/d5b7136a-b85f-4a1d-9a4f-68f2d49b7347.png" 
                       alt="AC Morais Logo" 
-                      className="h-8 w-auto" 
+                      className="h-12 w-auto" 
                     />
                     <span className="font-bold text-2xl">
                       CDW <span className="text-primary">Financeiro</span>
