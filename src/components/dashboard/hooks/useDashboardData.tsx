@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { Transaction, TransactionCategory, MonthlyData, YearlyData } from "@/utils/mockData";
 
@@ -240,6 +239,15 @@ export const useDashboardData = () => {
     return newTransaction;
   };
 
+  const handleDeleteTransaction = (transactionId: string) => {
+    const updatedTransactions = transactions.filter(t => t.id !== transactionId);
+    localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
+    setTransactions(updatedTransactions);
+    triggerStorageEvent('transactions');
+    
+    console.log('Transaction deleted:', transactionId);
+  };
+
   const handleClearAllData = () => {
     setTransactions([]);
     setCategories([]);
@@ -264,6 +272,7 @@ export const useDashboardData = () => {
     setSelectedMonth,
     handleSaveCategory,
     handleSaveTransaction,
+    handleDeleteTransaction,
     handleClearAllData,
     getCategoryById: (categoryId: string) => {
       return categories.find(cat => cat.id === categoryId);

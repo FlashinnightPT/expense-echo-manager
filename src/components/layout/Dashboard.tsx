@@ -1,3 +1,4 @@
+
 import { useMemo } from "react";
 import YearlyChart from "@/components/charts/YearlyChart";
 import { useDashboardData } from "@/components/dashboard/hooks/useDashboardData";
@@ -9,6 +10,8 @@ import TransactionsTable from "@/components/dashboard/TransactionsTable";
 import { toast } from "sonner";
 import { formatCurrency } from "@/utils/financialCalculations";
 import { Transaction } from "@/utils/mockData";
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
 
 const Dashboard = () => {
@@ -25,6 +28,7 @@ const Dashboard = () => {
     setSelectedYear,
     setSelectedMonth,
     handleSaveTransaction,
+    handleDeleteTransaction,
     getCategoryById,
     getCategoryPath,
   } = useDashboardData();
@@ -91,12 +95,37 @@ const Dashboard = () => {
       ),
       sortable: true,
       className: "text-right"
+    },
+    {
+      id: "actions",
+      header: "Ações",
+      accessorFn: (row: Transaction) => (
+        <div className="flex justify-end">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-red-500 hover:text-red-700 hover:bg-red-100"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteTransactionWithToast(row.id);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+            <span className="sr-only">Excluir</span>
+          </Button>
+        </div>
+      )
     }
-  ], [getCategoryById, getCategoryPath]);
+  ], [getCategoryById, getCategoryPath, handleDeleteTransactionWithToast]);
 
   const handleSaveTransactionWithToast = (transaction: any) => {
     handleSaveTransaction(transaction);
     toast.success("Transação adicionada com sucesso");
+  };
+
+  const handleDeleteTransactionWithToast = (transactionId: string) => {
+    handleDeleteTransaction(transactionId);
+    toast.success("Transação excluída com sucesso");
   };
 
   return (
