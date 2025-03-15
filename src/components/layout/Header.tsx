@@ -1,107 +1,183 @@
-
-import React from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
+
+const navigationItems = [
+  { path: "/dashboard", label: "Dashboard" },
+  { path: "/monthly", label: "Mensal" },
+  { path: "/yearly", label: "Anual" },
+  { path: "/category-analysis", label: "Análise por Categoria" },
+  { path: "/categories", label: "Gestão de Categorias" },
+  { path: "/settings", label: "Definições" },
+];
 
 const Header = () => {
-  const isMobile = useIsMobile();
   const location = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isMobile = useMobile();
 
-  const links = [
-    { name: "Início", path: "/" },
-    { name: "Mensal", path: "/monthly" },
-    { name: "Anual", path: "/yearly" },
-    { name: "Categorias", path: "/categories" },
-    { name: "Opções", path: "/settings" }
-  ];
-
-  // Determine if a link is active
-  const isActive = (path: string) => {
-    return path === "/"
-      ? location.pathname === path
-      : location.pathname.startsWith(path);
-  };
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location]);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-10 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <div className="mr-4 hidden md:flex">
-          <Link to="/" className="mr-6 flex items-center space-x-2">
-            <span className="hidden font-bold sm:inline-block">
-              Finanças Pessoais
-            </span>
-          </Link>
-          <Separator orientation="vertical" className="h-6" />
-        </div>
-        
-        <div className="flex-1 md:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 rounded-full"
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle Menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="pr-0">
-              <Link to="/" className="flex items-center mb-6">
-                <span className="font-bold">Finanças Pessoais</span>
-              </Link>
-              <nav className="grid gap-2 place-items-start">
-                {links.map((link) => (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    className={cn(
-                      "text-lg font-medium transition-colors hover:text-foreground/80 py-1 px-2 rounded-md w-full",
-                      isActive(link.path)
-                        ? "text-foreground bg-accent"
-                        : "text-foreground/60"
-                    )}
-                  >
-                    {link.name}
-                  </Link>
-                ))}
-              </nav>
-            </SheetContent>
-          </Sheet>
-        </div>
-        
-        <Link to="/" className="md:hidden">
-          <span className="font-bold">Finanças Pessoais</span>
+    <header className="bg-background border-b sticky top-0 z-50">
+      <div className="container flex h-16 items-center justify-between py-4">
+        <Link to="/" className="font-bold text-2xl">
+          Financeiro<span className="text-primary">App</span>
         </Link>
-
-        <nav className="hidden md:flex flex-1 items-center justify-center space-x-1">
-          {links.map((link) => (
+        <nav className="hidden md:flex items-center space-x-6">
+          {navigationItems.map((item) => (
             <Link
-              key={link.path}
-              to={link.path}
+              key={item.path}
+              to={item.path}
               className={cn(
-                "px-4 py-1.5 text-sm font-medium rounded-md transition-colors",
-                isActive(link.path)
-                  ? "text-foreground bg-accent"
-                  : "text-foreground/60 hover:text-foreground hover:bg-accent/50"
+                "text-sm font-medium transition-colors hover:text-primary",
+                location.pathname === item.path
+                  ? "text-primary"
+                  : "text-foreground"
               )}
             >
-              {link.name}
+              {item.label}
             </Link>
           ))}
         </nav>
-
-        <div className="flex flex-1 items-center justify-end space-x-2">
-          {/* Placeholder for right side content (user account, theme toggle, etc.) */}
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm">
+            Entrar
+          </Button>
+          <Button size="sm">Criar Conta</Button>
+          {isMobile && (
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-4 w-4" />
+                  <span className="sr-only">Abrir menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="sm:max-w-sm">
+                <div className="grid gap-4 py-4">
+                  <Link to="/" className="font-bold text-2xl">
+                    Financeiro<span className="text-primary">App</span>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    className="justify-start px-4"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Link
+                      to="/dashboard"
+                      className={cn(
+                        "text-sm font-medium transition-colors hover:text-primary",
+                        location.pathname === "/dashboard"
+                          ? "text-primary"
+                          : "text-foreground"
+                      )}
+                    >
+                      Dashboard
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start px-4"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Link
+                      to="/monthly"
+                      className={cn(
+                        "text-sm font-medium transition-colors hover:text-primary",
+                        location.pathname === "/monthly"
+                          ? "text-primary"
+                          : "text-foreground"
+                      )}
+                    >
+                      Mensal
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start px-4"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Link
+                      to="/yearly"
+                      className={cn(
+                        "text-sm font-medium transition-colors hover:text-primary",
+                        location.pathname === "/yearly"
+                          ? "text-primary"
+                          : "text-foreground"
+                      )}
+                    >
+                      Anual
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start px-4"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Link
+                      to="/category-analysis"
+                      className={cn(
+                        "text-sm font-medium transition-colors hover:text-primary",
+                        location.pathname === "/category-analysis"
+                          ? "text-primary"
+                          : "text-foreground"
+                      )}
+                    >
+                      Análise por Categoria
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start px-4"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Link
+                      to="/categories"
+                      className={cn(
+                        "text-sm font-medium transition-colors hover:text-primary",
+                        location.pathname === "/categories"
+                          ? "text-primary"
+                          : "text-foreground"
+                      )}
+                    >
+                      Gestão de Categorias
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start px-4"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Link
+                      to="/settings"
+                      className={cn(
+                        "text-sm font-medium transition-colors hover:text-primary",
+                        location.pathname === "/settings"
+                          ? "text-primary"
+                          : "text-foreground"
+                      )}
+                    >
+                      Definições
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Entrar
+                  </Button>
+                  <Button size="sm">Criar Conta</Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
       </div>
     </header>
   );
-}
+};
 
 export default Header;

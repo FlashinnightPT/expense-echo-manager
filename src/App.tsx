@@ -1,36 +1,37 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Monthly from "./pages/Monthly";
-import Yearly from "./pages/Yearly";
-import Settings from "./pages/Settings";
-import Categories from "./pages/Categories";
-import NotFound from "./pages/NotFound";
+import { Suspense, lazy } from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Toaster } from "sonner";
+import "./App.css";
 
-const queryClient = new QueryClient();
+// Páginas principais
+import Index from "@/pages/Index";
+const Dashboard = lazy(() => import("@/components/layout/Dashboard"));
+const Monthly = lazy(() => import("@/pages/Monthly"));
+const Yearly = lazy(() => import("@/pages/Yearly"));
+const Categories = lazy(() => import("@/pages/Categories"));
+const CategoryAnalysis = lazy(() => import("@/pages/CategoryAnalysis"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner position="top-center" />
-      <BrowserRouter>
+function App() {
+  return (
+    <BrowserRouter>
+      <Suspense fallback={<div className="flex h-screen items-center justify-center">Carregando...</div>}>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/monthly" element={<Monthly />} />
           <Route path="/yearly" element={<Yearly />} />
-          <Route path="/settings" element={<Settings />} />
           <Route path="/categories" element={<Categories />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/category-analysis" element={<CategoryAnalysis />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </Suspense>
+      <Toaster position="top-right" />
+    </BrowserRouter>
+  );
+}
 
 export default App;
