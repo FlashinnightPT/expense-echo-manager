@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { 
   BarChart3, 
@@ -161,22 +162,40 @@ const Dashboard = () => {
 
   const handleSaveCategory = (category: Partial<TransactionCategory>) => {
     const newCategory: TransactionCategory = {
-      id: `${category.type}-${Date.now()}`,
+      id: `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       name: category.name || "",
       type: category.type || "expense",
       level: category.level || 1,
       parentId: category.parentId,
     };
 
-    const storedCategories = localStorage.getItem('categories');
-    const existingCategories = storedCategories ? JSON.parse(storedCategories) : [];
-    
-    const updatedCategories = [...existingCategories, newCategory];
+    const updatedCategories = [...categories, newCategory];
     
     localStorage.setItem('categories', JSON.stringify(updatedCategories));
     setCategories(updatedCategories);
     
+    // Log para depuração
+    console.log("Categories saved to localStorage:", updatedCategories);
+    
     toast.success("Categoria adicionada com sucesso");
+  };
+
+  const handleSaveTransaction = (transaction: Partial<Transaction>) => {
+    const newTransaction: Transaction = {
+      id: `transaction-${Date.now()}`,
+      description: transaction.type === "income" ? "Receita" : "Despesa",
+      amount: transaction.amount || 0,
+      date: transaction.date || new Date().toISOString().split('T')[0],
+      categoryId: transaction.categoryId || "",
+      type: transaction.type || "expense"
+    };
+
+    const updatedTransactions = [...transactions, newTransaction];
+    
+    localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
+    setTransactions(updatedTransactions);
+    
+    toast.success("Transação adicionada com sucesso");
   };
 
   return (
@@ -198,7 +217,13 @@ const Dashboard = () => {
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px]">
-              <TransactionForm />
+              <DialogHeader>
+                <DialogTitle>Adicionar Nova Transação</DialogTitle>
+                <DialogDescription>
+                  Preencha os campos abaixo para adicionar uma nova transação.
+                </DialogDescription>
+              </DialogHeader>
+              <TransactionForm onSave={handleSaveTransaction} />
             </DialogContent>
           </Dialog>
           
@@ -210,6 +235,12 @@ const Dashboard = () => {
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px]">
+              <DialogHeader>
+                <DialogTitle>Adicionar Nova Categoria</DialogTitle>
+                <DialogDescription>
+                  Adicione uma nova categoria para organizar suas transações.
+                </DialogDescription>
+              </DialogHeader>
               <CategoryForm onSave={handleSaveCategory} categoryList={categories} />
             </DialogContent>
           </Dialog>

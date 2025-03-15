@@ -53,18 +53,47 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
   const [availableCategories, setAvailableCategories] = useState<TransactionCategory[]>([]);
   const [categoryLevel, setCategoryLevel] = useState<number>(1);
   const [isAtLeafCategory, setIsAtLeafCategory] = useState<boolean>(false);
+  const [allCategories, setAllCategories] = useState<TransactionCategory[]>([]);
+  
+  // Carregar categorias do localStorage e mesclá-las com as categorias mockadas
+  useEffect(() => {
+    const storedCategories = localStorage.getItem('categories');
+    const localCategories = storedCategories ? JSON.parse(storedCategories) : [];
+    
+    // Combinar categorias locais com as mockadas
+    const combinedCategories = [...flattenedCategories, ...localCategories];
+    setAllCategories(combinedCategories);
+    
+    // Log para depuração
+    console.log("Loaded categories from localStorage:", localCategories);
+  }, []);
 
   useEffect(() => {
     // Inicializar categorias de primeiro nível baseadas no tipo selecionado
-    const firstLevelCategories = flattenedCategories.filter(
+    const firstLevelCategories = allCategories.filter(
       (category) => category.type === formData.type && category.level === 1
     );
-    console.log("First level categories:", firstLevelCategories);
-    setAvailableCategories(firstLevelCategories);
-    setCategoryLevel(1);
+    
+    // Se não houver categorias de nível 1, tentar categorias de nível 2
+    if (firstLevelCategories.length === 0) {
+      const secondLevelCategories = allCategories.filter(
+        (category) => category.type === formData.type && category.level === 2
+      );
+      console.log("First level categories:", secondLevelCategories);
+      setAvailableCategories(secondLevelCategories);
+      setCategoryLevel(secondLevelCategories.length > 0 ? 2 : 1);
+    } else {
+      console.log("First level categories:", firstLevelCategories);
+      setAvailableCategories(firstLevelCategories);
+      setCategoryLevel(1);
+    }
+    
     setCategoryPath([]);
     setIsAtLeafCategory(false);
-  }, [formData.type]);
+    
+    // Log para depuração
+    console.log("Resetting form for type:", formData.type);
+  }, [formData.type, allCategories]);
 
   useEffect(() => {
     // Quando a data muda, atualiza o formData
@@ -74,9 +103,13 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
     }));
   }, [selectedDate]);
 
+  const getCategoryFromAll = (id: string): TransactionCategory | undefined => {
+    return allCategories.find(cat => cat.id === id);
+  };
+
   const handleChange = (field: string, value: string | number) => {
     if (field === "categoryId") {
-      const selectedCategory = getCategoryById(value as string);
+      const selectedCategory = getCategoryFromAll(value as string);
       
       if (selectedCategory) {
         setFormData({
@@ -86,7 +119,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
         });
         
         // Verifica se existem subcategorias
-        const childCategories = flattenedCategories.filter(
+        const childCategories = allCategories.filter(
           (category) => category.parentId === value
         );
         
@@ -125,23 +158,34 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
     
     // Se volta ao início, mostrar categorias de primeiro nível
     if (index === 0) {
-      const firstLevelCategories = flattenedCategories.filter(
+      const firstLevelCategories = allCategories.filter(
         (category) => category.type === formData.type && category.level === 1
       );
-      setAvailableCategories(firstLevelCategories);
-      setCategoryLevel(1);
+      
+      // Se não houver categorias de nível 1, tentar categorias de nível 2
+      if (firstLevelCategories.length === 0) {
+        const secondLevelCategories = allCategories.filter(
+          (category) => category.type === formData.type && category.level === 2
+        );
+        setAvailableCategories(secondLevelCategories);
+        setCategoryLevel(secondLevelCategories.length > 0 ? 2 : 1);
+      } else {
+        setAvailableCategories(firstLevelCategories);
+        setCategoryLevel(1);
+      }
+      
       setIsAtLeafCategory(false);
     } else {
       // Senão, mostrar subcategorias do nível selecionado
       const parentId = newPath[newPath.length - 1];
-      const childCategories = flattenedCategories.filter(
+      const childCategories = allCategories.filter(
         (category) => category.parentId === parentId
       );
       setAvailableCategories(childCategories);
       setCategoryLevel(index + 1);
       
       // Verificar se a categoria selecionada é folha
-      const hasChildren = flattenedCategories.some(cat => cat.parentId === parentId);
+      const hasChildren = allCategories.some(cat => cat.parentId === parentId);
       setIsAtLeafCategory(!hasChildren);
     }
   };
@@ -194,7 +238,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
   // Obtém os nomes das categorias no caminho atual
   const getCategoryPathNames = () => {
     return categoryPath.map(id => {
-      const category = getCategoryById(id);
+      const category = getCategoryFromAll(id);
       return category?.name || "";
     });
   };
