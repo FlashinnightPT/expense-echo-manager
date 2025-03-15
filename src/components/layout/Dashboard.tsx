@@ -12,7 +12,8 @@ import TransactionsSection from "@/components/dashboard/sections/TransactionsSec
 const Painel = () => {
   const { canEdit, useIdleWarning } = useAuth();
   const [showValues, setShowValues] = useState(false);
-  const { IdleWarningDialog } = useIdleWarning();
+  // Corrigindo a forma de acessar o componente IdleWarningDialog
+  const { IdleWarningDialog } = useIdleWarning;
   
   useEffect(() => {
     const savedPreference = sessionStorage.getItem('showFinancialValues');
