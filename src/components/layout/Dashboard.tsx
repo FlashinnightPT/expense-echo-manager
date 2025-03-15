@@ -10,8 +10,9 @@ import YearlyChartSection from "@/components/dashboard/sections/YearlyChartSecti
 import TransactionsSection from "@/components/dashboard/sections/TransactionsSection";
 
 const Painel = () => {
-  const { canEdit } = useAuth();
+  const { canEdit, useIdleWarning } = useAuth();
   const [showValues, setShowValues] = useState(false);
+  const { IdleWarningDialog } = useIdleWarning();
   
   useEffect(() => {
     const savedPreference = sessionStorage.getItem('showFinancialValues');
@@ -93,6 +94,8 @@ const Painel = () => {
           canEdit={canEdit}
         />
       </div>
+      
+      <IdleWarningDialog />
     </div>
   );
 };

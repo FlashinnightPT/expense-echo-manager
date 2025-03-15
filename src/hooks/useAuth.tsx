@@ -1,3 +1,4 @@
+
 import { useEffect, useState, createContext, useContext, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useIdleTimer } from "./useIdleTimer";
@@ -20,6 +21,7 @@ interface AuthContextType {
   logout: () => void;
   canEdit: boolean;
   validatePassword: (password: string) => { isValid: boolean; errors: string[] };
+  useIdleWarning: { IdleWarningDialog: () => JSX.Element };
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Configuração do idle timer
-  const { isIdle } = useIdleTimer({
+  const { isIdle, IdleWarningDialog } = useIdleTimer({
     timeout: IDLE_TIMEOUT,
     warningTime: WARNING_TIME,
     onIdle: () => {
@@ -190,7 +192,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         logout,
         canEdit,
-        validatePassword
+        validatePassword,
+        useIdleWarning: { IdleWarningDialog }
       }}
     >
       {children}
