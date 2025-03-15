@@ -27,13 +27,15 @@ const Header = () => {
 
   return (
     <header className="bg-background border-b sticky top-0 z-50">
-      <div className="container flex h-16 items-center justify-between py-4">
+      <div className="container flex h-20 items-center justify-between py-2">
         <Link to="/" className="flex items-center gap-2">
-          <img 
-            src="/lovable-uploads/d5b7136a-b85f-4a1d-9a4f-68f2d49b7347.png" 
-            alt="AC Morais Logo" 
-            className="h-16 w-auto" 
-          />
+          <div className="w-20 h-20 flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/d5b7136a-b85f-4a1d-9a4f-68f2d49b7347.png" 
+              alt="AC Morais Logo" 
+              className="max-h-full max-w-full object-contain" 
+            />
+          </div>
           <span className="font-bold text-2xl">
             CDW <span className="text-primary">Financeiro</span>
           </span>
@@ -70,11 +72,13 @@ const Header = () => {
               <SheetContent side="left" className="sm:max-w-sm">
                 <div className="grid gap-4 py-4">
                   <div className="flex items-center gap-2">
-                    <img 
-                      src="/lovable-uploads/d5b7136a-b85f-4a1d-9a4f-68f2d49b7347.png" 
-                      alt="AC Morais Logo" 
-                      className="h-16 w-auto" 
-                    />
+                    <div className="w-16 h-16 flex items-center justify-center">
+                      <img 
+                        src="/lovable-uploads/d5b7136a-b85f-4a1d-9a4f-68f2d49b7347.png" 
+                        alt="AC Morais Logo" 
+                        className="max-h-full max-w-full object-contain" 
+                      />
+                    </div>
                     <span className="font-bold text-2xl">
                       CDW <span className="text-primary">Financeiro</span>
                     </span>
