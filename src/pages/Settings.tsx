@@ -47,7 +47,6 @@ const Settings = () => {
     currency: "EUR",
     currencySymbol: "€",
     dateFormat: "dd/MM/yyyy",
-    notifications: true,
     autosave: true
   });
 
@@ -378,22 +377,6 @@ const Settings = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="notifications">Notificações</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receba notificações sobre as suas finanças
-                  </p>
-                </div>
-                <Switch
-                  id="notifications"
-                  checked={settings.notifications}
-                  onCheckedChange={(checked) => handleChange("notifications", checked)}
-                />
-              </div>
-              
-              <Separator />
-              
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="autosave">Guardar Automaticamente</Label>
