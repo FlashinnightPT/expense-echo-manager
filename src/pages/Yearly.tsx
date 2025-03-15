@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { yearlyData } from "@/utils/mockData";
 import YearlyChart from "@/components/charts/YearlyChart";
 import Header from "@/components/layout/Header";
@@ -8,8 +8,49 @@ import { formatCurrency } from "@/utils/financialCalculations";
 import DataTable from "@/components/tables/DataTable";
 
 const Yearly = () => {
-  const availableYears = [2023, 2024];
-  const [selectedYears, setSelectedYears] = useState<number[]>([2024]);
+  const currentYear = new Date().getFullYear();
+  const [transactions, setTransactions] = useState([]);
+  
+  // Carregar transações do localStorage
+  useEffect(() => {
+    const storedTransactions = localStorage.getItem('transactions');
+    if (storedTransactions) {
+      setTransactions(JSON.parse(storedTransactions));
+    } else {
+      // Se não houver transações no localStorage, definir array vazio
+      setTransactions([]);
+      localStorage.setItem('transactions', JSON.stringify([]));
+    }
+  }, []);
+  
+  // Extrair os anos disponíveis das transações
+  const availableYears = useMemo(() => {
+    const years = new Set<number>();
+    
+    // Se não houver transações, retornar apenas o ano atual
+    if (transactions.length === 0) {
+      years.add(currentYear);
+      return Array.from(years).sort((a, b) => b - a); // Ordenar decrescente
+    }
+    
+    // Extrair anos únicos das transações
+    transactions.forEach(transaction => {
+      const transactionYear = new Date(transaction.date).getFullYear();
+      years.add(transactionYear);
+    });
+    
+    // Converter Set para array e ordenar decrescente (mais recente primeiro)
+    return Array.from(years).sort((a, b) => b - a);
+  }, [transactions]);
+  
+  const [selectedYears, setSelectedYears] = useState<number[]>([]);
+  
+  // Inicializar selectedYears com o primeiro ano disponível
+  useEffect(() => {
+    if (availableYears.length > 0 && selectedYears.length === 0) {
+      setSelectedYears([availableYears[0]]);
+    }
+  }, [availableYears, selectedYears]);
   
   const toggleYear = (year: number) => {
     if (selectedYears.includes(year)) {

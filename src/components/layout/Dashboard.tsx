@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -51,8 +50,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from "sonner";
 
 const Dashboard = () => {
-  const [selectedYear, setSelectedYear] = useState(2024);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const currentDate = new Date();
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [openClearDialog, setOpenClearDialog] = useState(false);
@@ -72,6 +72,28 @@ const Dashboard = () => {
       localStorage.setItem('categories', JSON.stringify([]));
     }
   }, []);
+  
+  const availableYears = useMemo(() => {
+    const years = new Set<number>();
+    
+    if (transactions.length === 0) {
+      years.add(currentDate.getFullYear());
+      return Array.from(years).sort((a, b) => b - a);
+    }
+    
+    transactions.forEach(transaction => {
+      const transactionYear = new Date(transaction.date).getFullYear();
+      years.add(transactionYear);
+    });
+    
+    return Array.from(years).sort((a, b) => b - a);
+  }, [transactions]);
+  
+  useEffect(() => {
+    if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
+      setSelectedYear(availableYears[0]);
+    }
+  }, [availableYears, selectedYear]);
   
   const emptySummary = {
     income: 0,
@@ -174,7 +196,6 @@ const Dashboard = () => {
     localStorage.setItem('categories', JSON.stringify(updatedCategories));
     setCategories(updatedCategories);
     
-    // Log para depuração
     console.log("Categories saved to localStorage:", updatedCategories);
     
     toast.success("Categoria adicionada com sucesso");
@@ -183,7 +204,7 @@ const Dashboard = () => {
   const handleSaveTransaction = (transaction: Partial<Transaction>) => {
     const newTransaction: Transaction = {
       id: `transaction-${Date.now()}`,
-      description: transaction.type === "income" ? "Receita" : "Despesa",
+      description: transaction.description || (transaction.type === "income" ? "Receita" : "Despesa"),
       amount: transaction.amount || 0,
       date: transaction.date || new Date().toISOString().split('T')[0],
       categoryId: transaction.categoryId || "",
@@ -391,7 +412,7 @@ const Dashboard = () => {
                     <SelectValue placeholder="Ano" />
                   </SelectTrigger>
                   <SelectContent>
-                    {[2023, 2024].map((year) => (
+                    {availableYears.map((year) => (
                       <SelectItem key={year} value={year.toString()}>
                         {year}
                       </SelectItem>

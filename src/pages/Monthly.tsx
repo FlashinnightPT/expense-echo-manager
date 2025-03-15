@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { monthlyData } from "@/utils/mockData";
 import MonthlyChart from "@/components/charts/MonthlyChart";
 import Header from "@/components/layout/Header";
@@ -9,7 +9,8 @@ import DataTable from "@/components/tables/DataTable";
 import { formatCurrency, getMonthName } from "@/utils/financialCalculations";
 
 const Monthly = () => {
-  const [selectedYear, setSelectedYear] = useState(2024);
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
   const [transactions, setTransactions] = useState([]);
   
   // Carregar transações do localStorage
@@ -23,6 +24,33 @@ const Monthly = () => {
       localStorage.setItem('transactions', JSON.stringify([]));
     }
   }, []);
+  
+  // Extrair os anos disponíveis das transações
+  const availableYears = useMemo(() => {
+    const years = new Set<number>();
+    
+    // Se não houver transações, retornar apenas o ano atual
+    if (transactions.length === 0) {
+      years.add(currentYear);
+      return Array.from(years).sort((a, b) => b - a); // Ordenar decrescente
+    }
+    
+    // Extrair anos únicos das transações
+    transactions.forEach(transaction => {
+      const transactionYear = new Date(transaction.date).getFullYear();
+      years.add(transactionYear);
+    });
+    
+    // Converter Set para array e ordenar decrescente (mais recente primeiro)
+    return Array.from(years).sort((a, b) => b - a);
+  }, [transactions]);
+  
+  // Ajustar o ano selecionado se necessário
+  useEffect(() => {
+    if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
+      setSelectedYear(availableYears[0]);
+    }
+  }, [availableYears, selectedYear]);
   
   // Filtrar os dados pelo ano selecionado
   const filteredData = monthlyData.filter(item => item.year === selectedYear);
@@ -111,8 +139,9 @@ const Monthly = () => {
                 <SelectValue placeholder="Ano" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="2023">2023</SelectItem>
-                <SelectItem value="2024">2024</SelectItem>
+                {availableYears.map(year => (
+                  <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
