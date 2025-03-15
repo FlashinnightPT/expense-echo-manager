@@ -3,7 +3,6 @@ import { useState } from "react";
 import Header from "@/components/layout/Header";
 import CategoryForm from "@/components/forms/CategoryForm";
 import CategoryList from "@/components/categories/CategoryList";
-import CategoryActions from "@/components/categories/CategoryActions";
 import { DeleteCategoryDialog } from "@/components/categories/CategoryDialogs";
 import { useCategoryData } from "@/hooks/useCategoryData";
 import { useTransactionData } from "@/hooks/useTransactionData";
@@ -19,19 +18,15 @@ const Categories = () => {
   } = useCategoryData();
 
   const { 
-    isCategoryUsedInTransactions,
-    confirmClearTransactions 
+    isCategoryUsedInTransactions
   } = useTransactionData();
 
   const {
     categoryToDelete,
     openDeleteDialog,
     setOpenDeleteDialog,
-    openClearTransactionsDialog,
-    setOpenClearTransactionsDialog,
     showDeleteDialog,
-    closeDeleteDialog,
-    showClearTransactionsDialog
+    closeDeleteDialog
   } = useDeleteDialogs();
 
   const attemptCategoryDeletion = (categoryId: string) => {
@@ -52,11 +47,6 @@ const Categories = () => {
     }
   };
 
-  const handleConfirmClearTransactions = () => {
-    confirmClearTransactions();
-    setOpenClearTransactionsDialog(false);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -67,13 +57,6 @@ const Categories = () => {
             <p className="text-muted-foreground mt-1">
               Adicione, edite ou elimine categorias
             </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <CategoryActions 
-              openClearTransactionsDialog={openClearTransactionsDialog}
-              setOpenClearTransactionsDialog={setOpenClearTransactionsDialog}
-              confirmClearTransactions={handleConfirmClearTransactions}
-            />
           </div>
         </div>
 
