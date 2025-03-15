@@ -19,9 +19,7 @@ import { pt } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { 
   Transaction, 
-  TransactionCategory, 
-  getCategoryById, 
-  flattenedCategories 
+  TransactionCategory
 } from "@/utils/mockData";
 import { toast } from "sonner";
 
@@ -55,38 +53,28 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
   const [isAtLeafCategory, setIsAtLeafCategory] = useState<boolean>(false);
   const [allCategories, setAllCategories] = useState<TransactionCategory[]>([]);
   
-  // Carregar categorias do localStorage e mesclá-las com as categorias mockadas
+  // Carregar categorias do localStorage
   useEffect(() => {
     const storedCategories = localStorage.getItem('categories');
     const localCategories = storedCategories ? JSON.parse(storedCategories) : [];
     
-    // Combinar categorias locais com as mockadas
-    const combinedCategories = [...flattenedCategories, ...localCategories];
-    setAllCategories(combinedCategories);
+    // Usar apenas as categorias locais, não mesclar com as mockadas
+    setAllCategories(localCategories);
     
     // Log para depuração
     console.log("Loaded categories from localStorage:", localCategories);
   }, []);
 
   useEffect(() => {
-    // Inicializar categorias de primeiro nível baseadas no tipo selecionado
+    // Inicializar categorias baseadas no tipo selecionado, começando no nível adequado
+    // Como suas categorias começam no nível 2, ajustamos aqui
     const firstLevelCategories = allCategories.filter(
-      (category) => category.type === formData.type && category.level === 1
+      (category) => category.type === formData.type && category.level === 2
     );
     
-    // Se não houver categorias de nível 1, tentar categorias de nível 2
-    if (firstLevelCategories.length === 0) {
-      const secondLevelCategories = allCategories.filter(
-        (category) => category.type === formData.type && category.level === 2
-      );
-      console.log("First level categories:", secondLevelCategories);
-      setAvailableCategories(secondLevelCategories);
-      setCategoryLevel(secondLevelCategories.length > 0 ? 2 : 1);
-    } else {
-      console.log("First level categories:", firstLevelCategories);
-      setAvailableCategories(firstLevelCategories);
-      setCategoryLevel(1);
-    }
+    console.log("First level categories:", firstLevelCategories);
+    setAvailableCategories(firstLevelCategories);
+    setCategoryLevel(2); // Começar no nível 2, onde suas categorias começam
     
     setCategoryPath([]);
     setIsAtLeafCategory(false);
@@ -127,7 +115,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
           // Se existirem subcategorias, atualiza o caminho e mostra as subcategorias
           setCategoryPath([...categoryPath, value as string]);
           setAvailableCategories(childCategories);
-          setCategoryLevel(categoryLevel + 1);
+          setCategoryLevel(selectedCategory.level + 1);
           setIsAtLeafCategory(false);
         } else {
           // Se não existirem subcategorias, estamos em uma categoria folha
@@ -156,24 +144,14 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
     const newPath = categoryPath.slice(0, index);
     setCategoryPath(newPath);
     
-    // Se volta ao início, mostrar categorias de primeiro nível
+    // Se volta ao início, mostrar categorias de primeiro nível (nível 2 no seu caso)
     if (index === 0) {
       const firstLevelCategories = allCategories.filter(
-        (category) => category.type === formData.type && category.level === 1
+        (category) => category.type === formData.type && category.level === 2
       );
       
-      // Se não houver categorias de nível 1, tentar categorias de nível 2
-      if (firstLevelCategories.length === 0) {
-        const secondLevelCategories = allCategories.filter(
-          (category) => category.type === formData.type && category.level === 2
-        );
-        setAvailableCategories(secondLevelCategories);
-        setCategoryLevel(secondLevelCategories.length > 0 ? 2 : 1);
-      } else {
-        setAvailableCategories(firstLevelCategories);
-        setCategoryLevel(1);
-      }
-      
+      setAvailableCategories(firstLevelCategories);
+      setCategoryLevel(2);
       setIsAtLeafCategory(false);
     } else {
       // Senão, mostrar subcategorias do nível selecionado
@@ -182,7 +160,12 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
         (category) => category.parentId === parentId
       );
       setAvailableCategories(childCategories);
-      setCategoryLevel(index + 1);
+      
+      // Definir o nível correto com base na categoria pai
+      const parentCategory = getCategoryFromAll(parentId);
+      if (parentCategory) {
+        setCategoryLevel(parentCategory.level + 1);
+      }
       
       // Verificar se a categoria selecionada é folha
       const hasChildren = allCategories.some(cat => cat.parentId === parentId);
@@ -221,7 +204,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
         });
         setSelectedDate(getDefaultDate());
         setCategoryPath([]);
-        setCategoryLevel(1);
+        setCategoryLevel(2);
         setIsAtLeafCategory(false);
       }
       
@@ -331,7 +314,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
               </div>
               
               <Label htmlFor="category">
-                {categoryLevel === 1 
+                {categoryLevel === 2 
                   ? "Categoria" 
                   : `Subcategoria (Nível ${categoryLevel})`}
               </Label>
@@ -340,7 +323,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                 onValueChange={(value) => handleChange("categoryId", value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={`Selecione a ${categoryLevel === 1 ? 'categoria' : 'subcategoria'}`} />
+                  <SelectValue placeholder={`Selecione a ${categoryLevel === 2 ? 'categoria' : 'subcategoria'}`} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableCategories.length === 0 ? (
@@ -401,7 +384,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                   });
                   setSelectedDate(getDefaultDate());
                   setCategoryPath([]);
-                  setCategoryLevel(1);
+                  setCategoryLevel(2);
                   setIsAtLeafCategory(false);
                 }
               }}

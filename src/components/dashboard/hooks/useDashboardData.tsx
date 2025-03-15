@@ -25,11 +25,6 @@ export const useDashboardData = () => {
     } else {
       // Initialize with empty array if no data
       localStorage.setItem('categories', JSON.stringify([]));
-      
-      // You might want to add some default categories here
-      // const defaultCategories = [...];
-      // setCategories(defaultCategories);
-      // localStorage.setItem('categories', JSON.stringify(defaultCategories));
     }
   }, []);
   

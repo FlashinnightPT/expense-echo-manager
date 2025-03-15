@@ -1,18 +1,21 @@
+
 import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import CategoryForm from "@/components/forms/CategoryForm";
-import { categories as defaultCategories, TransactionCategory, transactions as mockTransactions } from "@/utils/mockData";
+import { TransactionCategory } from "@/utils/mockData";
 import { toast } from "sonner";
 import CategoryList from "@/components/categories/CategoryList";
 import CategoryActions from "@/components/categories/CategoryActions";
 import { DeleteCategoryDialog } from "@/components/categories/CategoryDialogs";
 
 const Categories = () => {
+  // Remover a referência às categorias padrão do mockData
   const initCategories = () => {
     const storedCategories = localStorage.getItem('categories');
     if (!storedCategories) {
-      localStorage.setItem('categories', JSON.stringify(defaultCategories));
-      return defaultCategories;
+      // Inicializar com array vazio em vez de usar defaultCategories
+      localStorage.setItem('categories', JSON.stringify([]));
+      return [];
     }
     
     try {
@@ -21,18 +24,18 @@ const Categories = () => {
       return parsedCategories;
     } catch (error) {
       console.error("Error parsing categories from localStorage:", error);
-      localStorage.setItem('categories', JSON.stringify(defaultCategories));
-      return defaultCategories;
+      localStorage.setItem('categories', JSON.stringify([]));
+      return [];
     }
   };
   
   const initTransactions = () => {
     const storedTransactions = localStorage.getItem('transactions');
     try {
-      return storedTransactions ? JSON.parse(storedTransactions) : mockTransactions;
+      return storedTransactions ? JSON.parse(storedTransactions) : [];
     } catch (error) {
       console.error("Error parsing transactions from localStorage:", error);
-      return mockTransactions;
+      return [];
     }
   };
 
@@ -120,9 +123,10 @@ const Categories = () => {
   };
 
   const handleResetCategories = () => {
+    // Limpar todas as categorias em vez de reiniciar para o padrão
     localStorage.removeItem('categories');
-    setCategoryList(defaultCategories);
-    toast.success("Categorias reiniciadas para o padrão");
+    setCategoryList([]);
+    toast.success("Todas as categorias foram removidas");
   };
 
   const handleClearTransactions = () => {
