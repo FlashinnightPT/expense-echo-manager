@@ -80,7 +80,9 @@ function App() {
               path="/category-analysis" 
               element={
                 <RequireAuth>
-                  <CategoryAnalysis />
+                  <WithHeader>
+                    <CategoryAnalysis />
+                  </WithHeader>
                 </RequireAuth>
               } 
             />
