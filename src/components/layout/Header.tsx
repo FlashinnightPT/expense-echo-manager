@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ const Header = () => {
     <header className="bg-background border-b sticky top-0 z-50">
       <div className="container flex h-16 items-center justify-between py-4">
         <Link to="/" className="font-bold text-2xl">
-          Financeiro<span className="text-primary">App</span>
+          CDW <span className="text-primary">Financeiro</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-6">
           {navigationItems.map((item) => (
@@ -62,7 +63,7 @@ const Header = () => {
               <SheetContent side="left" className="sm:max-w-sm">
                 <div className="grid gap-4 py-4">
                   <Link to="/" className="font-bold text-2xl">
-                    Financeiro<span className="text-primary">App</span>
+                    CDW <span className="text-primary">Financeiro</span>
                   </Link>
                   <Button
                     variant="ghost"
