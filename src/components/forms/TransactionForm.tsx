@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Save, X, CalendarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
@@ -228,6 +229,9 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
     });
   };
 
+  // Limitar ano máximo para o atual
+  const currentYear = new Date().getFullYear();
+
   return (
     <Card className={cn("animate-fade-in-up", className)}>
       <CardHeader>
@@ -259,16 +263,20 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
-                    mode="single"
+                    mode="default"
                     selected={selectedDate}
                     onSelect={(date) => date && setSelectedDate(date)}
                     initialFocus
                     className="pointer-events-auto"
-                    showOutsideDays={false}
                     captionLayout="dropdown-buttons"
                     fromYear={2020}
-                    toYear={2030}
+                    toYear={currentYear}
                     defaultMonth={selectedDate}
+                    displayMonth={selectedDate}
+                    // Only show month and year picker, hiding days
+                    // This is now handled by the DayPicker settings
+                    month={selectedDate}
+                    onMonthChange={setSelectedDate}
                   />
                 </PopoverContent>
               </Popover>
