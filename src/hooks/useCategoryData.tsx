@@ -83,17 +83,10 @@ export const useCategoryData = () => {
     return true;
   };
 
-  const handleResetCategories = () => {
-    localStorage.setItem('categories', JSON.stringify(defaultCategories));
-    setCategoryList(defaultCategories);
-    toast.success("Categorias reiniciadas para o padrão");
-  };
-
   return {
     categoryList,
     handleSaveCategory,
     handleDeleteCategory,
-    confirmDeleteCategory,
-    handleResetCategories
+    confirmDeleteCategory
   };
 };

@@ -15,8 +15,7 @@ const Categories = () => {
     categoryList, 
     handleSaveCategory, 
     handleDeleteCategory,
-    confirmDeleteCategory,
-    handleResetCategories 
+    confirmDeleteCategory
   } = useCategoryData();
 
   const { 
@@ -71,7 +70,6 @@ const Categories = () => {
           </div>
           <div className="flex items-center gap-4">
             <CategoryActions 
-              handleResetCategories={handleResetCategories}
               openClearTransactionsDialog={openClearTransactionsDialog}
               setOpenClearTransactionsDialog={setOpenClearTransactionsDialog}
               confirmClearTransactions={handleConfirmClearTransactions}
