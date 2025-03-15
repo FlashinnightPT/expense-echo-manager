@@ -1,12 +1,16 @@
 
 // Types for authentication-related hooks
 export type UserRole = "editor" | "viewer";
+export type UserStatus = "active" | "pending" | "inactive";
 
 export interface User {
   id: string;
   name: string;
   username: string;
   role: UserRole;
+  status?: UserStatus;
+  lastLogin?: string;
+  hashedPassword?: string;
 }
 
 export interface AuthContextType {

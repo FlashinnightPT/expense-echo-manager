@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserPlus, Mail, Lock, User, Eye, EyeOff, Pencil, Trash2, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/auth";
+import { useAuth, User, UserRole, UserStatus } from "@/hooks/auth";
 import { hashPassword } from "@/hooks/auth/securityUtils";
 
 import Header from "@/components/layout/Header";
@@ -56,18 +56,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 
-type UserRole = "editor" | "viewer";
-
-interface User {
-  id: string;
-  name: string;
-  username: string;
-  role: UserRole;
-  status: "active" | "pending" | "inactive";
-  lastLogin?: string;
-  hashedPassword?: string;
-}
-
 const Users = () => {
   const navigate = useNavigate();
   const { validatePassword } = useAuth();
@@ -79,7 +67,7 @@ const Users = () => {
         name: "Administrador",
         username: "admin",
         role: "editor" as UserRole,
-        status: "active",
+        status: "active" as UserStatus,
         lastLogin: "2023-06-15T10:30:00"
       }
     ];
@@ -113,12 +101,12 @@ const Users = () => {
     
     const hashedPassword = await hashPassword(tempPassword);
     
-    const newUserData = {
+    const newUserData: User = {
       id: Date.now().toString(),
       name: newUser.name,
       username: newUser.username,
       role: newUser.role,
-      status: "pending",
+      status: "pending" as UserStatus,
       hashedPassword
     };
     
@@ -161,7 +149,7 @@ const Users = () => {
         return {
           ...user,
           hashedPassword,
-          status: "pending"
+          status: "pending" as UserStatus
         };
       }
       return user;
@@ -181,7 +169,7 @@ const Users = () => {
     return <Badge variant="outline">Leitura</Badge>;
   };
   
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: UserStatus) => {
     switch (status) {
       case "active":
         return <Badge className="bg-green-500">Ativo</Badge>;
