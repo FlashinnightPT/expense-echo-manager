@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserPlus, Mail, Lock, User, Eye, EyeOff, Pencil, Trash2, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/auth";
 
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
