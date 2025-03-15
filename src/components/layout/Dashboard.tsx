@@ -1,4 +1,3 @@
-
 import { useMemo, useState, useEffect } from "react";
 import YearlyChart from "@/components/charts/YearlyChart";
 import { useDashboardData } from "@/components/dashboard/hooks/useDashboardData";
@@ -19,7 +18,6 @@ const Dashboard = () => {
   const { canEdit } = useAuth();
   const [showValues, setShowValues] = useState(false);
   
-  // Load preference from sessionStorage when component mounts
   useEffect(() => {
     const savedPreference = sessionStorage.getItem('showFinancialValues');
     if (savedPreference) {
@@ -27,7 +25,6 @@ const Dashboard = () => {
     }
   }, []);
   
-  // Update sessionStorage when preference changes
   useEffect(() => {
     sessionStorage.setItem('showFinancialValues', showValues.toString());
   }, [showValues]);
@@ -50,12 +47,10 @@ const Dashboard = () => {
     getCategoryPath,
   } = useDashboardData();
 
-  // Toggle the visibility of financial values
   const toggleShowValues = () => {
     setShowValues(prev => !prev);
   };
 
-  // Define toast handlers first before using them in the columns definition
   const handleSaveTransactionWithToast = (transaction: any) => {
     if (!canEdit) {
       toast.error("Não tem permissões para adicionar transações");
@@ -74,7 +69,6 @@ const Dashboard = () => {
     toast.success("Transação excluída com sucesso");
   };
 
-  // Define transaction columns for the DataTable
   const transactionColumns = useMemo(() => [
     {
       id: "date",
@@ -189,6 +183,7 @@ const Dashboard = () => {
           <YearlyOverview 
             yearlySummary={yearlySummary}
             selectedYear={selectedYear}
+            showValues={showValues}
           />
         </div>
         
