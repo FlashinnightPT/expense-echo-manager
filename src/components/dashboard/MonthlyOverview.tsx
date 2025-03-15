@@ -126,7 +126,7 @@ const MonthlyOverview = ({
           
           <Separator />
           
-          <MonthlyChart data={monthlyChartData} year={selectedYear} />
+          <MonthlyChart data={monthlyChartData} year={selectedYear} showValues={showValues} />
         </div>
       </CardContent>
     </Card>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui-custom/Card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,6 +15,7 @@ const Monthly = () => {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [showValues, setShowValues] = useState(true);
   
   useEffect(() => {
     const loadTransactions = () => {
@@ -24,6 +26,12 @@ const Monthly = () => {
         setTransactions([]);
       }
     };
+
+    // Carregar a preferência de exibição de valores do sessionStorage
+    const savedPreference = sessionStorage.getItem('showFinancialValues');
+    if (savedPreference) {
+      setShowValues(savedPreference === 'true');
+    }
 
     loadTransactions();
 
@@ -121,28 +129,28 @@ const Monthly = () => {
     {
       id: "income",
       header: "Receitas",
-      accessorFn: (row) => formatCurrency(row.income),
+      accessorFn: (row) => showValues ? formatCurrency(row.income) : "•••••••",
       sortable: true,
       className: "text-right",
     },
     {
       id: "expense",
       header: "Despesas",
-      accessorFn: (row) => formatCurrency(row.expense),
+      accessorFn: (row) => showValues ? formatCurrency(row.expense) : "•••••••",
       sortable: true,
       className: "text-right",
     },
     {
       id: "balance",
       header: "Saldo",
-      accessorFn: (row) => formatCurrency(row.balance),
+      accessorFn: (row) => showValues ? formatCurrency(row.balance) : "•••••••",
       sortable: true,
       className: "text-right",
     },
     {
       id: "differenceRate",
       header: "Diferença",
-      accessorFn: (row) => `${row.differenceRate}%`,
+      accessorFn: (row) => showValues ? `${row.differenceRate}%` : "•••••••",
       sortable: true,
       className: "text-right",
     },
@@ -196,7 +204,7 @@ const Monthly = () => {
       
       <div className="mb-8">
         <Card>
-          <MonthlyChart data={monthlyData} year={selectedYear} />
+          <MonthlyChart data={monthlyData} year={selectedYear} showValues={showValues} />
         </Card>
       </div>
       

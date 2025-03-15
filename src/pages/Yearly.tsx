@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import YearlyChart from "@/components/charts/YearlyChart";
 import { Card } from "@/components/ui-custom/Card";
@@ -9,6 +10,7 @@ const Yearly = () => {
   const currentYear = new Date().getFullYear();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
+  const [showValues, setShowValues] = useState(true);
   
   // Load transactions from localStorage
   useEffect(() => {
@@ -20,6 +22,12 @@ const Yearly = () => {
         setTransactions([]);
       }
     };
+
+    // Carregar a preferência de exibição de valores do sessionStorage
+    const savedPreference = sessionStorage.getItem('showFinancialValues');
+    if (savedPreference) {
+      setShowValues(savedPreference === 'true');
+    }
 
     // Load initially
     loadTransactions();
@@ -140,28 +148,28 @@ const Yearly = () => {
     {
       id: "income",
       header: "Receitas",
-      accessorFn: (row) => formatCurrency(row.income),
+      accessorFn: (row) => showValues ? formatCurrency(row.income) : "•••••••",
       sortable: true,
       className: "text-right",
     },
     {
       id: "expense",
       header: "Despesas",
-      accessorFn: (row) => formatCurrency(row.expense),
+      accessorFn: (row) => showValues ? formatCurrency(row.expense) : "•••••••",
       sortable: true,
       className: "text-right",
     },
     {
       id: "balance",
       header: "Saldo",
-      accessorFn: (row) => formatCurrency(row.balance),
+      accessorFn: (row) => showValues ? formatCurrency(row.balance) : "•••••••",
       sortable: true,
       className: "text-right",
     },
     {
       id: "differenceRate",
       header: "Diferença",
-      accessorFn: (row) => `${row.differenceRate}%`,
+      accessorFn: (row) => showValues ? `${row.differenceRate}%` : "•••••••",
       sortable: true,
       className: "text-right",
     },
@@ -197,20 +205,20 @@ const Yearly = () => {
         <Card>
           <div className="p-6">
             <p className="text-sm text-muted-foreground">Receitas Totais</p>
-            <p className="text-2xl font-bold mt-1">{formatCurrency(totalIncome)}</p>
+            <p className="text-2xl font-bold mt-1">{showValues ? formatCurrency(totalIncome) : "•••••••"}</p>
           </div>
         </Card>
         <Card>
           <div className="p-6">
             <p className="text-sm text-muted-foreground">Despesas Totais</p>
-            <p className="text-2xl font-bold mt-1">{formatCurrency(totalExpenses)}</p>
+            <p className="text-2xl font-bold mt-1">{showValues ? formatCurrency(totalExpenses) : "•••••••"}</p>
           </div>
         </Card>
       </div>
       
       <div className="mb-8">
         <Card>
-          <YearlyChart data={filteredData} className="w-full" />
+          <YearlyChart data={filteredData} className="w-full" showValues={showValues} />
         </Card>
       </div>
       
