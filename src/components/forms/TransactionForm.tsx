@@ -9,6 +9,10 @@ import CategorySelector from "./components/CategorySelector";
 import CategoryBreadcrumbNav from "./components/CategoryBreadcrumbNav";
 import AmountInput from "./components/AmountInput";
 import FormActions from "./components/FormActions";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface TransactionFormProps {
   onSave?: (transaction: Partial<Transaction>) => void;
@@ -17,6 +21,16 @@ interface TransactionFormProps {
 }
 
 const TransactionForm = ({ onSave, transaction, className }: TransactionFormProps) => {
+  const { canEdit } = useAuth();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    if (!canEdit) {
+      toast.error("Não tem permissões para adicionar ou editar transações");
+      navigate("/dashboard");
+    }
+  }, [canEdit, navigate]);
+
   const {
     formData,
     selectedDate,
@@ -36,6 +50,11 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
   });
 
   const categoryPathNames = getCategoryPathNames();
+
+  // If user doesn't have edit permissions, don't render the form
+  if (!canEdit) {
+    return null;
+  }
 
   return (
     <Card className={cn("animate-fade-in-up", className)}>

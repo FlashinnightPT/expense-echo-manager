@@ -13,8 +13,10 @@ import { Transaction } from "@/utils/mockData";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
+  const { canEdit } = useAuth();
   const {
     selectedYear,
     selectedMonth,
@@ -35,11 +37,19 @@ const Dashboard = () => {
 
   // Define toast handlers first before using them in the columns definition
   const handleSaveTransactionWithToast = (transaction: any) => {
+    if (!canEdit) {
+      toast.error("Não tem permissões para adicionar transações");
+      return;
+    }
     handleSaveTransaction(transaction);
     toast.success("Transação adicionada com sucesso");
   };
 
   const handleDeleteTransactionWithToast = (transactionId: string) => {
+    if (!canEdit) {
+      toast.error("Não tem permissões para excluir transações");
+      return;
+    }
     handleDeleteTransaction(transactionId);
     toast.success("Transação excluída com sucesso");
   };
@@ -107,7 +117,7 @@ const Dashboard = () => {
       sortable: true,
       className: "text-right"
     },
-    {
+    ...(canEdit ? [{
       id: "actions",
       header: "Ações",
       accessorFn: (row: Transaction) => (
@@ -126,8 +136,8 @@ const Dashboard = () => {
           </Button>
         </div>
       )
-    }
-  ], [getCategoryById, getCategoryPath, handleDeleteTransactionWithToast]);
+    }] : [])
+  ], [getCategoryById, getCategoryPath, handleDeleteTransactionWithToast, canEdit]);
 
   return (
     <div className="min-h-screen bg-background">
