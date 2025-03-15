@@ -173,7 +173,7 @@ export const monthlyData: MonthlyData[] = Array.from({ length: 24 }, (_, i) => {
     income: Math.round(baseIncome * (1 + seasonalFactor) * 100) / 100,
     expense: Math.round(baseExpense * (1 + seasonalFactor * 0.8) * 100) / 100,
     categories: categories
-      .filter(c => c.level === 2) // Only top-level categories (changed from !c.parentId)
+      .filter(c => c.level === 2) // Only top-level categories
       .map(category => ({
         categoryId: category.id,
         amount: Math.round((category.type === 'income' ? baseIncome : baseExpense) * 
@@ -192,7 +192,7 @@ export const yearlyData: YearlyData[] = Array.from({ length: 2 }, (_, i) => {
     income: Math.round(yearMonths.reduce((sum, month) => sum + month.income, 0) * 100) / 100,
     expense: Math.round(yearMonths.reduce((sum, month) => sum + month.expense, 0) * 100) / 100,
     categories: categories
-      .filter(c => c.level === 2) // Only top-level categories (changed from !c.parentId)
+      .filter(c => c.level === 2) // Only top-level categories
       .map(category => {
         const relevantMonths = yearMonths.map(m => {
           const categoryData = m.categories.find(c => c.categoryId === category.id);

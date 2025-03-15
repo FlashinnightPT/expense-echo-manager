@@ -1,10 +1,9 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { 
   BarChart3, 
   TrendingUp, 
   TrendingDown, 
-  PiggyBank, 
-  Landmark,
   CircleDollarSign,
   Plus,
   Trash2
@@ -98,10 +97,8 @@ const Dashboard = () => {
   const emptySummary = {
     income: 0,
     expense: 0,
-    savings: 0,
-    investment: 0,
     balance: 0,
-    savingsRate: 0
+    differenceRate: 0
   };
   
   const getCategoryById = (categoryId: string) => {
@@ -140,16 +137,12 @@ const Dashboard = () => {
       accessorFn: (row: Transaction) => {
         const badgeClasses = {
           income: "bg-finance-income/10 text-finance-income border-finance-income/20",
-          expense: "bg-finance-expense/10 text-finance-expense border-finance-expense/20",
-          savings: "bg-finance-savings/10 text-finance-savings border-finance-savings/20",
-          investment: "bg-finance-investment/10 text-finance-investment border-finance-investment/20"
+          expense: "bg-finance-expense/10 text-finance-expense border-finance-expense/20"
         };
         
         const typeNames = {
           income: "Receita",
-          expense: "Despesa",
-          savings: "Poupança",
-          investment: "Investimento"
+          expense: "Despesa"
         };
         
         return (
@@ -289,7 +282,7 @@ const Dashboard = () => {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <Card animate animationDelay={100} glassEffect>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -329,50 +322,6 @@ const Dashboard = () => {
               </div>
               <div className="h-12 w-12 rounded-full bg-finance-expense/10 flex items-center justify-center">
                 <TrendingDown className="h-6 w-6 text-finance-expense" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card animate animationDelay={300} glassEffect>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardDescription>Poupanças</CardDescription>
-                <div className="text-2xl font-bold mt-2">
-                  <AnimatedNumber 
-                    value={0} 
-                    formatter={(val) => formatCurrency(val)} 
-                  />
-                </div>
-                <CardDescription className="mt-1">
-                  Este mês
-                </CardDescription>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-finance-savings/10 flex items-center justify-center">
-                <PiggyBank className="h-6 w-6 text-finance-savings" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card animate animationDelay={400} glassEffect>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardDescription>Investimentos</CardDescription>
-                <div className="text-2xl font-bold mt-2">
-                  <AnimatedNumber 
-                    value={0} 
-                    formatter={(val) => formatCurrency(val)} 
-                  />
-                </div>
-                <CardDescription className="mt-1">
-                  Este mês
-                </CardDescription>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-finance-investment/10 flex items-center justify-center">
-                <Landmark className="h-6 w-6 text-finance-investment" />
               </div>
             </div>
           </CardContent>
@@ -436,7 +385,7 @@ const Dashboard = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <CardDescription>Taxa de Poupança</CardDescription>
+                  <CardDescription>Diferença</CardDescription>
                   <div className="text-3xl font-bold tabular-nums">
                     <AnimatedNumber 
                       value={0} 
@@ -500,36 +449,6 @@ const Dashboard = () => {
                     />
                   </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <CardDescription>Poupanças</CardDescription>
-                    <span className="text-sm font-medium text-finance-savings">
-                      {formatCurrency(0)}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-finance-savings rounded-full transition-all duration-500"
-                      style={{ width: '0%' }}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <CardDescription>Investimentos</CardDescription>
-                    <span className="text-sm font-medium text-finance-investment">
-                      {formatCurrency(0)}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-finance-investment rounded-full transition-all duration-500"
-                      style={{ width: '0%' }}
-                    />
-                  </div>
-                </div>
               </div>
               
               <Separator />
@@ -546,7 +465,7 @@ const Dashboard = () => {
                 </div>
                 
                 <div>
-                  <CardDescription>Taxa de Poupança</CardDescription>
+                  <CardDescription>Diferença</CardDescription>
                   <div className="text-3xl font-bold tabular-nums mt-1">
                     <AnimatedNumber 
                       value={0} 
@@ -561,49 +480,7 @@ const Dashboard = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <YearlyChart data={[]} className="lg:col-span-2 animate-fade-in-up animation-delay-700" />
-        
-        <Card className="animate-fade-in-up animation-delay-800">
-          <CardHeader>
-            <CardTitle>Categorias</CardTitle>
-            <CardDescription>Categorias de topo</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {categories.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma categoria definida</p>
-              ) : (
-                categories
-                  .filter(category => category.level === 1)
-                  .map(category => (
-                    <div key={category.id} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">{category.name}</span>
-                        <span className="text-xs text-muted-foreground capitalize">
-                          {category.type === "income" ? "receita" : 
-                          category.type === "expense" ? "despesa" : 
-                          category.type === "savings" ? "poupança" : 
-                          "investimento"}
-                        </span>
-                      </div>
-                      <div 
-                        className="h-1 rounded-full"
-                        style={{
-                          background: `hsl(var(--finance-${category.type}))`
-                        }}
-                      />
-                    </div>
-                  ))
-              )}
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" className="w-full" onClick={() => window.location.href = '/categories'}>
-              <Plus className="h-4 w-4 mr-2" />
-              Gerir Categorias
-            </Button>
-          </CardFooter>
-        </Card>
+        <YearlyChart data={[]} className="lg:col-span-3 animate-fade-in-up animation-delay-700" />
       </div>
       
       <div className="animate-fade-in-up animation-delay-900">
