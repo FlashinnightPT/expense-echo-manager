@@ -1,27 +1,14 @@
 
-import { useState, useEffect } from "react";
-import { Save, X, CalendarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { pt } from "date-fns/locale";
+import { Transaction } from "@/utils/mockData";
 import { cn } from "@/lib/utils";
-import { 
-  Transaction, 
-  TransactionCategory
-} from "@/utils/mockData";
-import { toast } from "sonner";
+import { useTransactionForm } from "@/hooks/useTransactionForm";
+import DateSelector from "./components/DateSelector";
+import TypeSelector from "./components/TypeSelector";
+import CategorySelector from "./components/CategorySelector";
+import CategoryBreadcrumbNav from "./components/CategoryBreadcrumbNav";
+import AmountInput from "./components/AmountInput";
+import FormActions from "./components/FormActions";
 
 interface TransactionFormProps {
   onSave?: (transaction: Partial<Transaction>) => void;
@@ -30,207 +17,25 @@ interface TransactionFormProps {
 }
 
 const TransactionForm = ({ onSave, transaction, className }: TransactionFormProps) => {
-  // Definir a data para o mês anterior por padrão
-  const getDefaultDate = () => {
-    const today = new Date();
-    return new Date(today.getFullYear(), today.getMonth() - 1, 1);
-  };
-
-  // Estado inicial para a data e outros campos do formulário
-  const [formData, setFormData] = useState<Partial<Transaction>>({
-    amount: transaction?.amount || 0,
-    date: transaction?.date || format(getDefaultDate(), "yyyy-MM-dd"),
-    categoryId: transaction?.categoryId || "",
-    type: transaction?.type || "expense"
+  const {
+    formData,
+    selectedDate,
+    setSelectedDate,
+    categoryPath,
+    availableCategories,
+    categoryLevel,
+    isAtLeafCategory,
+    handleChange,
+    handleResetCategoryPath,
+    handleSubmit,
+    handleReset,
+    getCategoryPathNames
+  } = useTransactionForm({ 
+    transaction, 
+    onSave 
   });
 
-  const [selectedDate, setSelectedDate] = useState<Date>(
-    transaction?.date ? new Date(transaction.date) : getDefaultDate()
-  );
-
-  const [categoryPath, setCategoryPath] = useState<string[]>([]);
-  const [availableCategories, setAvailableCategories] = useState<TransactionCategory[]>([]);
-  const [categoryLevel, setCategoryLevel] = useState<number>(1);
-  const [isAtLeafCategory, setIsAtLeafCategory] = useState<boolean>(false);
-  const [allCategories, setAllCategories] = useState<TransactionCategory[]>([]);
-  
-  // Carregar categorias do localStorage
-  useEffect(() => {
-    const storedCategories = localStorage.getItem('categories');
-    const localCategories = storedCategories ? JSON.parse(storedCategories) : [];
-    
-    // Usar apenas as categorias locais, não mesclar com as mockadas
-    setAllCategories(localCategories);
-    
-    // Log para depuração
-    console.log("Loaded categories from localStorage:", localCategories);
-  }, []);
-
-  useEffect(() => {
-    // Inicializar categorias baseadas no tipo selecionado, começando no nível adequado
-    // Como suas categorias começam no nível 2, ajustamos aqui
-    const firstLevelCategories = allCategories.filter(
-      (category) => category.type === formData.type && category.level === 2
-    );
-    
-    console.log("First level categories:", firstLevelCategories);
-    setAvailableCategories(firstLevelCategories);
-    setCategoryLevel(2); // Começar no nível 2, onde suas categorias começam
-    
-    setCategoryPath([]);
-    setIsAtLeafCategory(false);
-    
-    // Log para depuração
-    console.log("Resetting form for type:", formData.type);
-  }, [formData.type, allCategories]);
-
-  useEffect(() => {
-    // Quando a data muda, atualiza o formData com uma data padrão (primeiro dia do mês)
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth();
-    const firstDayOfMonth = new Date(year, month, 1);
-    
-    setFormData(prev => ({
-      ...prev,
-      date: format(firstDayOfMonth, "yyyy-MM-dd")
-    }));
-  }, [selectedDate]);
-
-  const getCategoryFromAll = (id: string): TransactionCategory | undefined => {
-    return allCategories.find(cat => cat.id === id);
-  };
-
-  const handleChange = (field: string, value: string | number) => {
-    if (field === "categoryId") {
-      const selectedCategory = getCategoryFromAll(value as string);
-      
-      if (selectedCategory) {
-        setFormData({
-          ...formData,
-          categoryId: value as string,
-          type: selectedCategory.type || formData.type
-        });
-        
-        // Verifica se existem subcategorias
-        const childCategories = allCategories.filter(
-          (category) => category.parentId === value
-        );
-        
-        if (childCategories.length > 0) {
-          // Se existirem subcategorias, atualiza o caminho e mostra as subcategorias
-          setCategoryPath([...categoryPath, value as string]);
-          setAvailableCategories(childCategories);
-          setCategoryLevel(selectedCategory.level + 1);
-          setIsAtLeafCategory(false);
-        } else {
-          // Se não existirem subcategorias, estamos em uma categoria folha
-          setCategoryPath([...categoryPath, value as string]);
-          setIsAtLeafCategory(true);
-        }
-      }
-    } else if (field === "type") {
-      setFormData({
-        ...formData,
-        type: value as "income" | "expense",
-        categoryId: "", // Resetar categoria quando o tipo muda
-        amount: 0 // Resetar valor quando o tipo muda
-      });
-      setIsAtLeafCategory(false);
-    } else {
-      setFormData({
-        ...formData,
-        [field]: value
-      });
-    }
-  };
-
-  const handleResetCategoryPath = (index: number) => {
-    // Volta para um nível específico na hierarquia
-    const newPath = categoryPath.slice(0, index);
-    setCategoryPath(newPath);
-    
-    // Se volta ao início, mostrar categorias de primeiro nível (nível 2 no seu caso)
-    if (index === 0) {
-      const firstLevelCategories = allCategories.filter(
-        (category) => category.type === formData.type && category.level === 2
-      );
-      
-      setAvailableCategories(firstLevelCategories);
-      setCategoryLevel(2);
-      setIsAtLeafCategory(false);
-    } else {
-      // Senão, mostrar subcategorias do nível selecionado
-      const parentId = newPath[newPath.length - 1];
-      const childCategories = allCategories.filter(
-        (category) => category.parentId === parentId
-      );
-      setAvailableCategories(childCategories);
-      
-      // Definir o nível correto com base na categoria pai
-      const parentCategory = getCategoryFromAll(parentId);
-      if (parentCategory) {
-        setCategoryLevel(parentCategory.level + 1);
-      }
-      
-      // Verificar se a categoria selecionada é folha
-      const hasChildren = allCategories.some(cat => cat.parentId === parentId);
-      setIsAtLeafCategory(!hasChildren);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!isAtLeafCategory) {
-      toast.error("Por favor, selecione uma categoria de último nível");
-      return;
-    }
-    
-    if (!formData.amount || formData.amount <= 0) {
-      toast.error("Por favor, insira um valor válido");
-      return;
-    }
-    
-    if (!formData.categoryId) {
-      toast.error("Por favor, selecione uma categoria");
-      return;
-    }
-    
-    if (onSave) {
-      onSave(formData);
-      
-      // Não resetar a data após salvar, mantendo a data selecionada pelo usuário
-      setFormData({
-        ...formData,
-        amount: 0,
-        categoryId: "",
-      });
-      
-      // Manter a mesma data e tipo, resetando apenas os outros campos
-      setCategoryPath([]);
-      setCategoryLevel(2);
-      setIsAtLeafCategory(false);
-      
-      toast.success(transaction ? "Transação atualizada" : "Transação adicionada");
-    }
-  };
-
-  // Tipos de transações em português
-  const typeLabels = {
-    income: "Receita",
-    expense: "Despesa"
-  };
-
-  // Obtém os nomes das categorias no caminho atual
-  const getCategoryPathNames = () => {
-    return categoryPath.map(id => {
-      const category = getCategoryFromAll(id);
-      return category?.name || "";
-    });
-  };
-
-  // Limitar ano máximo para o atual
-  const currentYear = new Date().getFullYear();
+  const categoryPathNames = getCategoryPathNames();
 
   return (
     <Card className={cn("animate-fade-in-up", className)}>
@@ -242,168 +47,48 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Data</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? (
-                      format(selectedDate, "MMMM yyyy", { locale: pt })
-                    ) : (
-                      <span>Selecione uma data</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => date && setSelectedDate(date)}
-                    initialFocus
-                    className="pointer-events-auto"
-                    captionLayout="dropdown-buttons"
-                    fromYear={2020}
-                    toYear={currentYear}
-                    defaultMonth={selectedDate}
-                    month={selectedDate}
-                    onMonthChange={setSelectedDate}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+            {/* Date Selector */}
+            <DateSelector 
+              selectedDate={selectedDate} 
+              onChange={setSelectedDate} 
+            />
             
-            <div className="space-y-2">
-              <Label htmlFor="type">Tipo de Transação</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => 
-                  handleChange("type", value as "income" | "expense")
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="income">Receita</SelectItem>
-                  <SelectItem value="expense">Despesa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Type Selector */}
+            <TypeSelector 
+              value={formData.type || "expense"} 
+              onChange={(value) => handleChange("type", value)} 
+            />
             
+            {/* Category Navigation */}
             <div className="space-y-2">
-              <div className="flex flex-wrap gap-1 mb-2">
-                <button 
-                  type="button"
-                  className="text-xs bg-muted hover:bg-muted/80 px-2 py-1 rounded"
-                  onClick={() => handleResetCategoryPath(0)}
-                >
-                  Início
-                </button>
-                
-                {getCategoryPathNames().map((name, index) => (
-                  <div key={index} className="flex items-center">
-                    <span className="text-xs text-muted-foreground mx-1">/</span>
-                    <button 
-                      type="button"
-                      className="text-xs bg-muted hover:bg-muted/80 px-2 py-1 rounded"
-                      onClick={() => handleResetCategoryPath(index + 1)}
-                    >
-                      {name}
-                    </button>
-                  </div>
-                ))}
-              </div>
-              
-              <Label htmlFor="category">
-                {categoryLevel === 2 
-                  ? "Categoria" 
-                  : `Subcategoria (Nível ${categoryLevel})`}
-              </Label>
-              <Select
-                value={formData.categoryId}
-                onValueChange={(value) => handleChange("categoryId", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={`Selecione a ${categoryLevel === 2 ? 'categoria' : 'subcategoria'}`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCategories.length === 0 ? (
-                    <SelectItem value="none" disabled>
-                      Nenhuma categoria disponível
-                    </SelectItem>
-                  ) : (
-                    availableCategories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="amount" className={!isAtLeafCategory ? "text-muted-foreground" : ""}>Valor</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0,00"
-                value={formData.amount || ""}
-                onChange={(e) => handleChange("amount", parseFloat(e.target.value) || 0)}
-                disabled={!isAtLeafCategory}
-                className={!isAtLeafCategory ? "bg-muted cursor-not-allowed" : ""}
+              <CategoryBreadcrumbNav 
+                categoryNames={categoryPathNames} 
+                onNavigate={handleResetCategoryPath} 
               />
-              {!isAtLeafCategory && (
-                <p className="text-xs text-muted-foreground">Selecione uma categoria de último nível para inserir o valor</p>
-              )}
+              
+              {/* Category Selector */}
+              <CategorySelector 
+                value={formData.categoryId || ""} 
+                onChange={(value) => handleChange("categoryId", value)} 
+                categories={availableCategories} 
+                level={categoryLevel} 
+              />
             </div>
+            
+            {/* Amount Input */}
+            <AmountInput 
+              value={formData.amount || ""} 
+              onChange={(value) => handleChange("amount", value)} 
+              isEnabled={isAtLeafCategory} 
+            />
           </div>
           
-          <div className="flex justify-end space-x-2">
-            <Button 
-              type="button" 
-              variant="outline"
-              onClick={() => {
-                if (transaction) {
-                  // Reset to original values if editing
-                  setFormData({
-                    amount: transaction.amount,
-                    date: transaction.date,
-                    categoryId: transaction.categoryId,
-                    type: transaction.type
-                  });
-                  setSelectedDate(new Date(transaction.date));
-                } else {
-                  // Ao limpar, mantem a data atual, resetando apenas os outros campos
-                  setFormData({
-                    ...formData,
-                    amount: 0,
-                    categoryId: "",
-                  });
-                  // Data e tipo são mantidos
-                  setCategoryPath([]);
-                  setCategoryLevel(2);
-                  setIsAtLeafCategory(false);
-                }
-              }}
-            >
-              <X className="h-4 w-4 mr-2" />
-              Limpar
-            </Button>
-            <Button type="submit" disabled={!isAtLeafCategory}>
-              <Save className="h-4 w-4 mr-2" />
-              {transaction ? "Atualizar" : "Adicionar"}
-            </Button>
-          </div>
+          {/* Form Actions */}
+          <FormActions 
+            onReset={handleReset} 
+            isEditing={!!transaction} 
+            isSubmitDisabled={!isAtLeafCategory} 
+          />
         </form>
       </CardContent>
     </Card>
