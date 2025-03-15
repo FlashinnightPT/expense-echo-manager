@@ -31,6 +31,8 @@ interface DataTableProps<T> {
   tableClassName?: string;
   emptyMessage?: string;
   onRowClick?: (row: T) => void;
+  pagination?: boolean;
+  itemsPerPage?: number;
 }
 
 const DataTable = <T extends Record<string, any>>({
@@ -44,10 +46,13 @@ const DataTable = <T extends Record<string, any>>({
   tableClassName,
   emptyMessage = "No data available",
   onRowClick,
+  pagination = false,
+  itemsPerPage = 10,
 }: DataTableProps<T>) => {
   const [sortBy, setSortBy] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleSort = (columnId: string) => {
     if (sortBy === columnId) {
@@ -88,6 +93,16 @@ const DataTable = <T extends Record<string, any>>({
       return value.toString().toLowerCase().includes(searchQuery.toLowerCase());
     });
   });
+
+  // Pagination logic
+  const totalPages = pagination ? Math.ceil(filteredData.length / itemsPerPage) : 1;
+  const paginatedData = pagination 
+    ? filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+    : filteredData;
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   return (
     <Card className={cn(cardClassName)}>
@@ -138,8 +153,8 @@ const DataTable = <T extends Record<string, any>>({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.length > 0 ? (
-                filteredData.map((row, rowIndex) => (
+              {paginatedData.length > 0 ? (
+                paginatedData.map((row, rowIndex) => (
                   <TableRow 
                     key={rowIndex}
                     className={cn(
@@ -165,6 +180,42 @@ const DataTable = <T extends Record<string, any>>({
             </TableBody>
           </Table>
         </div>
+        
+        {pagination && totalPages > 1 && (
+          <div className="flex items-center justify-end space-x-2 py-4 px-4">
+            <div className="flex-1 text-sm text-muted-foreground">
+              Showing {paginatedData.length} of {filteredData.length} entries
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              {Array.from({ length: totalPages }).map((_, index) => (
+                <Button
+                  key={index}
+                  variant={currentPage === index + 1 ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(index + 1)}
+                >
+                  {index + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
