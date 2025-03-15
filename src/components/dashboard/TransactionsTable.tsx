@@ -1,4 +1,5 @@
 
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CircleDollarSign } from "lucide-react";
@@ -21,6 +22,26 @@ const TransactionsTable = ({
   transactions, 
   transactionColumns 
 }: TransactionsTableProps) => {
+  // Estado local para acompanhar as transações mais recentes
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+
+  // Atualiza os dados quando as transações mudam
+  useEffect(() => {
+    // Ordenar transações por data (mais recentes primeiro)
+    const sortedTransactions = [...transactions].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    
+    // Definir as transações mais recentes (5 mais recentes)
+    setRecentTransactions(sortedTransactions.slice(0, 5));
+    
+    // Definir todas as transações
+    setAllTransactions(sortedTransactions);
+    
+    console.log("Transações atualizadas:", sortedTransactions.length);
+  }, [transactions]);
+
   return (
     <div className="animate-fade-in-up animation-delay-900 mb-8">
       <Tabs defaultValue="recent">
@@ -37,7 +58,7 @@ const TransactionsTable = ({
         
         <TabsContent value="recent" className="m-0">
           <DataTable 
-            data={transactions.slice(0, 5)}
+            data={recentTransactions}
             columns={transactionColumns}
             searchable
             searchPlaceholder="Pesquisar..."
@@ -48,7 +69,7 @@ const TransactionsTable = ({
         
         <TabsContent value="all" className="m-0">
           <DataTable 
-            data={transactions}
+            data={allTransactions}
             columns={transactionColumns}
             searchable
             pagination

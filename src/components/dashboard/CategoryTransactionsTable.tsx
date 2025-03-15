@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getMonthName } from "@/utils/financialCalculations";
@@ -26,6 +26,8 @@ const CategoryTransactionsTable = ({
   getCategoryById,
 }: CategoryTransactionsTableProps) => {
   const [activeTab, setActiveTab] = useState<"expense" | "income">("expense");
+  const [currentGroupedCategories, setCurrentGroupedCategories] = useState<RootCategoryItem[]>([]);
+  const [currentTotalAmount, setCurrentTotalAmount] = useState<number>(0);
 
   // Filter transactions by selected year and month
   const filteredTransactions = useMemo(() => {
@@ -39,7 +41,7 @@ const CategoryTransactionsTable = ({
   }, [transactions, selectedYear, selectedMonth]);
 
   // Group categories by hierarchy for the active tab type
-  const groupedCategories = useMemo(() => {
+  useEffect(() => {
     // Filter root categories of the selected type
     const rootCategories = categories.filter(
       (cat) => cat.level === 1 && cat.type === activeTab
@@ -112,15 +114,18 @@ const CategoryTransactionsTable = ({
       });
     });
 
-    return result;
-  }, [categories, activeTab, filteredTransactions]);
-
-  // Calculate the total amount for all transactions of the active type
-  const totalAmount = useMemo(() => {
-    return filteredTransactions
+    setCurrentGroupedCategories(result);
+    
+    // Calculate the total amount for all transactions of the active type
+    const total = filteredTransactions
       .filter((transaction) => transaction.type === activeTab)
       .reduce((total, transaction) => total + transaction.amount, 0);
-  }, [filteredTransactions, activeTab]);
+      
+    setCurrentTotalAmount(total);
+    
+    console.log(`Categorias agrupadas (${activeTab}):`, result.length);
+    console.log(`Total (${activeTab}):`, total);
+  }, [categories, activeTab, filteredTransactions]);
 
   return (
     <div className="animate-fade-in-up animation-delay-900">
@@ -155,16 +160,16 @@ const CategoryTransactionsTable = ({
         
         <CategoryTabContent 
           value="expense" 
-          groupedCategories={groupedCategories}
-          totalAmount={totalAmount}
+          groupedCategories={activeTab === "expense" ? currentGroupedCategories : []}
+          totalAmount={activeTab === "expense" ? currentTotalAmount : 0}
           selectedMonth={selectedMonth}
           selectedYear={selectedYear}
         />
         
         <CategoryTabContent 
           value="income" 
-          groupedCategories={groupedCategories}
-          totalAmount={totalAmount}
+          groupedCategories={activeTab === "income" ? currentGroupedCategories : []}
+          totalAmount={activeTab === "income" ? currentTotalAmount : 0}
           selectedMonth={selectedMonth}
           selectedYear={selectedYear}
         />
