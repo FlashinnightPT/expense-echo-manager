@@ -22,19 +22,15 @@ export const getMonthName = (monthNumber: number): string => {
 export const calculateMonthlySummary = (monthData: any) => {
   const income = monthData.income || 0;
   const expense = monthData.expense || 0;
-  const savings = monthData.savings || 0;
-  const investment = monthData.investment || 0;
   
   const balance = income - expense;
-  const savingsRate = income > 0 ? ((savings + investment) / income) * 100 : 0;
+  const differenceRate = income > 0 ? ((income - expense) / income) * 100 : 0;
   
   return {
     income,
     expense,
-    savings,
-    investment,
     balance,
-    savingsRate
+    differenceRate
   };
 };
 
@@ -42,18 +38,14 @@ export const calculateMonthlySummary = (monthData: any) => {
 export const calculateYearlySummary = (yearData: any) => {
   const income = yearData.income || 0;
   const expense = yearData.expense || 0;
-  const savings = yearData.savings || 0;
-  const investment = yearData.investment || 0;
   
   const balance = income - expense;
-  const savingsRate = income > 0 ? ((savings + investment) / income) * 100 : 0;
+  const differenceRate = income > 0 ? ((income - expense) / income) * 100 : 0;
   
   return {
     income,
     expense,
-    savings,
-    investment,
     balance,
-    savingsRate
+    differenceRate
   };
 };

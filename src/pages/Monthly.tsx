@@ -61,10 +61,8 @@ const Monthly = () => {
     monthName: getMonthName(item.month),
     income: 0, // Definindo todos os valores financeiros como zero
     expense: 0,
-    savings: 0,
-    investment: 0,
     balance: 0,
-    savingsRate: "0.00"
+    differenceRate: "0.00"
   })) : [];
   
   // Definir as colunas da tabela
@@ -97,23 +95,9 @@ const Monthly = () => {
       className: "text-right",
     },
     {
-      id: "savings",
-      header: "Poupanças",
-      accessorFn: (row) => formatCurrency(row.savings),
-      sortable: true,
-      className: "text-right",
-    },
-    {
-      id: "investment",
-      header: "Investimentos",
-      accessorFn: (row) => formatCurrency(row.investment),
-      sortable: true,
-      className: "text-right",
-    },
-    {
-      id: "savingsRate",
-      header: "Taxa de Poupança",
-      accessorFn: (row) => `${row.savingsRate}%`,
+      id: "differenceRate",
+      header: "Diferença",
+      accessorFn: (row) => `${row.differenceRate}%`,
       sortable: true,
       className: "text-right",
     },

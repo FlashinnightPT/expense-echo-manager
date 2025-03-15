@@ -73,7 +73,7 @@ const Yearly = () => {
     income: item.income,
     expense: item.expense,
     balance: item.income - item.expense,
-    savingsRate: ((item.income - item.expense) / item.income * 100).toFixed(2)
+    differenceRate: ((item.income - item.expense) / item.income * 100).toFixed(2)
   }));
   
   // Definir as colunas da tabela
@@ -106,9 +106,9 @@ const Yearly = () => {
       className: "text-right",
     },
     {
-      id: "savingsRate",
-      header: "Taxa de Poupança",
-      accessorFn: (row) => `${row.savingsRate}%`,
+      id: "differenceRate",
+      header: "Diferença",
+      accessorFn: (row) => `${row.differenceRate}%`,
       sortable: true,
       className: "text-right",
     },
