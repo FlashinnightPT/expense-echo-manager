@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import CategoryForm from "@/components/forms/CategoryForm";
@@ -8,14 +7,211 @@ import CategoryList from "@/components/categories/CategoryList";
 import CategoryActions from "@/components/categories/CategoryActions";
 import { DeleteCategoryDialog } from "@/components/categories/CategoryDialogs";
 
+// Categorias padrão para comissões de seguradoras
+const defaultCategories: TransactionCategory[] = [
+  // Nível 2 - Categoria principal de Comissões
+  {
+    id: 'income-comissoes',
+    name: 'Comissões',
+    type: 'income',
+    level: 2
+  },
+  
+  // Nível 3 - Seguradoras (subcategorias de Comissões)
+  {
+    id: 'income-comissoes-zurich',
+    name: 'Zurich',
+    type: 'income',
+    parentId: 'income-comissoes',
+    level: 3
+  },
+  {
+    id: 'income-comissoes-liberty',
+    name: 'Liberty',
+    type: 'income',
+    parentId: 'income-comissoes',
+    level: 3
+  },
+  {
+    id: 'income-comissoes-caravela',
+    name: 'Caravela',
+    type: 'income',
+    parentId: 'income-comissoes',
+    level: 3
+  },
+  {
+    id: 'income-comissoes-allianz',
+    name: 'Allianz',
+    type: 'income',
+    parentId: 'income-comissoes',
+    level: 3
+  },
+  {
+    id: 'income-comissoes-lusitania',
+    name: 'Lusitania',
+    type: 'income',
+    parentId: 'income-comissoes',
+    level: 3
+  },
+  {
+    id: 'income-comissoes-victoria',
+    name: 'Victoria',
+    type: 'income',
+    parentId: 'income-comissoes',
+    level: 3
+  },
+  {
+    id: 'income-comissoes-ageas',
+    name: 'Ageas',
+    type: 'income',
+    parentId: 'income-comissoes',
+    level: 3
+  },
+  {
+    id: 'income-comissoes-una',
+    name: 'Una',
+    type: 'income',
+    parentId: 'income-comissoes',
+    level: 3
+  },
+  
+  // Nível 4 - Tipos de comissão para Zurich
+  {
+    id: 'income-comissoes-zurich-normal',
+    name: 'Normal',
+    type: 'income',
+    parentId: 'income-comissoes-zurich',
+    level: 4
+  },
+  {
+    id: 'income-comissoes-zurich-extra',
+    name: 'Extra',
+    type: 'income',
+    parentId: 'income-comissoes-zurich',
+    level: 4
+  },
+  
+  // Nível 4 - Tipos de comissão para Liberty
+  {
+    id: 'income-comissoes-liberty-normal',
+    name: 'Normal',
+    type: 'income',
+    parentId: 'income-comissoes-liberty',
+    level: 4
+  },
+  {
+    id: 'income-comissoes-liberty-extra',
+    name: 'Extra',
+    type: 'income',
+    parentId: 'income-comissoes-liberty',
+    level: 4
+  },
+  
+  // Nível 4 - Tipos de comissão para Caravela
+  {
+    id: 'income-comissoes-caravela-normal',
+    name: 'Normal',
+    type: 'income',
+    parentId: 'income-comissoes-caravela',
+    level: 4
+  },
+  {
+    id: 'income-comissoes-caravela-extra',
+    name: 'Extra',
+    type: 'income',
+    parentId: 'income-comissoes-caravela',
+    level: 4
+  },
+  
+  // Nível 4 - Tipos de comissão para Allianz
+  {
+    id: 'income-comissoes-allianz-normal',
+    name: 'Normal',
+    type: 'income',
+    parentId: 'income-comissoes-allianz',
+    level: 4
+  },
+  {
+    id: 'income-comissoes-allianz-extra',
+    name: 'Extra',
+    type: 'income',
+    parentId: 'income-comissoes-allianz',
+    level: 4
+  },
+  
+  // Nível 4 - Tipos de comissão para Lusitania
+  {
+    id: 'income-comissoes-lusitania-normal',
+    name: 'Normal',
+    type: 'income',
+    parentId: 'income-comissoes-lusitania',
+    level: 4
+  },
+  {
+    id: 'income-comissoes-lusitania-extra',
+    name: 'Extra',
+    type: 'income',
+    parentId: 'income-comissoes-lusitania',
+    level: 4
+  },
+  
+  // Nível 4 - Tipos de comissão para Victoria
+  {
+    id: 'income-comissoes-victoria-normal',
+    name: 'Normal',
+    type: 'income',
+    parentId: 'income-comissoes-victoria',
+    level: 4
+  },
+  {
+    id: 'income-comissoes-victoria-extra',
+    name: 'Extra',
+    type: 'income',
+    parentId: 'income-comissoes-victoria',
+    level: 4
+  },
+  
+  // Nível 4 - Tipos de comissão para Ageas
+  {
+    id: 'income-comissoes-ageas-normal',
+    name: 'Normal',
+    type: 'income',
+    parentId: 'income-comissoes-ageas',
+    level: 4
+  },
+  {
+    id: 'income-comissoes-ageas-extra',
+    name: 'Extra',
+    type: 'income',
+    parentId: 'income-comissoes-ageas',
+    level: 4
+  },
+  
+  // Nível 4 - Tipos de comissão para Una
+  {
+    id: 'income-comissoes-una-normal',
+    name: 'Normal',
+    type: 'income',
+    parentId: 'income-comissoes-una',
+    level: 4
+  },
+  {
+    id: 'income-comissoes-una-extra',
+    name: 'Extra',
+    type: 'income',
+    parentId: 'income-comissoes-una',
+    level: 4
+  }
+];
+
 const Categories = () => {
-  // Remover a referência às categorias padrão do mockData
+  // Modificar a inicialização de categorias para usar as categorias padrão
   const initCategories = () => {
     const storedCategories = localStorage.getItem('categories');
     if (!storedCategories) {
-      // Inicializar com array vazio em vez de usar defaultCategories
-      localStorage.setItem('categories', JSON.stringify([]));
-      return [];
+      // Inicializar com as categorias padrão em vez de um array vazio
+      localStorage.setItem('categories', JSON.stringify(defaultCategories));
+      return defaultCategories;
     }
     
     try {
@@ -24,8 +220,8 @@ const Categories = () => {
       return parsedCategories;
     } catch (error) {
       console.error("Error parsing categories from localStorage:", error);
-      localStorage.setItem('categories', JSON.stringify([]));
-      return [];
+      localStorage.setItem('categories', JSON.stringify(defaultCategories));
+      return defaultCategories;
     }
   };
   
@@ -123,10 +319,10 @@ const Categories = () => {
   };
 
   const handleResetCategories = () => {
-    // Limpar todas as categorias em vez de reiniciar para o padrão
-    localStorage.removeItem('categories');
-    setCategoryList([]);
-    toast.success("Todas as categorias foram removidas");
+    // Atualizar para reiniciar para as categorias padrão em vez de limpar
+    localStorage.setItem('categories', JSON.stringify(defaultCategories));
+    setCategoryList(defaultCategories);
+    toast.success("Categorias reiniciadas para o padrão");
   };
 
   const handleClearTransactions = () => {
