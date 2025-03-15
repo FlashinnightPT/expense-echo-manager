@@ -2,11 +2,11 @@
 import React from "react";
 import { formatCurrency } from "@/utils/financialCalculations";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Category } from "@/utils/mockData";
+import { TransactionCategory } from "@/utils/mockData";
 import CompareButton from "./CompareButton";
 
 interface CategoryRowProps {
-  category: Category;
+  category: TransactionCategory;
   amount: number;
   level: number;
   onCompare?: (categoryId: string, categoryPath: string) => void;
