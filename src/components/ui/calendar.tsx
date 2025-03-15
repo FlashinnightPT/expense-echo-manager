@@ -54,8 +54,7 @@ function Calendar({
         dropdown: "relative min-w-[5rem] flex-1",
         dropdown_year: "flex-[1.3]",
         dropdown_icon: "absolute right-0 top-1/2 -translate-y-1/2 opacity-50",
-        dropdown_button: "flex p-2 text-sm font-medium",
-        dropdown_month: "font-semibold",
+        // Removed dropdown_button as it's not a valid property
         ...classNames,
       }}
       components={{

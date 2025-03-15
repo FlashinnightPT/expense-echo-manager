@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Save, X, CalendarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
@@ -269,9 +268,7 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
                     captionLayout="dropdown-buttons"
                     fromYear={2020}
                     toYear={2030}
-                    ISOWeek={false}
                     defaultMonth={selectedDate}
-                    views={["month", "year"]}
                   />
                 </PopoverContent>
               </Popover>
