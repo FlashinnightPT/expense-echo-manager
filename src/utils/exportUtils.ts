@@ -94,11 +94,16 @@ export const prepareMonthlyDataForExport = (
 export const prepareTransactionsForExport = (
   transactions: Transaction[]
 ) => {
-  return transactions.map(t => ({
-    Description: t.description,
-    Amount: formatCurrency(t.amount).replace(/[€$]/g, '').trim(),
-    Date: new Date(t.date).toLocaleDateString(),
-    Type: t.type === 'income' ? 'Receita' : 'Despesa',
-    Category: t.category?.name || ''
-  }));
+  return transactions.map(t => {
+    // Find the category name using categoryId
+    const categoryName = t.category?.name || '';
+    
+    return {
+      Description: t.description,
+      Amount: formatCurrency(t.amount).replace(/[€$]/g, '').trim(),
+      Date: new Date(t.date).toLocaleDateString(),
+      Type: t.type === 'income' ? 'Receita' : 'Despesa',
+      Category: categoryName
+    };
+  });
 };

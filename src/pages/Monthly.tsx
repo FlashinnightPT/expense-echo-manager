@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
@@ -9,7 +8,7 @@ import { formatCurrency, getMonthName } from "@/utils/financialCalculations";
 import { Transaction } from "@/utils/mockData";
 import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
-import { exportToCSV, prepareMonthlyDataForExport } from "@/utils/exportUtils";
+import { exportToExcel, prepareMonthlyDataForExport } from "@/utils/exportUtils";
 import { toast } from "sonner";
 
 const Monthly = () => {
@@ -17,7 +16,6 @@ const Monthly = () => {
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   
-  // Load transactions from localStorage
   useEffect(() => {
     const loadTransactions = () => {
       const storedTransactions = localStorage.getItem('transactions');
@@ -28,54 +26,43 @@ const Monthly = () => {
       }
     };
 
-    // Load initially
     loadTransactions();
 
-    // Add event listener for storage changes
     window.addEventListener('storage', loadTransactions);
 
-    // Cleanup
     return () => {
       window.removeEventListener('storage', loadTransactions);
     };
   }, []);
   
-  // Extract available years from transactions
   const availableYears = useMemo(() => {
     const years = new Set<number>();
     
-    // If no transactions, return only current year
     if (transactions.length === 0) {
       years.add(currentYear);
       return Array.from(years).sort((a, b) => b - a);
     }
     
-    // Extract unique years from transactions
     transactions.forEach(transaction => {
       const transactionYear = new Date(transaction.date).getFullYear();
       years.add(transactionYear);
     });
     
-    // Convert Set to array and sort descending (most recent first)
     return Array.from(years).sort((a, b) => b - a);
   }, [transactions, currentYear]);
   
-  // Adjust selected year if necessary
   useEffect(() => {
     if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
       setSelectedYear(availableYears[0]);
     }
   }, [availableYears, selectedYear]);
   
-  // Generate monthly data from transactions
   const monthlyData = useMemo(() => {
-    // Initialize data for all months
     const monthlyDataMap = new Map<number, { income: number; expense: number }>();
     for (let i = 1; i <= 12; i++) {
       monthlyDataMap.set(i, { income: 0, expense: 0 });
     }
     
-    // Filter transactions for selected year and aggregate by month
     transactions.forEach(transaction => {
       const transactionDate = new Date(transaction.date);
       const year = transactionDate.getFullYear();
@@ -92,7 +79,6 @@ const Monthly = () => {
       }
     });
     
-    // Convert to array format for chart and table
     const result = [];
     for (let month = 1; month <= 12; month++) {
       const data = monthlyDataMap.get(month) || { income: 0, expense: 0 };
@@ -108,7 +94,6 @@ const Monthly = () => {
     return result;
   }, [transactions, selectedYear]);
   
-  // Prepare data for table display
   const tableData = useMemo(() => {
     return monthlyData.map(item => {
       const income = item.income;
@@ -127,7 +112,6 @@ const Monthly = () => {
     });
   }, [monthlyData]);
   
-  // Define table columns
   const columns = [
     {
       id: "monthName",
@@ -165,7 +149,6 @@ const Monthly = () => {
     },
   ];
   
-  // Handle export data
   const handleExportData = () => {
     try {
       if (tableData.length === 0) {
@@ -174,7 +157,7 @@ const Monthly = () => {
       }
       
       const exportData = prepareMonthlyDataForExport(tableData, selectedYear);
-      exportToCSV(exportData, `dados_mensais_${selectedYear}`);
+      exportToExcel(exportData, `dados_mensais_${selectedYear}`);
       toast.success("Dados exportados com sucesso");
     } catch (error) {
       console.error("Error exporting data:", error);

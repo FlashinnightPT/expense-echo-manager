@@ -12,7 +12,7 @@ import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calculator, FileDown, Home } from "lucide-react";
-import { exportToCSV } from "@/utils/exportUtils";
+import { exportToExcel, prepareCategoryDataForExport } from "@/utils/exportUtils";
 import { toast } from "sonner";
 
 const CategoryAnalysis = () => {
@@ -284,7 +284,7 @@ const CategoryAnalysis = () => {
         Amount: formatCurrency(item.amount).replace(/[€$]/g, '').trim()
       }));
       
-      exportToCSV(
+      exportToExcel(
         exportData, 
         `categoria_${selectedCategoryName.replace(/\s+/g, '_').replace(/>/g, '-')}_${startDate.toISOString().split('T')[0]}_a_${endDate.toISOString().split('T')[0]}`
       );
@@ -314,7 +314,7 @@ const CategoryAnalysis = () => {
         Percentage: `${item.percentage.toFixed(2)}%`
       }));
       
-      exportToCSV(
+      exportToExcel(
         exportData, 
         `subcategorias_${selectedCategoryName.replace(/\s+/g, '_').replace(/>/g, '-')}_${startDate.toISOString().split('T')[0]}_a_${endDate.toISOString().split('T')[0]}`
       );
