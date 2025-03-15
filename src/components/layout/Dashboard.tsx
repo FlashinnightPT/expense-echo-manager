@@ -1,3 +1,4 @@
+
 import { useMemo, useState, useEffect } from "react";
 import YearlyChart from "@/components/charts/YearlyChart";
 import { useDashboardData } from "@/components/dashboard/hooks/useDashboardData";
@@ -19,16 +20,20 @@ const Dashboard = () => {
   const [showValues, setShowValues] = useState(false);
   
   useEffect(() => {
-    const savedPreference = sessionStorage.getItem('showFinancialValues');
+    // Get the stored preference from localStorage instead of sessionStorage
+    // so it persists across tab navigation
+    const savedPreference = localStorage.getItem('showFinancialValues');
     if (savedPreference) {
       setShowValues(savedPreference === 'true');
     } else {
-      sessionStorage.setItem('showFinancialValues', 'false');
+      // Default to false (hidden) on first login and save to localStorage
+      localStorage.setItem('showFinancialValues', 'false');
     }
   }, []);
   
+  // Save preference to localStorage whenever it changes
   useEffect(() => {
-    sessionStorage.setItem('showFinancialValues', showValues.toString());
+    localStorage.setItem('showFinancialValues', showValues.toString());
   }, [showValues]);
   
   const {
