@@ -12,7 +12,7 @@ import { formatCurrency, getMonthName } from "@/utils/financialCalculations";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calculator, FileDown } from "lucide-react";
+import { Calculator, FileDown, Home } from "lucide-react";
 
 const CategoryAnalysis = () => {
   const [startDate, setStartDate] = useState<Date>(new Date(new Date().getFullYear(), 0, 1)); // Jan 1st of current year
@@ -20,6 +20,11 @@ const CategoryAnalysis = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<TransactionCategory[]>([]);
+  
+  // Category navigation state
+  const [categoryPath, setCategoryPath] = useState<string[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<TransactionCategory[]>([]);
+  const [categoryLevel, setCategoryLevel] = useState<number>(2); // Start at level 2 to match TransactionForm
   
   // Load data from localStorage
   useEffect(() => {
@@ -46,6 +51,14 @@ const CategoryAnalysis = () => {
       window.removeEventListener('storage', loadData);
     };
   }, []);
+  
+  // Initialize top-level categories when categories are loaded
+  useEffect(() => {
+    // Initialize with root categories (level 2)
+    const rootCategories = categories.filter(cat => cat.level === 2);
+    setAvailableCategories(rootCategories);
+    setCategoryPath([]);
+  }, [categories]);
   
   // Build category hierarchy for display in the select dropdown
   const categoryOptions = useMemo(() => {
@@ -80,6 +93,75 @@ const CategoryAnalysis = () => {
     
     return result.sort((a, b) => a.path.localeCompare(b.path));
   }, [categories]);
+  
+  // Handle category selection
+  const handleCategorySelect = (categoryId: string) => {
+    const selectedCategory = categories.find(cat => cat.id === categoryId);
+    
+    if (selectedCategory) {
+      // Set the selected category
+      setSelectedCategoryId(categoryId);
+      
+      // Check if there are subcategories
+      const childCategories = categories.filter(cat => cat.parentId === categoryId);
+      
+      if (childCategories.length > 0) {
+        // If there are subcategories, update the path and show them
+        setCategoryPath([...categoryPath, categoryId]);
+        setAvailableCategories(childCategories);
+        setCategoryLevel(selectedCategory.level + 1);
+      } else {
+        // No subcategories, we're at a leaf node
+        setCategoryPath([...categoryPath, categoryId]);
+      }
+    }
+  };
+  
+  // Handle resetting the category path to a specific level
+  const handleResetCategoryPath = (index: number) => {
+    // Reset to home/start
+    if (index === -1) {
+      setCategoryPath([]);
+      const rootCategories = categories.filter(cat => cat.level === 2);
+      setAvailableCategories(rootCategories);
+      setCategoryLevel(2);
+      setSelectedCategoryId("");
+      return;
+    }
+    
+    // Go back to a specific level in the path
+    const newPath = categoryPath.slice(0, index + 1);
+    setCategoryPath(newPath);
+    
+    if (newPath.length === 0) {
+      // If back to root, show level 2 categories
+      const rootCategories = categories.filter(cat => cat.level === 2);
+      setAvailableCategories(rootCategories);
+      setCategoryLevel(2);
+    } else {
+      // Show subcategories of the selected level
+      const parentId = newPath[newPath.length - 1];
+      const childCategories = categories.filter(cat => cat.parentId === parentId);
+      setAvailableCategories(childCategories);
+      
+      // Update the selected category
+      setSelectedCategoryId(parentId);
+      
+      // Set the correct level
+      const parentCategory = categories.find(cat => cat.id === parentId);
+      if (parentCategory) {
+        setCategoryLevel(parentCategory.level + 1);
+      }
+    }
+  };
+  
+  // Get names for the current category path
+  const getCategoryPathNames = () => {
+    return categoryPath.map(id => {
+      const category = categories.find(cat => cat.id === id);
+      return category?.name || "";
+    });
+  };
   
   // Calculate data for the selected category and date range
   const filteredData = useMemo(() => {
@@ -242,23 +324,51 @@ const CategoryAnalysis = () => {
           {/* Category Selection */}
           <Card className="p-4">
             <h2 className="font-semibold mb-2">Selecione uma Categoria</h2>
+            
+            {/* Category Navigation Path */}
+            <div className="flex flex-wrap gap-1 mb-3">
+              <button 
+                type="button"
+                className="text-xs bg-muted hover:bg-muted/80 px-2 py-1 rounded flex items-center"
+                onClick={() => handleResetCategoryPath(-1)}
+              >
+                <Home className="h-3 w-3 mr-1" />
+                Início
+              </button>
+              
+              {getCategoryPathNames().map((name, index) => (
+                <div key={index} className="flex items-center">
+                  <span className="text-xs text-muted-foreground mx-1">/</span>
+                  <button 
+                    type="button"
+                    className="text-xs bg-muted hover:bg-muted/80 px-2 py-1 rounded"
+                    onClick={() => handleResetCategoryPath(index)}
+                  >
+                    {name}
+                  </button>
+                </div>
+              ))}
+            </div>
+            
             <Select
               value={selectedCategoryId}
-              onValueChange={setSelectedCategoryId}
+              onValueChange={handleCategorySelect}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Escolha uma categoria" />
+                <SelectValue placeholder={`Selecione uma ${categoryLevel === 2 ? 'categoria' : 'subcategoria'}`} />
               </SelectTrigger>
               <SelectContent className="max-h-[400px]">
-                {categoryOptions.map(option => (
-                  <SelectItem 
-                    key={option.id} 
-                    value={option.id}
-                    className={`pl-${(option.level - 1) * 2}`}
-                  >
-                    {option.path}
+                {availableCategories.length === 0 ? (
+                  <SelectItem value="none" disabled>
+                    Nenhuma categoria disponível
                   </SelectItem>
-                ))}
+                ) : (
+                  availableCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </Card>
