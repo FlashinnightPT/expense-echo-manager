@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -17,6 +16,7 @@ import { exportToExcel } from "@/utils/exportUtils";
 import { toast } from "sonner";
 import CategoryComparison from "@/components/dashboard/comparison/CategoryComparison";
 import CompareButton from "@/components/dashboard/components/CompareButton";
+import Header from "@/components/layout/Header";
 
 const RecentCategoriesForComparison = ({ 
   categories, 
@@ -456,7 +456,7 @@ const CategoryAnalysis = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container mx-auto px-4 py-8 pt-24">
+      <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">Análise por Categoria</h1>

@@ -59,17 +59,13 @@ function App() {
           <Route 
             path="/category-analysis" 
             element={
-              <WithHeader>
-                <CategoryAnalysis />
-              </WithHeader>
+              <CategoryAnalysis />
             } 
           />
           <Route 
             path="/settings" 
             element={
-              <WithHeader>
-                <Settings />
-              </WithHeader>
+              <Settings />
             } 
           />
           <Route 
