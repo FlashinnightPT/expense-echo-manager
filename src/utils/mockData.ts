@@ -278,3 +278,108 @@ export const flattenedCategories = flattenCategories(categories);
 export const getCategoryById = (id: string): TransactionCategory | undefined => {
   return flattenedCategories.find(c => c.id === id);
 };
+
+// Function to build a hierarchical structure of categories
+export const buildCategoryHierarchy = () => {
+  const rootCategories = categories.filter(cat => cat.level === 2);
+  const result = [...rootCategories];
+  
+  // Create a map for easier access
+  const categoriesMap = new Map<string, TransactionCategory>();
+  categories.forEach(cat => {
+    categoriesMap.set(cat.id, { ...cat, children: [] });
+  });
+  
+  // Add children to their parents
+  categories.forEach(cat => {
+    if (cat.parentId) {
+      const parent = categoriesMap.get(cat.parentId);
+      if (parent && parent.children) {
+        parent.children.push(categoriesMap.get(cat.id) || cat);
+      }
+    }
+  });
+  
+  // Return only root categories with their full hierarchy
+  return result.map(cat => categoriesMap.get(cat.id) || cat);
+};
+
+// Function to filter transactions by period (month and year)
+export const filterTransactionsByPeriod = (
+  transactions: Transaction[],
+  year: number,
+  month?: number
+): Transaction[] => {
+  return transactions.filter(transaction => {
+    const transactionDate = new Date(transaction.date);
+    const transactionYear = transactionDate.getFullYear();
+    const transactionMonth = transactionDate.getMonth() + 1;
+    
+    if (month) {
+      return transactionYear === year && transactionMonth === month;
+    }
+    
+    return transactionYear === year;
+  });
+};
+
+// Get all available periods from transactions
+export const getAvailablePeriods = (transactions: Transaction[]) => {
+  const periods = new Set<string>();
+  
+  transactions.forEach(transaction => {
+    const date = new Date(transaction.date);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    
+    periods.add(`${year}-${month}`);
+  });
+  
+  return Array.from(periods).map(period => {
+    const [year, month] = period.split('-').map(Number);
+    return { year, month };
+  });
+};
+
+// Get all available years from transactions
+export const getAvailableYears = (transactions: Transaction[]) => {
+  const years = new Set<number>();
+  
+  if (transactions.length === 0) {
+    const currentYear = new Date().getFullYear();
+    years.add(currentYear);
+    return Array.from(years).sort((a, b) => b - a);
+  }
+  
+  transactions.forEach(transaction => {
+    const date = new Date(transaction.date);
+    const year = date.getFullYear();
+    years.add(year);
+  });
+  
+  return Array.from(years).sort((a, b) => b - a);
+};
+
+// Calculate totals for a specific period
+export const calculatePeriodTotals = (
+  transactions: Transaction[],
+  year: number,
+  month?: number
+) => {
+  const filteredTransactions = filterTransactionsByPeriod(transactions, year, month);
+  
+  const income = filteredTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+    
+  const expense = filteredTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+    
+  return {
+    income,
+    expense,
+    balance: income - expense,
+    differenceRate: income > 0 ? ((income - expense) / income) * 100 : 0
+  };
+};
