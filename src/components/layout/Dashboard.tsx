@@ -12,6 +12,7 @@ import CategoryTransactionsTable from "@/components/dashboard/CategoryTransactio
 import { toast } from "sonner";
 import { formatCurrency } from "@/utils/financialCalculations";
 import { Transaction } from "@/utils/mockData";
+import Header from "@/components/layout/Header";
 
 const Dashboard = () => {
   const {
@@ -114,53 +115,56 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 pt-24">
-      <DashboardHeader 
-        onSaveTransaction={handleSaveTransactionWithToast}
-        onSaveCategory={handleSaveCategoryWithToast}
-        onClearData={handleClearDataWithToast}
-        categories={categories}
-      />
-      
-      <SummaryCards monthlySummary={monthlySummary} />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <MonthlyOverview 
-          monthlySummary={monthlySummary}
-          monthlyChartData={monthlyChartData}
-          selectedMonth={selectedMonth}
-          selectedYear={selectedYear}
-          availableYears={availableYears}
-          onMonthChange={setSelectedMonth}
-          onYearChange={setSelectedYear}
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="container mx-auto px-4 py-8">
+        <DashboardHeader 
+          onSaveTransaction={handleSaveTransactionWithToast}
+          onSaveCategory={handleSaveCategoryWithToast}
+          onClearData={handleClearDataWithToast}
+          categories={categories}
         />
         
-        <YearlyOverview 
-          yearlySummary={yearlySummary}
-          selectedYear={selectedYear}
-        />
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <YearlyChart data={yearlyChartData} className="lg:col-span-3 animate-fade-in-up animation-delay-700" />
-      </div>
-      
-      {/* Nova tabela hierárquica de categorias */}
-      <div className="mb-8">
-        <CategoryTransactionsTable 
+        <SummaryCards monthlySummary={monthlySummary} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <MonthlyOverview 
+            monthlySummary={monthlySummary}
+            monthlyChartData={monthlyChartData}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            availableYears={availableYears}
+            onMonthChange={setSelectedMonth}
+            onYearChange={setSelectedYear}
+          />
+          
+          <YearlyOverview 
+            yearlySummary={yearlySummary}
+            selectedYear={selectedYear}
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <YearlyChart data={yearlyChartData} className="lg:col-span-3 animate-fade-in-up animation-delay-700" />
+        </div>
+        
+        {/* Nova tabela hierárquica de categorias */}
+        <div className="mb-8">
+          <CategoryTransactionsTable 
+            transactions={transactions}
+            categories={categories}
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
+            onMonthChange={setSelectedMonth}
+            getCategoryById={getCategoryById}
+          />
+        </div>
+        
+        <TransactionsTable 
           transactions={transactions}
-          categories={categories}
-          selectedYear={selectedYear}
-          selectedMonth={selectedMonth}
-          onMonthChange={setSelectedMonth}
-          getCategoryById={getCategoryById}
+          transactionColumns={transactionColumns}
         />
       </div>
-      
-      <TransactionsTable 
-        transactions={transactions}
-        transactionColumns={transactionColumns}
-      />
     </div>
   );
 };

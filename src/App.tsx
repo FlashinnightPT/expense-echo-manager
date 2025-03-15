@@ -4,6 +4,9 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import "./App.css";
 
+// Layout component
+import Header from "@/components/layout/Header";
+
 // Páginas principais
 import Index from "@/pages/Index";
 const Dashboard = lazy(() => import("@/components/layout/Dashboard"));
@@ -14,6 +17,14 @@ const CategoryAnalysis = lazy(() => import("@/pages/CategoryAnalysis"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
+// Layout component that includes the Header
+const WithHeader = ({ children }: { children: React.ReactNode }) => (
+  <div className="min-h-screen bg-background">
+    <Header />
+    {children}
+  </div>
+);
+
 function App() {
   return (
     <BrowserRouter>
@@ -21,12 +32,54 @@ function App() {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/monthly" element={<Monthly />} />
-          <Route path="/yearly" element={<Yearly />} />
-          <Route path="/categories" element={<Categories />} />
-          <Route path="/category-analysis" element={<CategoryAnalysis />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<NotFound />} />
+          <Route 
+            path="/monthly" 
+            element={
+              <WithHeader>
+                <Monthly />
+              </WithHeader>
+            } 
+          />
+          <Route 
+            path="/yearly" 
+            element={
+              <WithHeader>
+                <Yearly />
+              </WithHeader>
+            } 
+          />
+          <Route 
+            path="/categories" 
+            element={
+              <WithHeader>
+                <Categories />
+              </WithHeader>
+            } 
+          />
+          <Route 
+            path="/category-analysis" 
+            element={
+              <WithHeader>
+                <CategoryAnalysis />
+              </WithHeader>
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <WithHeader>
+                <Settings />
+              </WithHeader>
+            } 
+          />
+          <Route 
+            path="*" 
+            element={
+              <WithHeader>
+                <NotFound />
+              </WithHeader>
+            } 
+          />
         </Routes>
       </Suspense>
       <Toaster position="top-right" />

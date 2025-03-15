@@ -1,6 +1,5 @@
 
 import { useEffect } from "react";
-import Header from "@/components/layout/Header";
 import Dashboard from "@/components/layout/Dashboard";
 
 const Index = () => {
@@ -19,10 +18,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <Dashboard />
-    </div>
+    <Dashboard />
   );
 };
 
