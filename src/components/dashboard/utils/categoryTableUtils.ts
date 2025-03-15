@@ -9,7 +9,7 @@ export function calculateCategoryTotal(
   filteredTransactions: Transaction[],
   categories: TransactionCategory[]
 ): number {
-  // Obter todas as subcategorias recursivamente
+  // Get all subcategories recursively
   const getAllSubcategoryIds = (id: string): string[] => {
     const directSubcats = categories.filter((cat) => cat.parentId === id);
     let allSubcatIds: string[] = directSubcats.map((cat) => cat.id);
@@ -21,10 +21,10 @@ export function calculateCategoryTotal(
     return allSubcatIds;
   };
 
-  // Obter todos os IDs de subcategorias, incluindo o ID da categoria atual
+  // Get all IDs of subcategories, including the ID of the current category
   const allCategoryIds = [categoryId, ...getAllSubcategoryIds(categoryId)];
 
-  // Calcular a soma de todas as transações pertencentes a essas categorias
+  // Calculate the sum of all transactions belonging to these categories
   return filteredTransactions
     .filter((transaction) => allCategoryIds.includes(transaction.categoryId))
     .reduce((total, transaction) => total + transaction.amount, 0);
