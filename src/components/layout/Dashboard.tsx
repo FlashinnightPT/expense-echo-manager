@@ -22,6 +22,8 @@ const Dashboard = () => {
     const savedPreference = sessionStorage.getItem('showFinancialValues');
     if (savedPreference) {
       setShowValues(savedPreference === 'true');
+    } else {
+      sessionStorage.setItem('showFinancialValues', 'false');
     }
   }, []);
   
