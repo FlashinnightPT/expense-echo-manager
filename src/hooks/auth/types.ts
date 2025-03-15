@@ -17,5 +17,5 @@ export interface AuthContextType {
   canEdit: boolean;
   validatePassword: (password: string) => { isValid: boolean; errors: string[] };
   useIdleWarning: { IdleWarningDialog: () => JSX.Element };
+  token: string | null;
 }
-

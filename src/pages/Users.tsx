@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserPlus, Mail, Lock, User, Eye, EyeOff, Pencil, Trash2, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/auth";
+import { hashPassword } from "@/hooks/auth/securityUtils";
 
 import Header from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -55,7 +56,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 
-// Tipos
 type UserRole = "editor" | "viewer";
 
 interface User {
@@ -65,6 +65,7 @@ interface User {
   role: UserRole;
   status: "active" | "pending" | "inactive";
   lastLogin?: string;
+  hashedPassword?: string;
 }
 
 const Users = () => {
@@ -93,44 +94,43 @@ const Users = () => {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   
-  // Gerar senha temporária aleatória
   const generateTemporaryPassword = () => {
     return "temp123"; // Senha temporária fixa para simplicidade
   };
   
-  // Adicionar novo utilizador
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!newUser.name || !newUser.username) {
       toast.error("Por favor, preencha todos os campos");
       return;
     }
     
-    // Verificar se o username já existe
     if (users.some(user => user.username === newUser.username)) {
       toast.error("Este nome de utilizador já está registado");
       return;
     }
     
     const tempPassword = generateTemporaryPassword();
-    const newUserData: User = {
+    
+    const hashedPassword = await hashPassword(tempPassword);
+    
+    const newUserData = {
       id: Date.now().toString(),
       name: newUser.name,
       username: newUser.username,
       role: newUser.role,
-      status: "pending"
+      status: "pending",
+      hashedPassword
     };
     
     const updatedUsers = [...users, newUserData];
     setUsers(updatedUsers);
     localStorage.setItem("app_users", JSON.stringify(updatedUsers));
     
-    // Simular envio de credenciais
     console.log(`Credenciais para ${newUser.name}: Username: ${newUser.username}, Senha temporária: ${tempPassword}`);
     
     toast.success(`Utilizador ${newUser.name} adicionado com sucesso`);
     toast.info(`Username: ${newUser.username} / Senha temporária: ${tempPassword}`);
     
-    // Limpar o formulário
     setNewUser({
       name: "",
       username: "",
@@ -140,7 +140,6 @@ const Users = () => {
     setIsAddUserOpen(false);
   };
   
-  // Eliminar utilizador
   const handleDeleteUser = () => {
     if (!userToDelete) return;
     
@@ -152,9 +151,25 @@ const Users = () => {
     setUserToDelete(null);
   };
   
-  // Função de simulação de envio de email
-  const sendPasswordResetEmail = (username: string) => {
+  const sendPasswordResetEmail = async (username: string) => {
     const tempPassword = generateTemporaryPassword();
+    
+    const hashedPassword = await hashPassword(tempPassword);
+    
+    const updatedUsers = users.map(user => {
+      if (user.username === username) {
+        return {
+          ...user,
+          hashedPassword,
+          status: "pending"
+        };
+      }
+      return user;
+    });
+    
+    setUsers(updatedUsers);
+    localStorage.setItem("app_users", JSON.stringify(updatedUsers));
+    
     console.log(`Nova senha temporária para ${username}: ${tempPassword}`);
     toast.success(`Nova senha temporária para ${username}: ${tempPassword}`);
   };
