@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/layout/Header";
 import { Card } from "@/components/ui-custom/Card";
@@ -124,6 +123,17 @@ const CategoryAnalysis = () => {
     };
   }, []);
   
+  const {
+    selectedCategories,
+    comparisonData,
+    totalAmount: comparisonTotalAmount,
+    chartData,
+    addCategoryToComparison,
+    removeCategoryFromComparison,
+    handleExportComparison,
+    setScrollToComparison
+  } = useComparisonData(categories, transactions, startDate, endDate, activeTab);
+  
   useEffect(() => {
     // Check URL parameters when component mounts
     const searchParams = new URLSearchParams(window.location.search);
@@ -153,7 +163,7 @@ const CategoryAnalysis = () => {
         const pathArray = getCategoryPath(categoryParam);
         const pathString = pathArray.join(" > ");
         
-        // Add category to comparison
+        // Add category to comparison with automatic scrolling
         const event = new CustomEvent("addCategoryToComparison", {
           detail: { categoryId: categoryParam, categoryPath: pathString }
         });
@@ -164,6 +174,10 @@ const CategoryAnalysis = () => {
       }
     }
   }, [categories]);
+  
+  useEffect(() => {
+    setScrollToComparison(false);
+  }, []);
   
   useEffect(() => {
     setSelectedCategoryId("");
@@ -452,10 +466,8 @@ const CategoryAnalysis = () => {
   
   const handleAddToComparison = (categoryId: string, categoryPath: string) => {
     console.log("Dispatching add category to comparison event:", categoryId, categoryPath);
-    const event = new CustomEvent("addCategoryToComparison", {
-      detail: { categoryId, categoryPath }
-    });
-    window.dispatchEvent(event);
+    // When called from the Compare button, don't scroll automatically
+    addCategoryToComparison(categoryId, categoryPath, false);
   };
   
   const selectedCategoryPathForComparison = useMemo(() => {
@@ -595,7 +607,14 @@ const CategoryAnalysis = () => {
                   <div className="flex items-center gap-2">
                     <Button 
                       size="sm" 
-                      onClick={() => handleAddToComparison(selectedCategoryId, selectedCategoryName)}
+                      onClick={() => {
+                        handleAddToComparison(selectedCategoryId, selectedCategoryName);
+                        // Manually scroll to the comparison section when the button is clicked
+                        const comparisonElement = document.getElementById('category-comparison-section');
+                        if (comparisonElement) {
+                          comparisonElement.scrollIntoView({ behavior: 'smooth' });
+                        }
+                      }}
                       className="flex items-center gap-1"
                     >
                       <ArrowRightLeft className="h-4 w-4 mr-1" />

@@ -14,6 +14,7 @@ export const useComparisonData = (
 ) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [comparisonData, setComparisonData] = useState<any[]>([]);
+  const [autoScroll, setAutoScroll] = useState<boolean>(false);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
@@ -53,7 +54,7 @@ export const useComparisonData = (
     };
   }, [filteredTransactions]); // Depends on filteredTransactions which changes with date range
 
-  const addCategoryToComparison = (categoryId: string, categoryPath: string) => {
+  const addCategoryToComparison = (categoryId: string, categoryPath: string, shouldScroll = autoScroll) => {
     const allCategoryIds = [categoryId, ...getAllSubcategoryIds(categoryId, categories)];
     
     // Validate if we can add this category
@@ -81,9 +82,12 @@ export const useComparisonData = (
     
     setComparisonData(newComparisonData);
     
-    const comparisonElement = document.getElementById('category-comparison-section');
-    if (comparisonElement) {
-      comparisonElement.scrollIntoView({ behavior: 'smooth' });
+    // Only scroll if shouldScroll is true
+    if (shouldScroll) {
+      const comparisonElement = document.getElementById('category-comparison-section');
+      if (comparisonElement) {
+        comparisonElement.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -116,6 +120,10 @@ export const useComparisonData = (
     }
   };
 
+  const setScrollToComparison = (enabled: boolean) => {
+    setAutoScroll(enabled);
+  };
+
   return {
     selectedCategories,
     comparisonData,
@@ -123,6 +131,7 @@ export const useComparisonData = (
     chartData,
     addCategoryToComparison,
     removeCategoryFromComparison,
-    handleExportComparison
+    handleExportComparison,
+    setScrollToComparison
   };
 };
