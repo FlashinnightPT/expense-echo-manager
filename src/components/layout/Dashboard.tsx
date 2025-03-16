@@ -64,7 +64,7 @@ const Painel = () => {
   };
 
   // Detectar status de conexão
-  const [isOnline, setIsOnline] = useState(apiService.isConnected());
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);

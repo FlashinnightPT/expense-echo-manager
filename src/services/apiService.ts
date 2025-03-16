@@ -6,18 +6,15 @@ import { toast } from "sonner";
 // Atualmente usa localStorage, mas poderia ser modificada para usar fetch/axios
 export class ApiService {
   private static instance: ApiService;
-  private isOnline: boolean = navigator.onLine;
 
   private constructor() {
     // Monitorar o estado da conexão
     window.addEventListener('online', () => {
-      this.isOnline = true;
       toast.success("Conexão com o servidor restaurada");
       this.syncData();
     });
     
     window.addEventListener('offline', () => {
-      this.isOnline = false;
       toast.warning("Sem conexão com o servidor. Modo offline ativado.");
     });
   }
@@ -237,7 +234,7 @@ export class ApiService {
 
   // Método para verificar a conexão
   public isConnected(): boolean {
-    return this.isOnline;
+    return navigator.onLine;
   }
 }
 

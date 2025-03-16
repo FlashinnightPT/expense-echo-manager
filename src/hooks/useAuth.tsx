@@ -58,9 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Verificar se existem utilizadores e criar um utilizador padrão se não existir nenhum
     const savedUsers = localStorage.getItem("app_users");
-    const users = savedUsers ? JSON.parse(savedUsers) : [];
-    
-    if (users.length === 0) {
+    if (!savedUsers || JSON.parse(savedUsers).length === 0) {
       // Criar utilizador admin padrão se não existir nenhum utilizador
       const defaultAdmin = {
         id: "1",
@@ -80,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(JSON.parse(currentUser));
       setIsAuthenticated(true);
     }
-  }, []);
+  }, []); // Importante: adicionamos uma dependência vazia para garantir que só executa uma vez
 
   // Função para validar a senha conforme os requisitos
   const validatePassword = (password: string) => {

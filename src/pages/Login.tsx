@@ -12,7 +12,10 @@ const Login = () => {
     const currentUser = sessionStorage.getItem("current_user");
     if (currentUser) {
       setIsLoggedIn(true);
-      navigate("/dashboard");
+      // Pequeno timeout para evitar navegação imediata e potenciais loops
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 100);
     }
   }, [navigate]);
 
