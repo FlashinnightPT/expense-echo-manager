@@ -29,6 +29,7 @@ function Header() {
   ];
 
   const closeMenu = () => {
+    // Simple direct close
     setIsOpen(false);
   };
 

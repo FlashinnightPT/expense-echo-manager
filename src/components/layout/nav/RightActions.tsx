@@ -24,11 +24,6 @@ export function RightActions({
   const { isAuthenticated } = useAuth();
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
 
-  const closeMenu = () => {
-    // This is a dummy function to match the API expected by DesktopNavMenu
-    // We can leave it empty as it's not actually used in RightActions
-  }; 
-
   return (
     <div className="flex flex-1 items-center justify-end space-x-2">
       <nav className="flex items-center space-x-2">

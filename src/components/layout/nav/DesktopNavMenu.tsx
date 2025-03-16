@@ -23,11 +23,9 @@ export function DesktopNavMenu({
 }: DesktopNavMenuProps) {
   const location = useLocation();
   
+  // Simple direct close function without delays
   const handleNavigation = () => {
-    // Force a delay to ensure the navigation completes before any state changes
-    setTimeout(() => {
-      closeMenu();
-    }, 50);
+    closeMenu();
   };
 
   return (
