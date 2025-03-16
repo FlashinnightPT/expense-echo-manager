@@ -50,9 +50,13 @@ const CategoryAnalysis = () => {
   const [totalAmount, setTotalAmount] = useState(0);
 
   // Datas para comparação
-  // Fix: Ensure both values in the date constructor are numbers
-  const startDate = useState(new Date(selectedYear, selectedMonth !== null ? selectedMonth : 0, 1))[0];
-  const endDate = useState(new Date(selectedYear, selectedMonth !== null ? (selectedMonth + 1) : 11 + 1, 0))[0];
+  // Fix: Convert selectedMonth to number before arithmetic operations
+  const startDate = useState(new Date(selectedYear, selectedMonth !== null ? Number(selectedMonth) : 0, 1))[0];
+  const endDate = useState(new Date(
+    selectedYear, 
+    selectedMonth !== null ? (Number(selectedMonth) + 1) : 12, 
+    0
+  ))[0];
 
   // Anos disponíveis para seleção
   const availableYears = Array.from(
@@ -65,8 +69,8 @@ const CategoryAnalysis = () => {
       const currentYear = new Date().getFullYear();
       setSelectedYear(currentYear);
     } else if (!availableYears.includes(selectedYear)) {
-      // Fix: Ensure we're setting a number
-      setSelectedYear(availableYears[0] || new Date().getFullYear());
+      // Fix: Explicitly cast to number or provide a default number value
+      setSelectedYear(availableYears[0] !== undefined ? Number(availableYears[0]) : new Date().getFullYear());
     }
   }, [availableYears, selectedYear]);
 
@@ -218,7 +222,7 @@ const CategoryAnalysis = () => {
                     ) : (
                       availableYears.map((year) => (
                         <SelectItem key={year.toString()} value={year.toString()}>
-                          {year}
+                          {String(year)}
                         </SelectItem>
                       ))
                     )}
@@ -230,8 +234,8 @@ const CategoryAnalysis = () => {
               <div>
                 <Label htmlFor="month">Mês (opcional)</Label>
                 <Select 
-                  value={selectedMonth?.toString() ?? ""} 
-                  onValueChange={(value) => setSelectedMonth(value ? Number(value) : null)}
+                  value={selectedMonth?.toString() ?? "null"} 
+                  onValueChange={(value) => setSelectedMonth(value === "null" ? null : Number(value))}
                 >
                   <SelectTrigger id="month">
                     <SelectValue placeholder="Todos os meses" />
