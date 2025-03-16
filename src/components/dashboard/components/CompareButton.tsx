@@ -13,9 +13,7 @@ import {
   PopoverContent, 
   PopoverTrigger 
 } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { pt } from "date-fns/locale";
+import { createDateRange } from "@/pages/CategoryAnalysis/utils/dateUtils";
 
 interface CompareButtonProps {
   onClick: () => void;
@@ -25,8 +23,10 @@ interface CompareButtonProps {
 
 const CompareButton = ({ onClick, categoryId, categoryPath }: CompareButtonProps) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [selectedStartMonth, setSelectedStartMonth] = useState<number>(new Date().getMonth());
+  const [selectedStartYear, setSelectedStartYear] = useState<number>(new Date().getFullYear());
+  const [selectedEndMonth, setSelectedEndMonth] = useState<number>(new Date().getMonth());
+  const [selectedEndYear, setSelectedEndYear] = useState<number>(new Date().getFullYear());
   
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event bubbling
@@ -41,22 +41,46 @@ const CompareButton = ({ onClick, categoryId, categoryPath }: CompareButtonProps
   };
   
   const handleCompareWithCustomDates = () => {
-    if (!startDate || !endDate) {
-      return;
-    }
+    // Criar objetos de data a partir dos valores de mês e ano selecionados
+    const startDateRange = createDateRange(selectedStartYear, selectedStartMonth);
+    const endDateRange = createDateRange(selectedEndYear, selectedEndMonth);
     
     // Disparar evento com datas personalizadas
     const event = new CustomEvent("addCategoryToComparison", {
       detail: { 
         categoryId, 
         categoryPath,
-        customStartDate: startDate,
-        customEndDate: endDate
+        customStartDate: startDateRange.startDate,
+        customEndDate: endDateRange.endDate
       }
     });
     window.dispatchEvent(event);
     
     setShowDatePicker(false);
+  };
+
+  // Função para lidar com a alteração da data inicial
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value.length >= 7) {
+      const [month, year] = value.split('/');
+      if (month && year) {
+        setSelectedStartMonth(parseInt(month) - 1); // Ajuste para base 0 dos meses
+        setSelectedStartYear(parseInt(year));
+      }
+    }
+  };
+
+  // Função para lidar com a alteração da data final
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value.length >= 7) {
+      const [month, year] = value.split('/');
+      if (month && year) {
+        setSelectedEndMonth(parseInt(month) - 1); // Ajuste para base 0 dos meses
+        setSelectedEndYear(parseInt(year));
+      }
+    }
   };
 
   return (
@@ -83,30 +107,37 @@ const CompareButton = ({ onClick, categoryId, categoryPath }: CompareButtonProps
                 
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium">Data inicial</h4>
-                  <CalendarComponent
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    locale={pt}
-                    initialFocus
-                  />
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      className="w-full pl-9 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                      placeholder="MM/AAAA"
+                      value={`${String(selectedStartMonth + 1).padStart(2, '0')}/${selectedStartYear}`}
+                      onChange={handleStartDateChange}
+                      maxLength={7}
+                    />
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium">Data final</h4>
-                  <CalendarComponent
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    locale={pt}
-                    initialFocus
-                  />
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      className="w-full pl-9 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                      placeholder="MM/AAAA"
+                      value={`${String(selectedEndMonth + 1).padStart(2, '0')}/${selectedEndYear}`}
+                      onChange={handleEndDateChange}
+                      maxLength={7}
+                    />
+                  </div>
                 </div>
                 
                 <div className="flex justify-end">
                   <Button 
                     onClick={handleCompareWithCustomDates}
-                    disabled={!startDate || !endDate}
                   >
                     <Calendar className="h-4 w-4 mr-2" />
                     Comparar período
