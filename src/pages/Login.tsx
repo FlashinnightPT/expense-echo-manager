@@ -31,6 +31,7 @@ const Login = () => {
       };
       
       localStorage.setItem("app_users", JSON.stringify([defaultAdmin]));
+      console.log("Usuário administrador padrão criado na página de login");
     }
   }, [navigate]);
 
@@ -48,8 +49,7 @@ const Login = () => {
             Aceda à sua conta para gerir as suas finanças
           </p>
           <p className="text-sm text-blue-500">
-            Se é a primeira vez a aceder ao sistema, deve colocar o seu nome de utilizador 
-            e a senha "temp123".
+            Utilizador padrão: <strong>admin</strong> / Senha: <strong>admin123</strong>
           </p>
         </div>
         

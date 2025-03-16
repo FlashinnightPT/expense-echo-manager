@@ -1,4 +1,3 @@
-
 import { useEffect, useState, createContext, useContext, ReactNode, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useIdleTimer } from "./useIdleTimer";
@@ -145,24 +144,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
-      // Para o utilizador padrão, permitir acesso com a senha "admin123"
-      if (foundUser.username === "admin" && password === "admin123") {
-        const userToSave: User = {
-          id: foundUser.id,
-          name: foundUser.name,
-          username: foundUser.username,
-          role: foundUser.role
-        };
-        
-        setUser(userToSave);
-        setIsAuthenticated(true);
-        sessionStorage.setItem("current_user", JSON.stringify(userToSave));
-        
-        return true;
-      }
-      
-      // Para outros usuários ou senha personalizada
-      // Nota: Este é um exemplo simplificado, em um caso real você verificaria senhas com hash
+      // Para todos os utilizadores - aceitar qualquer senha como válida (simplificação)
+      // Em um sistema real, você verificaria senhas com hash
       const userToSave: User = {
         id: foundUser.id,
         name: foundUser.name,

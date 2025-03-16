@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Eye, EyeOff, LogIn, User, Lock, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -64,7 +63,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setShowPassword(!showPassword);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!form.username || !form.password) {
@@ -99,18 +98,30 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
     
-    // Verificar se é o administrador padrão
-    const isDefaultAdmin = user.username === "admin";
-    if (isDefaultAdmin && form.password === "admin123") {
-      sessionStorage.setItem(
-        "current_user", 
-        JSON.stringify({
-          id: user.id,
-          name: user.name,
-          username: user.username,
-          role: user.role
-        })
-      );
+    // Verificar se é o administrador padrão com senha admin123
+    if (user.username === "admin" && form.password === "admin123") {
+      // Login como admin com senha padrão
+      const userToSave = {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        role: user.role
+      };
+      
+      // Atualizar o último login
+      const updatedUsers = users.map((u: any) => {
+        if (u.username === form.username) {
+          return {
+            ...u,
+            status: "active",
+            lastLogin: new Date().toISOString()
+          };
+        }
+        return u;
+      });
+      
+      localStorage.setItem("app_users", JSON.stringify(updatedUsers));
+      sessionStorage.setItem("current_user", JSON.stringify(userToSave));
       
       toast.success("Login realizado com sucesso");
       
@@ -122,38 +133,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
     
+    // Verificar se é primeiro login com senha temporária
     if (form.password === "temp123") {
       setIsFirstLogin(true);
       toast.info("Por favor, altere a sua senha");
       return;
     }
 
-    const updatedUsers = users.map((u: any) => {
-      if (u.username === form.username) {
-        return {
-          ...u,
-          status: "active",
-          lastLogin: new Date().toISOString()
-        };
-      }
-      return u;
-    });
-    
-    localStorage.setItem("app_users", JSON.stringify(updatedUsers));
-    
-    login(form.username, form.password).then((success) => {
-      if (success) {
-        toast.success("Login realizado com sucesso");
-        
-        if (onLoginSuccess) {
-          onLoginSuccess();
-        } else {
-          navigate("/dashboard");
-        }
+    // Passar para o login normal
+    const success = await login(form.username, form.password);
+    if (success) {
+      toast.success("Login realizado com sucesso");
+      
+      if (onLoginSuccess) {
+        onLoginSuccess();
       } else {
-        toast.error("Credenciais inválidas");
+        navigate("/dashboard");
       }
-    });
+    } else {
+      toast.error("Credenciais inválidas");
+    }
   };
 
   const validateNewPassword = (password: string) => {
