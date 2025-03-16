@@ -87,10 +87,13 @@ const CategoryYearTable = ({
             const isChildTransaction = categories.some(cat => {
               if (cat.id === t.categoryId) {
                 // Check if this category is a descendant of our root category
-                let currentCat = cat;
-                while (currentCat.parentId) {
-                  if (currentCat.parentId === rootCategory.id) return true;
-                  currentCat = categories.find(c => c.id === currentCat.parentId) || { id: "", parentId: "" };
+                let currentCat: TransactionCategory | undefined = cat;
+                while (currentCat?.parentId) {
+                  const parentCat = categories.find(c => c.id === currentCat?.parentId);
+                  if (!parentCat) break;
+                  
+                  if (parentCat.id === rootCategory.id) return true;
+                  currentCat = parentCat;
                 }
               }
               return false;
