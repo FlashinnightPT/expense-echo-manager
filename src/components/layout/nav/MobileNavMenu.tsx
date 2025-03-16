@@ -20,10 +20,10 @@ export function MobileNavMenu({
   const location = useLocation();
 
   const closeMenu = () => {
-    // Force a small delay to ensure proper navigation
+    // Increase delay to ensure navigation completes
     setTimeout(() => {
       setIsOpen(false);
-    }, 10);
+    }, 50);
   };
 
   return (

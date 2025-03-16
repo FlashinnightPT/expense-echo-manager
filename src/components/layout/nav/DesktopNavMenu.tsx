@@ -22,6 +22,13 @@ export function DesktopNavMenu({
   closeMenu
 }: DesktopNavMenuProps) {
   const location = useLocation();
+  
+  const handleNavigation = () => {
+    // Force a delay to ensure the navigation completes before any state changes
+    setTimeout(() => {
+      closeMenu();
+    }, 50);
+  };
 
   return (
     <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
@@ -32,12 +39,7 @@ export function DesktopNavMenu({
           className={`transition-colors hover:text-foreground/80 ${
             isActivePath(item.href) ? "text-foreground font-semibold" : "text-foreground/60"
           }`}
-          onClick={() => {
-            // Force a small delay to ensure proper navigation
-            setTimeout(() => {
-              closeMenu();
-            }, 10);
-          }}
+          onClick={handleNavigation}
         >
           {item.name}
         </Link>
@@ -62,7 +64,7 @@ export function DesktopNavMenu({
                     className={`block select-none rounded-md p-2 text-sm leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground ${
                       isActivePath(item.href) ? "bg-accent text-accent-foreground" : ""
                     }`}
-                    onClick={closeMenu}
+                    onClick={handleNavigation}
                   >
                     {item.name}
                   </Link>
