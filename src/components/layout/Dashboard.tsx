@@ -9,7 +9,6 @@ import ChartsSection from "@/components/dashboard/sections/ChartsSection";
 import YearlyChartSection from "@/components/dashboard/sections/YearlyChartSection";
 import TransactionsSection from "@/components/dashboard/sections/TransactionsSection";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { apiService } from "@/services/apiService";
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet } from "lucide-react";
 import { prepareMonthlyCategoryReport } from "@/utils/exports";

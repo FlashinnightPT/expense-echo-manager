@@ -72,21 +72,21 @@ export const prepareCategoryHierarchyForReport = (
   selectedYear: number,
   type: 'income' | 'expense'
 ) => {
-  // Filter root categories of the specified type
-  const rootCategories = categories.filter(c => c.level === 1 && c.type === type);
+  // Filter categories of the specified type
+  const typeCategories = categories.filter(c => c.type === type);
   
   // Create a map to hold monthly totals by category ID
   const monthlyTotals: Record<string, Record<number, number>> = {};
   
   // Initialize the monthly totals map for all categories
-  categories.forEach(cat => {
+  typeCategories.forEach(cat => {
     monthlyTotals[cat.id] = {};
     for (let month = 1; month <= 12; month++) {
       monthlyTotals[cat.id][month] = 0;
     }
   });
   
-  // Calculate monthly totals for each category
+  // Calculate monthly totals for each category from transactions
   transactions.forEach(t => {
     if (t.type !== type) return;
     
@@ -96,7 +96,6 @@ export const prepareCategoryHierarchyForReport = (
     
     if (transactionYear !== selectedYear) return;
     
-    // Get the category and all its parent categories
     const categoryId = t.categoryId;
     if (!categoryId) return;
     
@@ -105,24 +104,42 @@ export const prepareCategoryHierarchyForReport = (
       monthlyTotals[categoryId][transactionMonth] = 
         (monthlyTotals[categoryId][transactionMonth] || 0) + t.amount;
     }
+    
+    // Also add to parent categories
+    let parentId = getCategoryParent(categoryId, categories);
+    while (parentId) {
+      if (monthlyTotals[parentId]) {
+        monthlyTotals[parentId][transactionMonth] = 
+          (monthlyTotals[parentId][transactionMonth] || 0) + t.amount;
+      }
+      parentId = getCategoryParent(parentId, categories);
+    }
   });
+  
+  // Helper function to get parent category ID
+  function getCategoryParent(categoryId: string, cats: TransactionCategory[]): string {
+    const category = cats.find(c => c.id === categoryId);
+    return category?.parentId || '';
+  }
+  
+  // Filter root categories of the specified type (level 1)
+  const rootCategories = typeCategories.filter(c => c.level === 1);
   
   // Create the hierarchical structure for the report
   const hierarchy = rootCategories.map(rootCat => {
-    const subcategories = categories
+    const level2Categories = typeCategories
       .filter(c => c.parentId === rootCat.id)
-      .map(subCat => {
-        // Get the deepest level subcategories
-        const level3Categories = categories
-          .filter(c => c.parentId === subCat.id)
+      .map(level2Cat => {
+        const level3Categories = typeCategories
+          .filter(c => c.parentId === level2Cat.id)
           .map(level3Cat => ({
             category: level3Cat,
             monthlyValues: monthlyTotals[level3Cat.id] || {}
           }));
           
         return {
-          category: subCat,
-          monthlyValues: monthlyTotals[subCat.id] || {},
+          category: level2Cat,
+          monthlyValues: monthlyTotals[level2Cat.id] || {},
           subcategories: level3Categories
         };
       });
@@ -130,7 +147,7 @@ export const prepareCategoryHierarchyForReport = (
     return {
       category: rootCat,
       monthlyValues: monthlyTotals[rootCat.id] || {},
-      subcategories
+      subcategories: level2Categories
     };
   });
   
@@ -158,7 +175,7 @@ export const calculateMonthlyTotalsByType = (
     
     const transactionDate = new Date(t.date);
     const transactionYear = transactionDate.getFullYear();
-    const transactionMonth = transactionDate.getMonth() +.1;
+    const transactionMonth = transactionDate.getMonth() + 1;
     
     if (transactionYear !== selectedYear) return;
     
