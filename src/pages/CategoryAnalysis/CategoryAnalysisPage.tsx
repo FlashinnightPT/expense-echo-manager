@@ -1,6 +1,5 @@
 
 import React, { useEffect } from "react";
-import Header from "@/components/layout/Header";
 import { useCategoryData } from "@/hooks/useCategoryData";
 import { useTransactionData } from "@/hooks/useTransactionData";
 import CategoryAnalysisFilters from "./components/CategoryAnalysisFilters";
@@ -65,51 +64,48 @@ const CategoryAnalysisPage = () => {
   const filteredRootCategories = filterRootCategories(categories, activeTab, searchTerm);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container mx-auto py-4">
-        <CategoryAnalysisFilters 
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          selectedYear={selectedYear}
-          setSelectedYear={setSelectedYear}
-          selectedMonth={selectedMonth}
-          setSelectedMonth={setSelectedMonth}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          availableYears={availableYears}
-        />
-        
-        <ShowHideValuesButton 
-          showValues={showValues} 
-          toggleShowValues={toggleShowValues} 
-        />
-        
-        <CategoryList 
-          filteredRootCategories={filteredRootCategories}
-          selectedCategoryId={selectedCategoryId}
-          setSelectedCategoryId={setSelectedCategoryId}
-        />
-        
-        {selectedCategoryId && (
-          <SubcategoryAnalysisTable 
-            subcategoryData={subcategoryData}
-            totalAmount={totalAmount}
-            selectedCategoryName={selectedCategoryName}
-            showValues={showValues}
-          />
-        )}
-        
-        <CategoryComparisonSection
-          categories={categories}
-          transactions={transactions}
-          selectedYear={selectedYear}
-          selectedMonth={selectedMonth}
-          activeTab={activeTab}
+    <main className="container mx-auto py-4">
+      <CategoryAnalysisFilters 
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        selectedMonth={selectedMonth}
+        setSelectedMonth={setSelectedMonth}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        availableYears={availableYears}
+      />
+      
+      <ShowHideValuesButton 
+        showValues={showValues} 
+        toggleShowValues={toggleShowValues} 
+      />
+      
+      <CategoryList 
+        filteredRootCategories={filteredRootCategories}
+        selectedCategoryId={selectedCategoryId}
+        setSelectedCategoryId={setSelectedCategoryId}
+      />
+      
+      {selectedCategoryId && (
+        <SubcategoryAnalysisTable 
+          subcategoryData={subcategoryData}
+          totalAmount={totalAmount}
+          selectedCategoryName={selectedCategoryName}
           showValues={showValues}
         />
-      </main>
-    </div>
+      )}
+      
+      <CategoryComparisonSection
+        categories={categories}
+        transactions={transactions}
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
+        activeTab={activeTab}
+        showValues={showValues}
+      />
+    </main>
   );
 };
 
