@@ -379,13 +379,6 @@ export const prepareMonthlyCategoryReport = async (
   // Criar workbook com múltiplas planilhas
   const wb = utils.book_new();
 
-  // Criar dados de cabeçalho com os meses
-  const headerRow = [
-    "Descrição", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", 
-    "Jul", "Ago", "Set", "Out", "Nov", "Dez", 
-    "Total acumulado do Ano", "Média Mensal"
-  ];
-
   // Preparar dados para receitas
   const incomeData = prepareTypeData("income", "Receitas", year, categories, transactions);
   
@@ -394,17 +387,6 @@ export const prepareMonthlyCategoryReport = async (
 
   // Preparar dados para diferença (receitas - despesas)
   const differenceData = prepareDifferenceData(incomeData, expenseData);
-
-  // Obter o logo
-  let logoUrl = "";
-  try {
-    const logoElement = document.querySelector('header img') as HTMLImageElement;
-    if (logoElement && logoElement.src) {
-      logoUrl = logoElement.src;
-    }
-  } catch (error) {
-    console.error("Erro ao obter logo:", error);
-  }
 
   // Exportar em formato Excel
   const exportData = [
@@ -415,11 +397,11 @@ export const prepareMonthlyCategoryReport = async (
     // Cabeçalho da tabela principal
     { A: "Descrição", B: "Jan", C: "Fev", D: "Mar", E: "Abr", F: "Mai", G: "Jun", H: "Jul", I: "Ago", J: "Set", K: "Out", L: "Nov", M: "Dez", N: "Total acumulado do Ano", O: "Média Mensal" },
     // Dados de receitas
-    incomeData.summary,
+    { A: "Receitas", ...incomeData.summary },
     // Dados de despesas
-    expenseData.summary,
+    { A: "Despesas", ...expenseData.summary },
     // Diferença (receitas - despesas)
-    differenceData,
+    { A: "Diferença", ...differenceData },
     // Linha em branco
     {},
     // Cabeçalho de receitas
@@ -536,12 +518,11 @@ function prepareTypeData(type: "income" | "expense", label: string, year: number
   
   // Calcular total anual e média mensal
   const totalYear = Object.values(monthlyTotals).reduce((sum, value) => sum + value, 0);
-  const monthsWithValues = Object.values(monthlyTotals).filter(value => value > 0).length;
-  const monthlyAverage = monthsWithValues > 0 ? totalYear / monthsWithValues : 0;
+  const monthsWithValues = Object.values(monthlyTotals).filter(value => value > 0).length || 12;
+  const monthlyAverage = totalYear / monthsWithValues;
   
   // Preparar linha de resumo
   const summary: { [key: string]: string } = {
-    A: label,
     B: formatCurrency(monthlyTotals[1]).replace(/[€$]/g, '').trim(),
     C: formatCurrency(monthlyTotals[2]).replace(/[€$]/g, '').trim(),
     D: formatCurrency(monthlyTotals[3]).replace(/[€$]/g, '').trim(),
@@ -561,65 +542,70 @@ function prepareTypeData(type: "income" | "expense", label: string, year: number
   // Preparar detalhes por categoria
   const details: { [key: string]: string }[] = [];
   
-  rootCategories.forEach(rootCat => {
-    // Adicionar categoria raiz
+  if (rootCategories.length === 0) {
     details.push({
-      A: rootCat.name,
-      B: "", C: "", D: "", E: "", F: "", G: "", H: "", I: "", J: "", K: "", L: "", M: "", N: "", O: ""
+      A: label,
+      B: "0,00",
+      C: "0,00",
+      D: "0,00",
+      E: "0,00",
+      F: "0,00",
+      G: "0,00",
+      H: "0,00",
+      I: "0,00",
+      J: "0,00",
+      K: "0,00",
+      L: "0,00",
+      M: "0,00",
+      N: "0,00",
+      O: "0,00"
+    });
+  }
+  
+  rootCategories.forEach(rootCat => {
+    const categoryMonthlyTotals: { [key: string]: number } = {};
+    for (let i = 1; i <= 12; i++) {
+      categoryMonthlyTotals[i] = 0;
+    }
+    
+    // Obter todas as subcategorias desta categoria
+    const allSubCategories = getAllSubcategoryIds(rootCat.id, categories);
+    allSubCategories.push(rootCat.id);
+    
+    // Calcular valores para a categoria e suas subcategorias
+    transactions.forEach(transaction => {
+      const date = new Date(transaction.date);
+      const transactionYear = date.getFullYear();
+      const month = date.getMonth() + 1;
+      
+      if (transactionYear === year && 
+          transaction.type === type && 
+          allSubCategories.includes(transaction.categoryId)) {
+        categoryMonthlyTotals[month] += transaction.amount;
+      }
     });
     
-    // Obter subcategorias de nível 2
-    const level2Categories = categories.filter(cat => cat.parentId === rootCat.id);
+    // Calcular total anual e média mensal para categoria
+    const catTotalYear = Object.values(categoryMonthlyTotals).reduce((sum, value) => sum + value, 0);
+    const catMonthsWithValues = Object.values(categoryMonthlyTotals).filter(value => value > 0).length || 12;
+    const catMonthlyAverage = catTotalYear / catMonthsWithValues;
     
-    level2Categories.forEach(level2Cat => {
-      // Calcular valores mensais para esta categoria
-      const categoryMonthlyTotals: { [key: string]: number } = {};
-      for (let i = 1; i <= 12; i++) {
-        categoryMonthlyTotals[i] = 0;
-      }
-      
-      // Obter todas as subcategorias desta categoria (incluindo nível 3 e 4)
-      const allSubCategories = getAllSubcategoryIds(level2Cat.id, categories);
-      allSubCategories.push(level2Cat.id);
-      
-      // Calcular valores para a categoria e suas subcategorias
-      transactions.forEach(transaction => {
-        const date = new Date(transaction.date);
-        const transactionYear = date.getFullYear();
-        const month = date.getMonth() + 1;
-        
-        if (transactionYear === year && 
-            transaction.type === type && 
-            allSubCategories.includes(transaction.categoryId)) {
-          categoryMonthlyTotals[month] += transaction.amount;
-        }
-      });
-      
-      // Calcular total anual e média mensal para categoria
-      const catTotalYear = Object.values(categoryMonthlyTotals).reduce((sum, value) => sum + value, 0);
-      const catMonthsWithValues = Object.values(categoryMonthlyTotals).filter(value => value > 0).length;
-      const catMonthlyAverage = catMonthsWithValues > 0 ? catTotalYear / catMonthsWithValues : 0;
-      
-      // Apenas incluir categorias com valores
-      if (catTotalYear > 0) {
-        details.push({
-          A: `    ${level2Cat.name}`,
-          B: formatCurrency(categoryMonthlyTotals[1]).replace(/[€$]/g, '').trim(),
-          C: formatCurrency(categoryMonthlyTotals[2]).replace(/[€$]/g, '').trim(),
-          D: formatCurrency(categoryMonthlyTotals[3]).replace(/[€$]/g, '').trim(),
-          E: formatCurrency(categoryMonthlyTotals[4]).replace(/[€$]/g, '').trim(),
-          F: formatCurrency(categoryMonthlyTotals[5]).replace(/[€$]/g, '').trim(),
-          G: formatCurrency(categoryMonthlyTotals[6]).replace(/[€$]/g, '').trim(),
-          H: formatCurrency(categoryMonthlyTotals[7]).replace(/[€$]/g, '').trim(),
-          I: formatCurrency(categoryMonthlyTotals[8]).replace(/[€$]/g, '').trim(),
-          J: formatCurrency(categoryMonthlyTotals[9]).replace(/[€$]/g, '').trim(),
-          K: formatCurrency(categoryMonthlyTotals[10]).replace(/[€$]/g, '').trim(),
-          L: formatCurrency(categoryMonthlyTotals[11]).replace(/[€$]/g, '').trim(),
-          M: formatCurrency(categoryMonthlyTotals[12]).replace(/[€$]/g, '').trim(),
-          N: formatCurrency(catTotalYear).replace(/[€$]/g, '').trim(),
-          O: formatCurrency(catMonthlyAverage).replace(/[€$]/g, '').trim()
-        });
-      }
+    details.push({
+      A: rootCat.name,
+      B: formatCurrency(categoryMonthlyTotals[1]).replace(/[€$]/g, '').trim(),
+      C: formatCurrency(categoryMonthlyTotals[2]).replace(/[€$]/g, '').trim(),
+      D: formatCurrency(categoryMonthlyTotals[3]).replace(/[€$]/g, '').trim(),
+      E: formatCurrency(categoryMonthlyTotals[4]).replace(/[€$]/g, '').trim(),
+      F: formatCurrency(categoryMonthlyTotals[5]).replace(/[€$]/g, '').trim(),
+      G: formatCurrency(categoryMonthlyTotals[6]).replace(/[€$]/g, '').trim(),
+      H: formatCurrency(categoryMonthlyTotals[7]).replace(/[€$]/g, '').trim(),
+      I: formatCurrency(categoryMonthlyTotals[8]).replace(/[€$]/g, '').trim(),
+      J: formatCurrency(categoryMonthlyTotals[9]).replace(/[€$]/g, '').trim(),
+      K: formatCurrency(categoryMonthlyTotals[10]).replace(/[€$]/g, '').trim(),
+      L: formatCurrency(categoryMonthlyTotals[11]).replace(/[€$]/g, '').trim(),
+      M: formatCurrency(categoryMonthlyTotals[12]).replace(/[€$]/g, '').trim(),
+      N: formatCurrency(catTotalYear).replace(/[€$]/g, '').trim(),
+      O: formatCurrency(catMonthlyAverage).replace(/[€$]/g, '').trim()
     });
   });
   
@@ -631,7 +617,7 @@ function prepareTypeData(type: "income" | "expense", label: string, year: number
  */
 function prepareDifferenceData(incomeData: any, expenseData: any) {
   const months = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'];
-  const result: { [key: string]: string } = { A: "Diferença" };
+  const result: { [key: string]: string } = {};
   
   months.forEach(month => {
     const incomeValue = parseFloat(incomeData.summary[month].replace(/\./g, '').replace(',', '.')) || 0;
