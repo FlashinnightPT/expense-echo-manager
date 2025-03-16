@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import { useCategoryData } from "@/hooks/useCategoryData";
@@ -31,18 +32,18 @@ const CategoryAnalysisPage = () => {
   const [subcategoryData, setSubcategoryData] = useState<any[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  // Dates for comparison
+  // Dates for comparison - Fix: Explicitly convert selectedMonth to number
   const startDate = useState(new Date(selectedYear, selectedMonth !== null ? Number(selectedMonth) : 0, 1))[0];
   const endDate = useState(new Date(
     selectedYear, 
-    selectedMonth !== null ? (Number(selectedMonth) + 1) : 12, 
+    selectedMonth !== null ? Number(selectedMonth) + 1 : 12, 
     0
   ))[0];
 
-  // Years available for selection
+  // Years available for selection - Fix: Ensure the array is typed as number[]
   const availableYears = Array.from(
     new Set(transactions.map(t => new Date(t.date).getFullYear()))
-  ).sort((a, b) => b - a);
+  ).sort((a, b) => b - a) as number[];
 
   // If there are no years in transactions, add current year
   useEffect(() => {

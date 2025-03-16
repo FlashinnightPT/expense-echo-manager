@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -50,11 +49,11 @@ const CategoryAnalysis = () => {
   const [totalAmount, setTotalAmount] = useState(0);
 
   // Datas para comparação
-  // Fix: Convert selectedMonth to number before arithmetic operations
+  // Fix: Explicitly convert selectedMonth to number before using in arithmetic
   const startDate = useState(new Date(selectedYear, selectedMonth !== null ? Number(selectedMonth) : 0, 1))[0];
   const endDate = useState(new Date(
     selectedYear, 
-    selectedMonth !== null ? (Number(selectedMonth) + 1) : 12, 
+    selectedMonth !== null ? Number(selectedMonth) + 1 : 12, 
     0
   ))[0];
 
