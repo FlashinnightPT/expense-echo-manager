@@ -79,12 +79,12 @@ const AiChatDialog: React.FC<AiChatDialogProps> = ({ open, onOpenChange }) => {
     }
   };
 
-  // Exemplos de perguntas para ajudar o usuário
+  // Exemplos de perguntas mais específicas e práticas
   const exampleQuestions = [
-    "Quanto gastei em combustível em 2024?",
-    "Qual foi o total de gastos em salários no último mês?",
-    "Quais são as 3 maiores despesas do ano atual?",
-    "Como meus gastos em alimentação se comparam com o ano passado?"
+    "Quanto gastei com combustível em 2024?",
+    "Qual foi o total de pagamentos a Carlos no último ano?",
+    "Quais foram as 3 maiores despesas em informática?",
+    "Comparar gastos com portagens entre 2023 e 2024"
   ];
   
   return (
@@ -132,7 +132,7 @@ const AiChatDialog: React.FC<AiChatDialogProps> = ({ open, onOpenChange }) => {
                 <div className="flex items-start space-x-2">
                   <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
                   <p className="text-xs text-yellow-800 dark:text-yellow-400">
-                    Para consultas complexas ou com muitos dados, as respostas podem ser limitadas. Seja específico em suas perguntas.
+                    Seja específico em suas perguntas. Mencione categorias, períodos (anos/meses) e tipos de transação para obter respostas mais precisas.
                   </p>
                 </div>
               </div>

@@ -29,95 +29,102 @@ export class AiService {
     return !!this.apiKey && this.apiKey !== "sua-chave-api-openai-aqui";
   }
 
-  // Método para preparar os dados financeiros para consulta com limite de tokens
+  // Método melhorado para preparar os dados financeiros para consulta
   private prepareFinancialData(transactions: Transaction[]): string {
+    if (transactions.length === 0) {
+      return "Não há dados de transações disponíveis.";
+    }
+    
     // Limitar o número de transações para economizar tokens
     const MAX_TRANSACTIONS = 50;
     const limitedTransactions = transactions.slice(-MAX_TRANSACTIONS);
     
-    // Organizar transações por ano para facilitar consultas específicas por período
-    const transactionsByYear = new Map<number, Transaction[]>();
+    // Extrair categorias únicas das transações para facilitar a busca
+    const uniqueCategories = new Set<string>();
+    const categoryNameMap = new Map<string, string>();
+    
+    transactions.forEach(transaction => {
+      uniqueCategories.add(transaction.categoryId);
+      
+      // Extrair nome da categoria da descrição (se disponível)
+      const descParts = transaction.description.split(': ');
+      if (descParts.length > 1) {
+        categoryNameMap.set(transaction.categoryId, descParts[1]);
+      }
+    });
+    
+    // Organizar transações por ano e categoria
+    const transactionsByYear = new Map<number, Map<string, Transaction[]>>();
     
     transactions.forEach(transaction => {
       const date = new Date(transaction.date);
       const year = date.getFullYear();
       
       if (!transactionsByYear.has(year)) {
-        transactionsByYear.set(year, []);
+        transactionsByYear.set(year, new Map<string, Transaction[]>());
       }
       
-      transactionsByYear.get(year)?.push(transaction);
+      const yearData = transactionsByYear.get(year)!;
+      
+      if (!yearData.has(transaction.categoryId)) {
+        yearData.set(transaction.categoryId, []);
+      }
+      
+      yearData.get(transaction.categoryId)!.push(transaction);
     });
     
-    // Agrupa transações por categoria para gasto médio
-    const categoryMap = new Map<string, { 
-      total: number, 
-      count: number,
-      byYear: Map<number, { total: number, count: number }> 
-    }>();
+    // Formatar dados para texto
+    let dataText = "DADOS FINANCEIROS DISPONÍVEIS:\n\n";
     
-    transactions.forEach(transaction => {
-      const key = transaction.categoryId;
-      const date = new Date(transaction.date);
-      const year = date.getFullYear();
+    // Adicionar informações sobre categorias
+    dataText += "LISTA DE CATEGORIAS:\n";
+    const categoriesList: string[] = [];
+    
+    uniqueCategories.forEach(categoryId => {
+      const categoryName = categoryNameMap.get(categoryId) || categoryId;
+      categoriesList.push(`- ${categoryName} (id: ${categoryId})`);
+    });
+    
+    dataText += categoriesList.join("\n") + "\n\n";
+    
+    // Adicionar resumo por ano e categoria
+    dataText += "RESUMO POR ANO E CATEGORIA:\n";
+    const sortedYears = Array.from(transactionsByYear.keys()).sort((a, b) => b - a);
+    
+    sortedYears.forEach(year => {
+      dataText += `\nANO: ${year}\n`;
+      const yearData = transactionsByYear.get(year)!;
       
-      if (!categoryMap.has(key)) {
-        categoryMap.set(key, { 
-          total: 0, 
-          count: 0, 
-          byYear: new Map()
-        });
-      }
-      
-      const entry = categoryMap.get(key)!;
-      
-      // Adicionamos apenas as despesas para cálculos
-      if (transaction.type === 'expense') {
-        entry.total += transaction.amount;
-        entry.count += 1;
+      const categorySummaries: string[] = [];
+      yearData.forEach((transactions, categoryId) => {
+        const categoryName = categoryNameMap.get(categoryId) || categoryId;
         
-        // Adicionar dados por ano
-        if (!entry.byYear.has(year)) {
-          entry.byYear.set(year, { total: 0, count: 0 });
+        // Separe por tipo (receita/despesa)
+        const incomes = transactions.filter(t => t.type === 'income');
+        const expenses = transactions.filter(t => t.type === 'expense');
+        
+        const totalIncome = incomes.reduce((sum, t) => sum + t.amount, 0);
+        const totalExpense = expenses.reduce((sum, t) => sum + t.amount, 0);
+        
+        if (incomes.length > 0) {
+          categorySummaries.push(`  Receitas de ${categoryName}: Total ${totalIncome.toFixed(2)}, ${incomes.length} transações`);
         }
         
-        const yearData = entry.byYear.get(year)!;
-        yearData.total += transaction.amount;
-        yearData.count += 1;
-      }
+        if (expenses.length > 0) {
+          categorySummaries.push(`  Despesas de ${categoryName}: Total ${totalExpense.toFixed(2)}, ${expenses.length} transações`);
+        }
+      });
+      
+      dataText += categorySummaries.join("\n") + "\n";
     });
     
-    // Formata os dados para texto
-    let dataText = "Dados financeiros disponíveis:\n\n";
-    
-    // Adiciona informações sobre gastos por categoria
-    dataText += "RESUMO DE GASTOS POR CATEGORIA:\n";
-    categoryMap.forEach((value, key) => {
-      if (value.count > 0) {
-        const categoryName = transactions.find(t => t.categoryId === key)?.description.split(': ')[1] || key;
-        const avgSpend = value.total / value.count;
-        
-        dataText += `Categoria ${categoryName} (${key}): Total gasto ${value.total.toFixed(2)}, média por transação ${avgSpend.toFixed(2)}, ${value.count} transações\n`;
-        
-        // Adicionar dados por ano para cada categoria
-        dataText += "  Detalhe por ano:\n";
-        value.byYear.forEach((yearData, year) => {
-          const yearAvg = yearData.total / yearData.count;
-          dataText += `    ${year}: Total ${yearData.total.toFixed(2)}, média ${yearAvg.toFixed(2)}, ${yearData.count} transações\n`;
-        });
-      }
-    });
-    
-    // Adiciona anos disponíveis
-    const availableYears = Array.from(transactionsByYear.keys()).sort();
-    dataText += `\nAnos com dados disponíveis: ${availableYears.join(", ")}\n`;
-    
-    // Adiciona detalhes sobre um número limitado de transações mais recentes
-    dataText += `\nDetalhes das ${limitedTransactions.length} transações mais recentes (de um total de ${transactions.length}):\n`;
+    // Adicionar detalhes sobre algumas transações recentes
+    dataText += `\nDETALHES DAS ${limitedTransactions.length} TRANSAÇÕES MAIS RECENTES:\n`;
     limitedTransactions.forEach(t => {
       const date = new Date(t.date).toLocaleDateString();
-      const categoryName = t.description.split(': ')[1] || '';
-      dataText += `Data: ${date}, Descrição: ${t.description}, Valor: ${t.amount.toFixed(2)}, Tipo: ${t.type}, Categoria: ${categoryName} (${t.categoryId})\n`;
+      const categoryName = categoryNameMap.get(t.categoryId) || t.categoryId;
+      const tipo = t.type === 'income' ? 'Receita' : 'Despesa';
+      dataText += `- Data: ${date}, ${tipo}: ${t.description}, Valor: ${t.amount.toFixed(2)}, Categoria: ${categoryName}\n`;
     });
     
     return dataText;
@@ -127,7 +134,7 @@ export class AiService {
   public async queryOpenAI(
     prompt: string, 
     transactions: Transaction[], 
-    maxTokens: number = 150
+    maxTokens: number = 500
   ): Promise<string> {
     try {
       if (!this.hasApiKey()) {
@@ -140,9 +147,12 @@ export class AiService {
         {
           role: "system",
           content: `Você é um assistente financeiro especializado em análise de dados de transações.
-Use apenas os dados fornecidos para responder às perguntas. Seja conciso nas respostas.
-Quando o usuário perguntar sobre categorias específicas, procure pelo nome da categoria ou palavras-chave relacionadas nas descrições das transações.
-Informe o ano e os valores quando disponíveis.`
+Use apenas os dados fornecidos para responder às perguntas. Seja conciso e direto nas respostas.
+Quando o usuário perguntar sobre categorias específicas, procure pelo nome da categoria ou palavras-chave relacionadas nas descrições ou na lista de categorias.
+Se uma pergunta mencionar "combustível", "gasolina", "diesel" ou termos similares, procure por categorias relacionadas a transporte ou combustíveis.
+Se uma pergunta mencionar "salários", procure por categorias relacionadas a funcionários, folha de pagamento ou nomes de pessoas.
+Informe explicitamente quando os dados não contêm a informação solicitada.
+Use valores numéricos nas respostas quando disponíveis.`
         },
         {
           role: "user",
@@ -157,10 +167,10 @@ Informe o ano e os valores quando disponíveis.`
           "Authorization": `Bearer ${this.apiKey}`
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini", // Usando o modelo mais leve para economizar tokens
+          model: "gpt-4o-mini", // Modelo mais leve para economizar tokens
           messages,
           max_tokens: maxTokens,
-          temperature: 0.3 // Menor temperatura para respostas mais precisas
+          temperature: 0.2 // Temperatura mais baixa para respostas mais diretas e factuais
         })
       });
       
