@@ -46,8 +46,18 @@ const BackupSettings = ({ className }: BackupSettingsProps) => {
               <PopoverContent className="w-80">
                 <Alert>
                   <AlertTitle>Sobre os backups</AlertTitle>
-                  <AlertDescription>
-                    O arquivo de backup será salvo na sua pasta de downloads padrão com o nome <code className="text-xs">gestor-financeiro-backup-AAAA-MM-DD.json</code> (onde AAAA-MM-DD é a data atual).
+                  <AlertDescription className="space-y-2">
+                    <p>
+                      O arquivo de backup será salvo na sua pasta de downloads padrão com o nome <code className="text-xs">gestor-financeiro-backup-AAAA-MM-DD.json</code> (onde AAAA-MM-DD é a data atual).
+                    </p>
+                    <p>
+                      Se não encontrar o arquivo, verifique:
+                    </p>
+                    <ul className="list-disc pl-5 text-sm">
+                      <li>A pasta Downloads do seu computador</li>
+                      <li>O seu Ambiente de Trabalho</li>
+                      <li>A barra de downloads do seu navegador</li>
+                    </ul>
                   </AlertDescription>
                 </Alert>
               </PopoverContent>

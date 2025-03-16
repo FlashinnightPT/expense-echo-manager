@@ -44,20 +44,36 @@ export class BackupService extends ApiServiceCore {
       const dateStr = date.toISOString().split('T')[0];
       const fileName = `gestor-financeiro-backup-${dateStr}.json`;
       link.setAttribute('download', fileName);
+      
+      // Garantir que o link seja visível e receba foco
+      link.style.display = 'none';
       document.body.appendChild(link);
       
-      // Disparar o download
-      link.click();
+      // Notificar o usuário antes de iniciar o download
+      toast.info("Iniciando download do backup...");
       
-      // Limpar
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Usar setTimeout para garantir que o toast seja exibido antes do download
+      setTimeout(() => {
+        // Disparar o download
+        link.click();
+        
+        // Limpar
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        // Mostrar mensagem detalhada sobre o local do arquivo
+        const desktopPath = 'C:\\Users\\[SeuUsuário]\\Desktop';
+        const downloadsPath = 'C:\\Users\\[SeuUsuário]\\Downloads';
+        
+        toast.success(
+          `Backup "${fileName}" exportado com sucesso! O arquivo deve estar na sua pasta de Downloads (${downloadsPath}) ou no Desktop (${desktopPath}). Verifique também a barra de downloads do seu navegador.`,
+          { duration: 10000 }
+        );
+        
+        // Registrar no console para depuração
+        console.log(`Backup exportado: ${fileName}`);
+      }, 1000);
       
-      // Mostrar mensagem com o nome do arquivo e informações sobre a localização
-      toast.success(
-        `Backup exportado como "${fileName}". O arquivo foi salvo na sua pasta de downloads padrão.`,
-        { duration: 6000 }
-      );
       return true;
       
     } catch (error) {
