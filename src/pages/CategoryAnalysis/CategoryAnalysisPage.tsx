@@ -33,8 +33,8 @@ const CategoryAnalysisPage = () => {
   const [totalAmount, setTotalAmount] = useState(0);
 
   // Dates for comparison - Fix: Create intermediate number variables to ensure type safety
-  const startMonth = selectedMonth !== null ? Number(selectedMonth) : 0;
-  const endMonth = selectedMonth !== null ? Number(selectedMonth) + 1 : 12;
+  const startMonth: number = selectedMonth !== null ? Number(selectedMonth) : 0;
+  const endMonth: number = selectedMonth !== null ? Number(selectedMonth) + 1 : 12;
   
   // Create the date objects directly without using useState
   const startDate = new Date(selectedYear, startMonth, 1);

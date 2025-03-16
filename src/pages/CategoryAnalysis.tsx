@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -49,11 +50,11 @@ const CategoryAnalysis = () => {
   const [totalAmount, setTotalAmount] = useState(0);
 
   // Datas para comparação
-  // Fix: Create separate numeric variables for months to ensure type safety
-  const startMonth = selectedMonth !== null ? Number(selectedMonth) : 0;
-  const endMonth = selectedMonth !== null ? Number(selectedMonth) + 1 : 12;
+  // Fix: Criar variáveis numéricas para os meses para garantir segurança de tipos
+  const startMonth: number = selectedMonth !== null ? Number(selectedMonth) : 0;
+  const endMonth: number = selectedMonth !== null ? Number(selectedMonth) + 1 : 12;
   
-  // Use the numeric variables in the Date constructor
+  // Usar as variáveis numéricas no construtor Date
   const startDate = new Date(selectedYear, startMonth, 1);
   const endDate = new Date(selectedYear, endMonth, 0);
 
