@@ -10,9 +10,10 @@ import YearlyChartSection from "@/components/dashboard/sections/YearlyChartSecti
 import TransactionsSection from "@/components/dashboard/sections/TransactionsSection";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Button } from "@/components/ui/button";
-import { FileSpreadsheet } from "lucide-react";
+import { FileSpreadsheet, Plus } from "lucide-react";
 import { prepareMonthlyCategoryReport } from "@/utils/exports";
 import { toast } from "sonner";
+import { useTransactionData } from "@/hooks/useTransactionData";
 
 const Painel = () => {
   const { canEdit, useIdleWarning } = useAuth();
@@ -33,6 +34,9 @@ const Painel = () => {
   useEffect(() => {
     sessionStorage.setItem('showFinancialValues', showValues.toString());
   }, [showValues]);
+  
+  // Importando a função para gerar transações de teste
+  const { generateTestTransactions } = useTransactionData();
   
   const {
     selectedYear,
@@ -64,6 +68,15 @@ const Painel = () => {
 
   const toggleShowValues = () => {
     setShowValues(prev => !prev);
+  };
+  
+  // Função para gerar transações de teste
+  const handleGenerateTestTransactions = () => {
+    if (!canEdit) {
+      toast.error("Precisa de permissões de edição para criar transações de teste");
+      return;
+    }
+    generateTestTransactions(categories);
   };
   
   // Nova função para gerar o relatório mensal detalhado
@@ -115,14 +128,26 @@ const Painel = () => {
         
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Visão Geral</h2>
-          <Button 
-            onClick={handleGenerateDetailedMonthlyReport}
-            className="flex items-center gap-2"
-            variant="outline"
-          >
-            <FileSpreadsheet className="h-4 w-4" />
-            Relatório Mensal Detalhado
-          </Button>
+          <div className="flex gap-2">
+            {canEdit && (
+              <Button 
+                onClick={handleGenerateTestTransactions}
+                className="flex items-center gap-2"
+                variant="outline"
+              >
+                <Plus className="h-4 w-4" />
+                Criar Transações de Teste
+              </Button>
+            )}
+            <Button 
+              onClick={handleGenerateDetailedMonthlyReport}
+              className="flex items-center gap-2"
+              variant="outline"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              Relatório Mensal Detalhado
+            </Button>
+          </div>
         </div>
         
         <ChartsSection 
