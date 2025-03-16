@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TransactionCategory } from "@/utils/mockData";
@@ -11,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { importCategoriesFromExcel } from "@/utils/exports";
 
 interface CategoryImportProps {
   onImportCategories: (categories: Partial<TransactionCategory>[]) => void;

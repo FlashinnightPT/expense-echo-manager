@@ -8,7 +8,11 @@ import { formatCurrency, getMonthName } from "@/utils/financialCalculations";
 import { Transaction } from "@/utils/mockData";
 import { Button } from "@/components/ui/button";
 import { FileDown, Table } from "lucide-react";
-import { exportToExcel, prepareMonthlyDataForExport, prepareMonthlyCategoryReport } from "@/utils/exportUtils";
+import { 
+  exportToExcel, 
+  prepareMonthlyDataForExport, 
+  prepareMonthlyCategoryReport 
+} from "@/utils/exports";
 import { toast } from "sonner";
 import { useCategoryData } from "@/hooks/useCategoryData";
 
