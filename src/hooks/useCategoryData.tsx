@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { TransactionCategory } from "@/utils/mockData";
 import { defaultCategories } from "@/utils/defaultCategories";
 import { toast } from "sonner";
+import { ExtendedTransactionCategory } from "@/components/dashboard/types/categoryTypes";
 
 export const useCategoryData = () => {
   const initCategories = () => {
@@ -98,6 +99,16 @@ export const useCategoryData = () => {
     return true;
   };
 
+  const updateFixedExpense = (categoryId: string, isFixedExpense: boolean) => {
+    const updatedList = categoryList.map(cat => 
+      cat.id === categoryId ? { ...cat, isFixedExpense } : cat
+    );
+    
+    setCategoryList(updatedList);
+    toast.success(`Categoria ${isFixedExpense ? 'marcada' : 'desmarcada'} como despesa fixa`);
+    return true;
+  };
+
   const moveCategory = (categoryId: string, newParentId: string | null) => {
     // Prevent moving to own child (would create circular reference)
     if (newParentId) {
@@ -170,6 +181,7 @@ export const useCategoryData = () => {
     handleDeleteCategory,
     confirmDeleteCategory,
     updateCategoryName,
-    moveCategory
+    moveCategory,
+    updateFixedExpense
   };
 };

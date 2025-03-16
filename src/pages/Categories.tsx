@@ -15,7 +15,8 @@ const Categories = () => {
     handleDeleteCategory,
     confirmDeleteCategory,
     updateCategoryName,
-    moveCategory
+    moveCategory,
+    updateFixedExpense
   } = useCategoryData();
 
   const { 
@@ -70,6 +71,7 @@ const Categories = () => {
             handleDeleteCategory={attemptCategoryDeletion}
             updateCategoryName={updateCategoryName}
             moveCategory={moveCategory}
+            updateFixedExpense={updateFixedExpense}
           />
         </div>
       </div>

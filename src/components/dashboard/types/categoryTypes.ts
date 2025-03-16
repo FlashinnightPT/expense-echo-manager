@@ -31,3 +31,8 @@ export interface Level2Item extends CategoryItem {
 export interface RootCategoryItem extends CategoryItem {
   subcategories: Level2Item[];
 }
+
+// Extend TransactionCategory in mockData.ts
+export interface ExtendedTransactionCategory extends TransactionCategory {
+  isFixedExpense?: boolean;
+}

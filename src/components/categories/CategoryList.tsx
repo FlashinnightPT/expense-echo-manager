@@ -7,19 +7,23 @@ import { ChevronDown, ChevronRight, Edit, Folder, FolderOpen, Trash2 } from "luc
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { EditCategoryDialog } from "./EditCategoryDialog";
+import FixedExpenseCheckbox from "./FixedExpenseCheckbox";
+import { ExtendedTransactionCategory } from "../dashboard/types/categoryTypes";
 
 interface CategoryListProps {
   categoryList: TransactionCategory[];
   handleDeleteCategory: (categoryId: string) => void;
   updateCategoryName: (categoryId: string, newName: string) => boolean;
   moveCategory: (categoryId: string, newParentId: string | null) => boolean;
+  updateFixedExpense?: (categoryId: string, isFixedExpense: boolean) => void;
 }
 
 const CategoryList = ({ 
   categoryList, 
   handleDeleteCategory,
   updateCategoryName,
-  moveCategory
+  moveCategory,
+  updateFixedExpense
 }: CategoryListProps) => {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [editingCategory, setEditingCategory] = useState<TransactionCategory | null>(null);
@@ -45,6 +49,12 @@ const CategoryList = ({
     moveCategory(categoryId, newParentId);
   };
 
+  const handleFixedExpenseChange = (categoryId: string, isChecked: boolean) => {
+    if (updateFixedExpense) {
+      updateFixedExpense(categoryId, isChecked);
+    }
+  };
+
   const renderCategoriesByType = (type: string) => {
     const mainCategories = categoryList.filter(cat => cat.type === type && cat.level === 2);
     
@@ -67,59 +77,72 @@ const CategoryList = ({
     const children = getChildrenForCategory(category.id);
     const isExpanded = expandedCategories[category.id] || false;
     const indentLevel = category.level - 2; // Level 2 has no indent
-    const bgIntensity = Math.max(0, 100 - (indentLevel * 10)); // Decrease intensity by 10% per level
+    const extendedCategory = category as ExtendedTransactionCategory;
+    const isExpense = category.type === 'expense';
 
     return (
       <div key={category.id} className="mb-1" style={{ marginLeft: `${indentLevel * 16}px` }}>
         <Collapsible open={isExpanded} onOpenChange={() => toggleCategoryExpansion(category.id)}>
-          <div className={`flex items-center justify-between p-2 border rounded-md bg-background hover:bg-accent/20 transition-colors`}>
-            <div className="flex items-center space-x-2">
-              {children.length > 0 ? (
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 p-0">
-                    {isExpanded ? (
-                      <FolderOpen className="h-4 w-4 text-amber-500" />
-                    ) : (
-                      <Folder className="h-4 w-4 text-amber-500" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-              ) : (
-                <div className="w-7 flex justify-center">
-                  <div className="h-2 w-2 rounded-full bg-primary/60 mt-1" />
+          <div className={`flex flex-col p-2 border rounded-md bg-background hover:bg-accent/20 transition-colors`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                {children.length > 0 ? (
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 p-0">
+                      {isExpanded ? (
+                        <FolderOpen className="h-4 w-4 text-amber-500" />
+                      ) : (
+                        <Folder className="h-4 w-4 text-amber-500" />
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                ) : (
+                  <div className="w-7 flex justify-center">
+                    <div className="h-2 w-2 rounded-full bg-primary/60 mt-1" />
+                  </div>
+                )}
+                <div>
+                  <span className="font-medium">{category.name}</span>
+                  <p className="text-xs text-muted-foreground">Nível {category.level}</p>
                 </div>
-              )}
-              <div>
-                <span className="font-medium">{category.name}</span>
-                <p className="text-xs text-muted-foreground">Nível {category.level}</p>
+              </div>
+              <div className="flex">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 text-primary hover:bg-primary/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openEditDialog(category);
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                  <span className="sr-only">Editar categoria</span>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteCategory(category.id);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="sr-only">Apagar categoria</span>
+                </Button>
               </div>
             </div>
-            <div className="flex">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-primary hover:bg-primary/10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openEditDialog(category);
-                }}
-              >
-                <Edit className="h-4 w-4" />
-                <span className="sr-only">Editar categoria</span>
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteCategory(category.id);
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Apagar categoria</span>
-              </Button>
-            </div>
+            
+            {/* Fixed Expense Checkbox - Only shown for expense categories */}
+            {isExpense && (
+              <div className="mt-2 pt-2 border-t border-muted">
+                <FixedExpenseCheckbox 
+                  isChecked={!!extendedCategory.isFixedExpense}
+                  onChange={(checked) => handleFixedExpenseChange(category.id, checked)}
+                />
+              </div>
+            )}
           </div>
           
           {children.length > 0 && (
