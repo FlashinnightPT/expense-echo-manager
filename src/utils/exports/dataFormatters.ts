@@ -132,10 +132,20 @@ export const prepareCategoryHierarchyForReport = (
       .map(level2Cat => {
         const level3Categories = typeCategories
           .filter(c => c.parentId === level2Cat.id)
-          .map(level3Cat => ({
-            category: level3Cat,
-            monthlyValues: monthlyTotals[level3Cat.id] || {}
-          }));
+          .map(level3Cat => {
+            const level4Categories = typeCategories
+              .filter(c => c.parentId === level3Cat.id)
+              .map(level4Cat => ({
+                category: level4Cat,
+                monthlyValues: monthlyTotals[level4Cat.id] || {}
+              }));
+              
+            return {
+              category: level3Cat,
+              monthlyValues: monthlyTotals[level3Cat.id] || {},
+              subcategories: level4Categories
+            };
+          });
           
         return {
           category: level2Cat,
