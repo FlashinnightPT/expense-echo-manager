@@ -101,13 +101,9 @@ const CategoryItem = ({
           )}
         </div>
         
-        {children.length > 0 && (
-          <CollapsibleContent>
-            <div className="mt-1 space-y-1">
-              {/* Child categories will be rendered recursively by the parent component */}
-            </div>
-          </CollapsibleContent>
-        )}
+        <CollapsibleContent>
+          {/* This is where child categories will be rendered */}
+        </CollapsibleContent>
       </Collapsible>
     </div>
   );
