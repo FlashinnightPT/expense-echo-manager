@@ -1,6 +1,6 @@
 
 import { Suspense, lazy } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import "./App.css";
 
@@ -18,6 +18,7 @@ const Monthly = lazy(() => import("@/pages/Monthly"));
 const Yearly = lazy(() => import("@/pages/Yearly"));
 const Categories = lazy(() => import("@/pages/Categories"));
 const CategoryAnalysis = lazy(() => import("@/pages/CategoryAnalysis"));
+const CategoryReport = lazy(() => import("@/pages/CategoryReport"));
 const Settings = lazy(() => import("@/pages/settings"));
 const Users = lazy(() => import("@/pages/Users"));
 const Login = lazy(() => import("@/pages/Login"));
@@ -83,6 +84,16 @@ function App() {
                 <RequireAuth>
                   <WithHeader>
                     <CategoryAnalysis />
+                  </WithHeader>
+                </RequireAuth>
+              } 
+            />
+            <Route 
+              path="/category-report" 
+              element={
+                <RequireAuth>
+                  <WithHeader>
+                    <CategoryReport />
                   </WithHeader>
                 </RequireAuth>
               } 

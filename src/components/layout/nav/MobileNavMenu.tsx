@@ -21,8 +21,14 @@ export function MobileNavMenu({
   const navigate = useNavigate();
 
   const handleNavClick = (href: string) => {
+    // Primeiro fechar o menu
     setIsOpen(false);
-    navigate(href);
+    
+    // Aguardar o fechamento do menu antes de navegar
+    // para evitar problemas de renderização
+    setTimeout(() => {
+      navigate(href);
+    }, 100);
   };
 
   return (
