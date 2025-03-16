@@ -2,9 +2,11 @@
 import { Transaction } from "@/utils/mockData";
 import { toast } from "sonner";
 
+// Chave da API centralizada (substitua pela sua chave real em produção)
+const OPENAI_API_KEY = "sua-chave-api-openai-aqui";
+
 export class AiService {
   private static instance: AiService;
-  private apiKey: string | null = null;
 
   private constructor() {}
 
@@ -15,34 +17,9 @@ export class AiService {
     return AiService.instance;
   }
 
-  // Método para definir a API key
-  public setApiKey(key: string): void {
-    this.apiKey = key;
-    // Guarda a chave no localStorage para uso futuro
-    localStorage.setItem('openai_api_key', key);
-    toast.success("Chave da API da OpenAI configurada com sucesso");
-  }
-
   // Método para verificar se a API key está configurada
   public hasApiKey(): boolean {
-    if (this.apiKey) return true;
-    
-    // Verifica no localStorage
-    const savedKey = localStorage.getItem('openai_api_key');
-    if (savedKey) {
-      this.apiKey = savedKey;
-      return true;
-    }
-    
-    return false;
-  }
-
-  // Método para recuperar a API key
-  public getApiKey(): string | null {
-    if (this.apiKey) return this.apiKey;
-    
-    // Tenta recuperar do localStorage
-    return localStorage.getItem('openai_api_key');
+    return !!OPENAI_API_KEY && OPENAI_API_KEY !== "sua-chave-api-openai-aqui";
   }
 
   // Método para preparar os dados financeiros para consulta
@@ -93,10 +70,9 @@ export class AiService {
   ): Promise<string> {
     try {
       if (!this.hasApiKey()) {
-        throw new Error("API key da OpenAI não configurada");
+        throw new Error("A chave da API da OpenAI não está configurada no servidor");
       }
       
-      const apiKey = this.getApiKey();
       const financialData = this.prepareFinancialData(transactions);
       
       const messages = [
@@ -114,7 +90,7 @@ export class AiService {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`
+          "Authorization": `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
           model: "gpt-4o",
@@ -135,7 +111,7 @@ export class AiService {
     } catch (error) {
       console.error("Erro ao consultar a OpenAI:", error);
       toast.error(`Erro na consulta: ${error instanceof Error ? error.message : String(error)}`);
-      return "Desculpe, não foi possível processar sua consulta. Por favor, verifique sua conexão e a chave da API.";
+      return "Desculpe, não foi possível processar sua consulta. Por favor, tente novamente mais tarde ou contacte o suporte.";
     }
   }
 }

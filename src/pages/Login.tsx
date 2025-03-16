@@ -17,22 +17,6 @@ const Login = () => {
         navigate("/dashboard");
       }, 100);
     }
-    
-    // Garantir que temos pelo menos um usuário no sistema
-    const savedUsers = localStorage.getItem("app_users");
-    if (!savedUsers || JSON.parse(savedUsers).length === 0) {
-      const defaultAdmin = {
-        id: "1",
-        name: "Administrador",
-        username: "admin",
-        role: "editor",
-        status: "active",
-        lastLogin: new Date().toISOString()
-      };
-      
-      localStorage.setItem("app_users", JSON.stringify([defaultAdmin]));
-      console.log("Usuário administrador padrão criado na página de login");
-    }
   }, [navigate]);
 
   const handleLoginSuccess = () => {
