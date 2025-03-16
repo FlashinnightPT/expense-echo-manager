@@ -8,10 +8,12 @@ import { useTransactionHandlers } from "@/components/dashboard/hooks/useTransact
 import ChartsSection from "@/components/dashboard/sections/ChartsSection";
 import YearlyChartSection from "@/components/dashboard/sections/YearlyChartSection";
 import TransactionsSection from "@/components/dashboard/sections/TransactionsSection";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const Painel = () => {
   const { canEdit, useIdleWarning } = useAuth();
   const [showValues, setShowValues] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   // Corrigindo a forma de acessar o componente IdleWarningDialog
   const { IdleWarningDialog } = useIdleWarning;
   
@@ -46,6 +48,14 @@ const Painel = () => {
     getCategoryPath,
   } = useDashboardData();
 
+  // Simular carregamento para demonstração
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const { 
     handleSaveTransactionWithToast, 
     handleDeleteTransactionWithToast 
@@ -58,6 +68,10 @@ const Painel = () => {
   const toggleShowValues = () => {
     setShowValues(prev => !prev);
   };
+
+  if (isLoading) {
+    return <LoadingSpinner className="h-screen" text="A carregar o painel..." />;
+  }
 
   return (
     <div className="min-h-screen bg-background">

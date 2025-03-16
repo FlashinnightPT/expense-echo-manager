@@ -9,6 +9,7 @@ import { AuthProvider, RequireAuth, RequireEditor } from "@/hooks/useAuth";
 
 // Layout component
 import Header from "@/components/layout/Header";
+import { LoadingPage } from "@/components/ui/loading-spinner";
 
 // Páginas principais
 import Index from "@/pages/Index";
@@ -34,7 +35,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Suspense fallback={<div className="flex h-screen items-center justify-center">Carregando...</div>}>
+        <Suspense fallback={<LoadingPage />}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
