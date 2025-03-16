@@ -32,16 +32,17 @@ export const validateCategoryAddition = (
     return false;
   }
 
-  const categoryTransactions = filteredTransactions.filter(t => 
-    allCategoryIds.includes(t.categoryId)
-  );
+  // Removemos a verificação de quantidade que impedia categorias sem transações
+  // const categoryTransactions = filteredTransactions.filter(t => 
+  //   allCategoryIds.includes(t.categoryId)
+  // );
   
-  const amount = categoryTransactions.reduce((sum, t) => sum + t.amount, 0);
+  // const amount = categoryTransactions.reduce((sum, t) => sum + t.amount, 0);
   
-  if (amount === 0) {
-    toast.error("Esta categoria não tem transações no período selecionado");
-    return false;
-  }
+  // if (amount === 0) {
+  //   toast.error("Esta categoria não tem transações no período selecionado");
+  //   return false;
+  // }
 
   return true;
 };
