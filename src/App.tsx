@@ -1,4 +1,3 @@
-
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
@@ -18,7 +17,7 @@ const Monthly = lazy(() => import("@/pages/Monthly"));
 const Yearly = lazy(() => import("@/pages/Yearly"));
 const Categories = lazy(() => import("@/pages/Categories"));
 const CategoryAnalysis = lazy(() => import("@/pages/CategoryAnalysis"));
-const Settings = lazy(() => import("@/pages/Settings"));
+const Settings = lazy(() => import("@/pages/settings"));
 const Users = lazy(() => import("@/pages/Users"));
 const Login = lazy(() => import("@/pages/Login"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
