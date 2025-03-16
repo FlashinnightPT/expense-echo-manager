@@ -1,20 +1,14 @@
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { exportToExcel } from "@/utils/exportUtils";
-import { formatCurrency } from "@/utils/financialCalculations";
-import { getAllSubcategoryIds, validateCategoryAddition, getRandomColor } from "../utils/comparisonChartUtils";
-
-interface ComparisonItem {
-  id: string;
-  name: string;
-  path: string;
-  amount: number;
-  dateRange?: {
-    start: Date;
-    end: Date;
-  };
-}
+import { 
+  ComparisonItem, 
+  calculateCategoryAmount, 
+  createComparisonItem,
+  exportComparisonData
+} from "../utils/comparisonDataUtils";
+import { validateCategoryAddition, getAllSubcategoryIds } from "../utils/comparisonChartUtils";
+import { useComparisonEvents } from "./useComparisonEvents";
 
 export const useComparisonData = (
   categories: any[],
@@ -42,45 +36,16 @@ export const useComparisonData = (
     return comparisonData.reduce((sum, item) => sum + item.amount, 0);
   }, [comparisonData]);
 
-  useEffect(() => {
-    const handleAddCategoryToComparison = (event: CustomEvent) => {
-      const { categoryId, categoryPath, customStartDate, customEndDate } = event.detail;
-      console.log("Adding category to comparison:", categoryId, categoryPath);
-      
-      // Se datas personalizadas forem fornecidas, usá-las
-      if (customStartDate && customEndDate) {
-        addCategoryToComparison(
-          categoryId, 
-          categoryPath, 
-          false, 
-          new Date(customStartDate), 
-          new Date(customEndDate)
-        );
-      } else {
-        // Caso contrário, usar as datas atuais
-        addCategoryToComparison(categoryId, categoryPath);
-      }
-    };
-
-    window.addEventListener("addCategoryToComparison", handleAddCategoryToComparison as EventListener);
-    
-    return () => {
-      window.removeEventListener("addCategoryToComparison", handleAddCategoryToComparison as EventListener);
-    };
-  }, [filteredTransactions]); // Depends on filteredTransactions which changes with date range
-
   const addCategoryToComparison = (
     categoryId: string, 
     categoryPath: string, 
-    shouldScroll = autoScroll,
     customStartDate?: Date,
     customEndDate?: Date
   ) => {
     // Use either custom dates or current filter dates
     const effectiveStartDate = customStartDate || startDate;
     const effectiveEndDate = customEndDate || endDate;
-    
-    const allCategoryIds = [categoryId, ...getAllSubcategoryIds(categoryId, categories)];
+    const shouldScroll = autoScroll;
     
     // Check if we've already reached the maximum of 5 categories
     if (comparisonData.length >= 5) {
@@ -105,6 +70,8 @@ export const useComparisonData = (
       return;
     }
 
+    const allCategoryIds = [categoryId, ...getAllSubcategoryIds(categoryId, categories)];
+
     // Validate if we can add this category
     if (!validateCategoryAddition(categoryId, selectedCategories, filteredTransactions, allCategoryIds)) {
       return;
@@ -120,29 +87,25 @@ export const useComparisonData = (
       );
     });
     
-    const categoryTransactions = customFilteredTransactions.filter(t => 
-      allCategoryIds.includes(t.categoryId)
+    const amount = calculateCategoryAmount(
+      categoryId, 
+      customFilteredTransactions, 
+      categories, 
+      effectiveStartDate, 
+      effectiveEndDate
     );
-    
-    const amount = categoryTransactions.reduce((sum, t) => sum + t.amount, 0);
     
     // Add the category ID to our selected list
     setSelectedCategories(prevSelected => [...prevSelected, categoryId]);
     
-    const periodLabel = customStartDate && customEndDate 
-      ? ` (${effectiveStartDate.toLocaleDateString()} - ${effectiveEndDate.toLocaleDateString()})`
-      : '';
-      
-    const newComparisonItem = {
-      id: `${categoryId}-${Date.now()}`,  // Use unique ID with timestamp
-      name: `${categoryPath.split(" > ").pop() || "Desconhecido"}${periodLabel}`,
-      path: `${categoryPath}${periodLabel}`,
+    const newComparisonItem = createComparisonItem(
+      categoryId,
+      categoryPath,
       amount,
-      dateRange: {
-        start: effectiveStartDate,
-        end: effectiveEndDate
-      }
-    };
+      effectiveStartDate,
+      effectiveEndDate,
+      !!customStartDate
+    );
     
     // Add the new item to the comparison data
     setComparisonData(prevData => [...prevData, newComparisonItem]);
@@ -156,6 +119,12 @@ export const useComparisonData = (
     }
   };
 
+  // Set up event listener for adding categories
+  useComparisonEvents({
+    onAddCategory: addCategoryToComparison,
+    dependencies: [filteredTransactions]
+  });
+
   const removeCategoryFromComparison = (categoryId: string) => {
     const itemToRemove = comparisonData.find(item => item.id === categoryId);
     if (!itemToRemove) return;
@@ -168,29 +137,7 @@ export const useComparisonData = (
   };
 
   const handleExportComparison = () => {
-    try {
-      if (comparisonData.length === 0) {
-        toast.error("Não há dados para exportar");
-        return;
-      }
-      
-      const exportData = comparisonData.map(item => ({
-        Categoria: item.path,
-        Valor: formatCurrency(item.amount).replace(/[€$]/g, '').trim(),
-        "Data Início": item.dateRange?.start.toLocaleDateString() || startDate.toLocaleDateString(),
-        "Data Fim": item.dateRange?.end.toLocaleDateString() || endDate.toLocaleDateString()
-      }));
-      
-      exportToExcel(
-        exportData, 
-        `comparacao_categorias_${startDate.toISOString().split('T')[0]}_a_${endDate.toISOString().split('T')[0]}`
-      );
-      
-      toast.success("Dados de comparação exportados com sucesso");
-    } catch (error) {
-      console.error("Error exporting comparison data:", error);
-      toast.error("Erro ao exportar dados de comparação");
-    }
+    exportComparisonData(comparisonData, startDate, endDate);
   };
 
   const setScrollToComparison = (enabled: boolean) => {
