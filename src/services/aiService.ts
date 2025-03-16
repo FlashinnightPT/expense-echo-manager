@@ -2,13 +2,13 @@
 import { Transaction } from "@/utils/mockData";
 import { toast } from "sonner";
 
-// Chave da API centralizada (substitua pela sua chave real em produção)
-const OPENAI_API_KEY = "sua-chave-api-openai-aqui";
-
 export class AiService {
   private static instance: AiService;
+  private apiKey: string | null;
 
-  private constructor() {}
+  private constructor() {
+    this.apiKey = localStorage.getItem('openai_api_key') || null;
+  }
 
   public static getInstance(): AiService {
     if (!AiService.instance) {
@@ -17,9 +17,16 @@ export class AiService {
     return AiService.instance;
   }
 
+  // Método para definir a chave da API
+  public setApiKey(key: string): void {
+    this.apiKey = key;
+    // Salvar no localStorage para persistência
+    localStorage.setItem('openai_api_key', key);
+  }
+
   // Método para verificar se a API key está configurada
   public hasApiKey(): boolean {
-    return !!OPENAI_API_KEY && OPENAI_API_KEY !== "sua-chave-api-openai-aqui";
+    return !!this.apiKey && this.apiKey !== "sua-chave-api-openai-aqui";
   }
 
   // Método para preparar os dados financeiros para consulta
@@ -70,7 +77,7 @@ export class AiService {
   ): Promise<string> {
     try {
       if (!this.hasApiKey()) {
-        throw new Error("A chave da API da OpenAI não está configurada no servidor");
+        throw new Error("A chave da API da OpenAI não está configurada");
       }
       
       const financialData = this.prepareFinancialData(transactions);
@@ -90,7 +97,7 @@ export class AiService {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${OPENAI_API_KEY}`
+          "Authorization": `Bearer ${this.apiKey}`
         },
         body: JSON.stringify({
           model: "gpt-4o",
