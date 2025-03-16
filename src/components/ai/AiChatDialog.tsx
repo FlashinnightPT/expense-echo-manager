@@ -78,6 +78,14 @@ const AiChatDialog: React.FC<AiChatDialogProps> = ({ open, onOpenChange }) => {
       setIsLoading(false);
     }
   };
+
+  // Exemplos de perguntas para ajudar o usuário
+  const exampleQuestions = [
+    "Quanto gastei em combustível em 2024?",
+    "Qual foi o total de gastos em salários no último mês?",
+    "Quais são as 3 maiores despesas do ano atual?",
+    "Como meus gastos em alimentação se comparam com o ano passado?"
+  ];
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -149,6 +157,24 @@ const AiChatDialog: React.FC<AiChatDialogProps> = ({ open, onOpenChange }) => {
                     </>
                   )}
                 </Button>
+              </div>
+              
+              {/* Exemplos de perguntas que o usuário pode fazer */}
+              <div className="mt-2">
+                <p className="text-sm font-medium text-muted-foreground mb-2">Exemplos de perguntas:</p>
+                <div className="flex flex-wrap gap-2">
+                  {exampleQuestions.map((question, idx) => (
+                    <Button
+                      key={idx}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => setPrompt(question)}
+                    >
+                      {question}
+                    </Button>
+                  ))}
+                </div>
               </div>
               
               <div className="overflow-y-auto flex-grow mt-4">

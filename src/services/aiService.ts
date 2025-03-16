@@ -35,38 +35,89 @@ export class AiService {
     const MAX_TRANSACTIONS = 50;
     const limitedTransactions = transactions.slice(-MAX_TRANSACTIONS);
     
+    // Organizar transações por ano para facilitar consultas específicas por período
+    const transactionsByYear = new Map<number, Transaction[]>();
+    
+    transactions.forEach(transaction => {
+      const date = new Date(transaction.date);
+      const year = date.getFullYear();
+      
+      if (!transactionsByYear.has(year)) {
+        transactionsByYear.set(year, []);
+      }
+      
+      transactionsByYear.get(year)?.push(transaction);
+    });
+    
     // Agrupa transações por categoria para gasto médio
-    const categoryMap = new Map<string, { total: number, count: number }>();
+    const categoryMap = new Map<string, { 
+      total: number, 
+      count: number,
+      byYear: Map<number, { total: number, count: number }> 
+    }>();
     
     transactions.forEach(transaction => {
       const key = transaction.categoryId;
-      const entry = categoryMap.get(key) || { total: 0, count: 0 };
+      const date = new Date(transaction.date);
+      const year = date.getFullYear();
+      
+      if (!categoryMap.has(key)) {
+        categoryMap.set(key, { 
+          total: 0, 
+          count: 0, 
+          byYear: new Map()
+        });
+      }
+      
+      const entry = categoryMap.get(key)!;
       
       // Adicionamos apenas as despesas para cálculos
       if (transaction.type === 'expense') {
         entry.total += transaction.amount;
         entry.count += 1;
+        
+        // Adicionar dados por ano
+        if (!entry.byYear.has(year)) {
+          entry.byYear.set(year, { total: 0, count: 0 });
+        }
+        
+        const yearData = entry.byYear.get(year)!;
+        yearData.total += transaction.amount;
+        yearData.count += 1;
       }
-      
-      categoryMap.set(key, entry);
     });
     
     // Formata os dados para texto
     let dataText = "Dados financeiros disponíveis:\n\n";
     
     // Adiciona informações sobre gastos por categoria
+    dataText += "RESUMO DE GASTOS POR CATEGORIA:\n";
     categoryMap.forEach((value, key) => {
       if (value.count > 0) {
+        const categoryName = transactions.find(t => t.categoryId === key)?.description.split(': ')[1] || key;
         const avgSpend = value.total / value.count;
-        dataText += `Categoria ${key}: Total gasto ${value.total.toFixed(2)}, média por transação ${avgSpend.toFixed(2)}, ${value.count} transações\n`;
+        
+        dataText += `Categoria ${categoryName} (${key}): Total gasto ${value.total.toFixed(2)}, média por transação ${avgSpend.toFixed(2)}, ${value.count} transações\n`;
+        
+        // Adicionar dados por ano para cada categoria
+        dataText += "  Detalhe por ano:\n";
+        value.byYear.forEach((yearData, year) => {
+          const yearAvg = yearData.total / yearData.count;
+          dataText += `    ${year}: Total ${yearData.total.toFixed(2)}, média ${yearAvg.toFixed(2)}, ${yearData.count} transações\n`;
+        });
       }
     });
+    
+    // Adiciona anos disponíveis
+    const availableYears = Array.from(transactionsByYear.keys()).sort();
+    dataText += `\nAnos com dados disponíveis: ${availableYears.join(", ")}\n`;
     
     // Adiciona detalhes sobre um número limitado de transações mais recentes
     dataText += `\nDetalhes das ${limitedTransactions.length} transações mais recentes (de um total de ${transactions.length}):\n`;
     limitedTransactions.forEach(t => {
       const date = new Date(t.date).toLocaleDateString();
-      dataText += `Data: ${date}, Descrição: ${t.description}, Valor: ${t.amount.toFixed(2)}, Tipo: ${t.type}, Categoria: ${t.categoryId}\n`;
+      const categoryName = t.description.split(': ')[1] || '';
+      dataText += `Data: ${date}, Descrição: ${t.description}, Valor: ${t.amount.toFixed(2)}, Tipo: ${t.type}, Categoria: ${categoryName} (${t.categoryId})\n`;
     });
     
     return dataText;
@@ -88,7 +139,10 @@ export class AiService {
       const messages = [
         {
           role: "system",
-          content: "Você é um assistente financeiro especializado em análise de dados de transações. Use apenas os dados fornecidos para responder às perguntas. Seja conciso nas respostas."
+          content: `Você é um assistente financeiro especializado em análise de dados de transações.
+Use apenas os dados fornecidos para responder às perguntas. Seja conciso nas respostas.
+Quando o usuário perguntar sobre categorias específicas, procure pelo nome da categoria ou palavras-chave relacionadas nas descrições das transações.
+Informe o ano e os valores quando disponíveis.`
         },
         {
           role: "user",
