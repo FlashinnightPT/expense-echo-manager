@@ -70,6 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       };
       
       localStorage.setItem("app_users", JSON.stringify([defaultAdmin]));
+      console.log("Usuário administrador padrão criado");
     }
 
     // Verificar se o utilizador já está autenticado
@@ -122,9 +123,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const savedUsers = localStorage.getItem("app_users");
       const users = savedUsers ? JSON.parse(savedUsers) : [];
       
+      // Se não houver usuários, cria o usuário padrão
+      if (users.length === 0) {
+        const defaultAdmin = {
+          id: "1",
+          name: "Administrador",
+          username: "admin",
+          role: "editor",
+          status: "active",
+          lastLogin: new Date().toISOString()
+        };
+        users.push(defaultAdmin);
+        localStorage.setItem("app_users", JSON.stringify(users));
+      }
+      
       const foundUser = users.find((u: any) => u.username === username);
       
       if (!foundUser) {
+        console.log("Usuário não encontrado:", username);
+        console.log("Usuários disponíveis:", users);
         return false;
       }
       
@@ -144,9 +161,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return true;
       }
       
-      // Nota: Numa aplicação real, verificaria a senha com hash
-      // Esta é apenas uma simulação
-      
+      // Para outros usuários ou senha personalizada
+      // Nota: Este é um exemplo simplificado, em um caso real você verificaria senhas com hash
       const userToSave: User = {
         id: foundUser.id,
         name: foundUser.name,

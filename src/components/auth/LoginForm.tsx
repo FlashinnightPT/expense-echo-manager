@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Eye, EyeOff, LogIn, User, Lock, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -74,6 +75,23 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     const savedUsers = localStorage.getItem("app_users");
     const users = savedUsers ? JSON.parse(savedUsers) : [];
     
+    // Se não houver usuários, criar o administrador padrão
+    if (users.length === 0) {
+      const defaultAdmin = {
+        id: "1",
+        name: "Administrador",
+        username: "admin",
+        role: "editor",
+        status: "active",
+        lastLogin: new Date().toISOString()
+      };
+      
+      localStorage.setItem("app_users", JSON.stringify([defaultAdmin]));
+      users.push(defaultAdmin);
+      
+      toast.info("Utilizador administrador criado automaticamente");
+    }
+    
     const user = users.find((u: any) => u.username === form.username);
     
     if (!user) {
@@ -81,6 +99,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
     
+    // Verificar se é o administrador padrão
     const isDefaultAdmin = user.username === "admin";
     if (isDefaultAdmin && form.password === "admin123") {
       sessionStorage.setItem(
