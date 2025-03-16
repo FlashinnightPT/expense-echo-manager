@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Transaction, TransactionCategory, MonthlyData, YearlyData } from "@/utils/mockData";
+import { apiService } from "@/services/apiService";
+import { toast } from "sonner";
 
 export const useDashboardData = () => {
   const currentDate = new Date();
@@ -7,24 +9,41 @@ export const useDashboardData = () => {
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<TransactionCategory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Load data from localStorage
+  // Load data from API service
   useEffect(() => {
-    const storedTransactions = localStorage.getItem('transactions');
-    if (storedTransactions) {
-      setTransactions(JSON.parse(storedTransactions));
-    } else {
-      // Initialize with empty array if no data
-      localStorage.setItem('transactions', JSON.stringify([]));
-    }
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        const [transactionsData, categoriesData] = await Promise.all([
+          apiService.getTransactions(),
+          apiService.getCategories()
+        ]);
+        
+        setTransactions(transactionsData);
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        toast.error("Não foi possível carregar os dados. Tente novamente mais tarde.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    const storedCategories = localStorage.getItem('categories');
-    if (storedCategories) {
-      setCategories(JSON.parse(storedCategories));
-    } else {
-      // Initialize with empty array if no data
-      localStorage.setItem('categories', JSON.stringify([]));
-    }
+    loadData();
+    
+    // Adicionar listener para eventos de storage
+    const handleStorageChange = () => {
+      console.log("Storage changed, updating data");
+      loadData();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
   
   // Available years for selection
@@ -193,68 +212,53 @@ export const useDashboardData = () => {
     return result;
   }, [transactions]);
 
-  // Helper function to trigger localStorage event for other components
-  const triggerStorageEvent = (key: string) => {
-    // Dispatch a storage event to notify other components
-    window.dispatchEvent(new Event('storage'));
+  // Handle data operations with API
+  const handleSaveCategory = async (category: Partial<TransactionCategory>) => {
+    try {
+      const newCategory = await apiService.saveCategory(category);
+      setCategories(prev => [...prev, newCategory]);
+      toast.success(`Categoria "${category.name}" adicionada com sucesso`);
+      return newCategory;
+    } catch (error) {
+      console.error('Erro ao salvar categoria:', error);
+      toast.error("Erro ao salvar categoria. Tente novamente.");
+      return null;
+    }
   };
 
-  // Handle data operations
-  const handleSaveCategory = (category: Partial<TransactionCategory>) => {
-    const newCategory: TransactionCategory = {
-      id: `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      name: category.name || "",
-      type: category.type || "expense",
-      level: category.level || 1,
-      parentId: category.parentId,
-    };
-
-    const updatedCategories = [...categories, newCategory];
-    
-    localStorage.setItem('categories', JSON.stringify(updatedCategories));
-    setCategories(updatedCategories);
-    triggerStorageEvent('categories');
-    
-    console.log('Category saved:', newCategory);
-    return newCategory;
+  const handleSaveTransaction = async (transaction: Partial<Transaction>) => {
+    try {
+      const newTransaction = await apiService.saveTransaction(transaction);
+      setTransactions(prev => [...prev, newTransaction]);
+      return newTransaction;
+    } catch (error) {
+      console.error('Erro ao salvar transação:', error);
+      toast.error("Erro ao salvar transação. Tente novamente.");
+      return null;
+    }
   };
 
-  const handleSaveTransaction = (transaction: Partial<Transaction>) => {
-    const newTransaction: Transaction = {
-      id: `transaction-${Date.now()}`,
-      description: transaction.description || (transaction.type === "income" ? "Receita" : "Despesa"),
-      amount: transaction.amount || 0,
-      date: transaction.date || new Date().toISOString().split('T')[0],
-      categoryId: transaction.categoryId || "",
-      type: transaction.type || "expense"
-    };
-
-    const updatedTransactions = [...transactions, newTransaction];
-    
-    localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-    setTransactions(updatedTransactions);
-    triggerStorageEvent('transactions');
-    
-    console.log('Transaction saved:', newTransaction);
-    return newTransaction;
-  };
-
-  const handleDeleteTransaction = (transactionId: string) => {
-    const updatedTransactions = transactions.filter(t => t.id !== transactionId);
-    localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-    setTransactions(updatedTransactions);
-    triggerStorageEvent('transactions');
-    
-    console.log('Transaction deleted:', transactionId);
+  const handleDeleteTransaction = async (transactionId: string) => {
+    try {
+      await apiService.deleteTransaction(transactionId);
+      setTransactions(prev => prev.filter(t => t.id !== transactionId));
+      return true;
+    } catch (error) {
+      console.error('Erro ao excluir transação:', error);
+      toast.error("Erro ao excluir transação. Tente novamente.");
+      return false;
+    }
   };
 
   const handleClearAllData = () => {
-    setTransactions([]);
-    setCategories([]);
-    localStorage.setItem('transactions', JSON.stringify([]));
-    localStorage.setItem('categories', JSON.stringify([]));
-    triggerStorageEvent('transactions');
-    triggerStorageEvent('categories');
+    if (window.confirm("Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.")) {
+      setTransactions([]);
+      setCategories([]);
+      localStorage.setItem('transactions', JSON.stringify([]));
+      localStorage.setItem('categories', JSON.stringify([]));
+      window.dispatchEvent(new Event('storage'));
+      toast.success("Todos os dados foram limpos com sucesso");
+    }
   };
 
   return {
@@ -268,6 +272,7 @@ export const useDashboardData = () => {
     yearlySummary,
     monthlyChartData,
     yearlyChartData,
+    isLoading,
     setSelectedYear,
     setSelectedMonth,
     handleSaveCategory,
