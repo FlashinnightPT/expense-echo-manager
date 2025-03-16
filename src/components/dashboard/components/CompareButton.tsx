@@ -13,6 +13,7 @@ import {
   PopoverContent, 
   PopoverTrigger 
 } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import { createDateRange } from "@/pages/CategoryAnalysis/utils/dateUtils";
 
 interface CompareButtonProps {
@@ -23,10 +24,8 @@ interface CompareButtonProps {
 
 const CompareButton = ({ onClick, categoryId, categoryPath }: CompareButtonProps) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedStartMonth, setSelectedStartMonth] = useState<number>(new Date().getMonth());
-  const [selectedStartYear, setSelectedStartYear] = useState<number>(new Date().getFullYear());
-  const [selectedEndMonth, setSelectedEndMonth] = useState<number>(new Date().getMonth());
-  const [selectedEndYear, setSelectedEndYear] = useState<number>(new Date().getFullYear());
+  const [startDateInput, setStartDateInput] = useState(`${String(new Date().getMonth() + 1).padStart(2, '0')}/${new Date().getFullYear()}`);
+  const [endDateInput, setEndDateInput] = useState(`${String(new Date().getMonth() + 1).padStart(2, '0')}/${new Date().getFullYear()}`);
   
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event bubbling
@@ -41,45 +40,34 @@ const CompareButton = ({ onClick, categoryId, categoryPath }: CompareButtonProps
   };
   
   const handleCompareWithCustomDates = () => {
-    // Criar objetos de data a partir dos valores de mês e ano selecionados
-    const startDateRange = createDateRange(selectedStartYear, selectedStartMonth);
-    const endDateRange = createDateRange(selectedEndYear, selectedEndMonth);
-    
-    // Disparar evento com datas personalizadas
-    const event = new CustomEvent("addCategoryToComparison", {
-      detail: { 
-        categoryId, 
-        categoryPath,
-        customStartDate: startDateRange.startDate,
-        customEndDate: endDateRange.endDate
+    try {
+      // Parse the input dates
+      const [startMonth, startYear] = startDateInput.split('/').map(part => parseInt(part));
+      const [endMonth, endYear] = endDateInput.split('/').map(part => parseInt(part));
+      
+      if (isNaN(startMonth) || isNaN(startYear) || isNaN(endMonth) || isNaN(endYear)) {
+        throw new Error("Formato de data inválido");
       }
-    });
-    window.dispatchEvent(event);
-    
-    setShowDatePicker(false);
-  };
-
-  // Função para lidar com a alteração da data inicial
-  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value.length >= 7) {
-      const [month, year] = value.split('/');
-      if (month && year) {
-        setSelectedStartMonth(parseInt(month) - 1); // Ajuste para base 0 dos meses
-        setSelectedStartYear(parseInt(year));
-      }
-    }
-  };
-
-  // Função para lidar com a alteração da data final
-  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value.length >= 7) {
-      const [month, year] = value.split('/');
-      if (month && year) {
-        setSelectedEndMonth(parseInt(month) - 1); // Ajuste para base 0 dos meses
-        setSelectedEndYear(parseInt(year));
-      }
+      
+      // Adjust month index (JavaScript months are 0-based)
+      const startDateRange = createDateRange(startYear, startMonth - 1);
+      const endDateRange = createDateRange(endYear, endMonth - 1);
+      
+      // Disparar evento com datas personalizadas
+      const event = new CustomEvent("addCategoryToComparison", {
+        detail: { 
+          categoryId, 
+          categoryPath,
+          customStartDate: startDateRange.startDate,
+          customEndDate: endDateRange.endDate
+        }
+      });
+      window.dispatchEvent(event);
+      
+      setShowDatePicker(false);
+    } catch (error) {
+      console.error("Error parsing dates:", error);
+      // You could add error handling here, like showing a toast
     }
   };
 
@@ -109,12 +97,12 @@ const CompareButton = ({ onClick, categoryId, categoryPath }: CompareButtonProps
                   <h4 className="text-sm font-medium">Data inicial</h4>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input
+                    <Input
                       type="text"
-                      className="w-full pl-9 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                      className="w-full pl-9"
                       placeholder="MM/AAAA"
-                      value={`${String(selectedStartMonth + 1).padStart(2, '0')}/${selectedStartYear}`}
-                      onChange={handleStartDateChange}
+                      value={startDateInput}
+                      onChange={(e) => setStartDateInput(e.target.value)}
                       maxLength={7}
                     />
                   </div>
@@ -124,12 +112,12 @@ const CompareButton = ({ onClick, categoryId, categoryPath }: CompareButtonProps
                   <h4 className="text-sm font-medium">Data final</h4>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input
+                    <Input
                       type="text"
-                      className="w-full pl-9 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                      className="w-full pl-9"
                       placeholder="MM/AAAA"
-                      value={`${String(selectedEndMonth + 1).padStart(2, '0')}/${selectedEndYear}`}
-                      onChange={handleEndDateChange}
+                      value={endDateInput}
+                      onChange={(e) => setEndDateInput(e.target.value)}
                       maxLength={7}
                     />
                   </div>
