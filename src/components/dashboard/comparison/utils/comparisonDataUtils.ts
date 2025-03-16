@@ -22,14 +22,17 @@ export const calculateCategoryAmount = (
   startDate: Date,
   endDate: Date
 ): number => {
+  // Get all subcategory IDs for this category
   const allCategoryIds = [categoryId, ...getAllSubcategoryIds(categoryId, categories)];
   
+  // Filter transactions that belong to this category or its subcategories and are within the date range
   const categoryTransactions = transactions.filter(t => 
     allCategoryIds.includes(t.categoryId) &&
     new Date(t.date) >= startDate &&
     new Date(t.date) <= endDate
   );
   
+  // Sum up the transaction amounts
   return categoryTransactions.reduce((sum, t) => sum + t.amount, 0);
 };
 

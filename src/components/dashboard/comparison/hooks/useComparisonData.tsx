@@ -21,6 +21,7 @@ export const useComparisonData = (
   const [comparisonData, setComparisonData] = useState<ComparisonItem[]>([]);
   const [autoScroll, setAutoScroll] = useState<boolean>(false);
 
+  // Filter transactions based on date range and type
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
       const transactionDate = new Date(t.date);
@@ -32,6 +33,7 @@ export const useComparisonData = (
     });
   }, [transactions, startDate, endDate, activeTab]);
 
+  // Calculate total amount for all comparison data
   const totalAmount = useMemo(() => {
     return comparisonData.reduce((sum, item) => sum + item.amount, 0);
   }, [comparisonData]);
@@ -77,7 +79,7 @@ export const useComparisonData = (
       return;
     }
 
-    // Filter transactions based on effective dates
+    // Get transactions for the effective date range
     const customFilteredTransactions = transactions.filter(t => {
       const transactionDate = new Date(t.date);
       return (
@@ -87,6 +89,7 @@ export const useComparisonData = (
       );
     });
     
+    // Calculate the amount for this category in the selected period
     const amount = calculateCategoryAmount(
       categoryId, 
       customFilteredTransactions, 
@@ -98,6 +101,7 @@ export const useComparisonData = (
     // Add the category ID to our selected list
     setSelectedCategories(prevSelected => [...prevSelected, categoryId]);
     
+    // Create a new comparison item with the calculated amount
     const newComparisonItem = createComparisonItem(
       categoryId,
       categoryPath,

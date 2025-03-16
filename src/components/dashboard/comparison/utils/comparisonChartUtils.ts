@@ -32,18 +32,7 @@ export const validateCategoryAddition = (
     return false;
   }
 
-  // Removemos a verificação de quantidade que impedia categorias sem transações
-  // const categoryTransactions = filteredTransactions.filter(t => 
-  //   allCategoryIds.includes(t.categoryId)
-  // );
-  
-  // const amount = categoryTransactions.reduce((sum, t) => sum + t.amount, 0);
-  
-  // if (amount === 0) {
-  //   toast.error("Esta categoria não tem transações no período selecionado");
-  //   return false;
-  // }
-
+  // We've removed the transaction amount validation to allow categories with no transactions
   return true;
 };
 
