@@ -2,7 +2,7 @@
 // This file is kept for backward compatibility
 // It re-exports everything from the new auth module
 import { 
-  useAuth, 
+  useAuth,
   AuthProvider, 
   RequireAuth, 
   RequireEditor,
@@ -12,6 +12,7 @@ import {
 } from "./auth";
 
 export { 
+  useAuth,
   AuthProvider, 
   RequireAuth, 
   RequireEditor 

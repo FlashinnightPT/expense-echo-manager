@@ -10,10 +10,10 @@ const Login = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    // Verificar se o utilizador já está autenticado
+    // Check if user is already authenticated
     if (isAuthenticated) {
       setIsRedirecting(true);
-      // Pequeno timeout para evitar navegação imediata e potenciais loops
+      // Small timeout to avoid immediate navigation and potential loops
       setTimeout(() => {
         navigate("/dashboard");
       }, 100);
@@ -21,11 +21,11 @@ const Login = () => {
   }, [navigate, isAuthenticated]);
 
   useEffect(() => {
-    // Verificar cache do navegador
+    // Check browser cache
     const currentUser = sessionStorage.getItem("current_user");
     if (currentUser) {
       setIsRedirecting(true);
-      // Pequeno timeout para evitar navegação imediata
+      // Small timeout to avoid immediate navigation
       setTimeout(() => {
         navigate("/dashboard");
       }, 100);
