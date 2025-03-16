@@ -32,13 +32,13 @@ const CategoryAnalysisPage = () => {
   const [subcategoryData, setSubcategoryData] = useState<any[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  // Dates for comparison - Fix: Create intermediate number variables to ensure type safety
-  const startMonth: number = selectedMonth !== null ? Number(selectedMonth) : 0;
-  const endMonth: number = selectedMonth !== null ? Number(selectedMonth) + 1 : 12;
+  // Dates for comparison - Fix: Use explicit casting and ensure values are numbers
+  const startMonth = Number(selectedMonth !== null ? selectedMonth : 0);
+  const endMonth = Number(selectedMonth !== null ? selectedMonth + 1 : 12);
   
   // Create the date objects directly without using useState
-  const startDate = new Date(selectedYear, startMonth, 1);
-  const endDate = new Date(selectedYear, endMonth, 0);
+  const startDate = new Date(Number(selectedYear), startMonth, 1);
+  const endDate = new Date(Number(selectedYear), endMonth, 0);
 
   // Years available for selection - Fix: Ensure the array is typed as number[]
   const availableYears = Array.from(

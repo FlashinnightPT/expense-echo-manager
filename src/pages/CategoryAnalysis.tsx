@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -49,14 +48,13 @@ const CategoryAnalysis = () => {
   const [subcategoryData, setSubcategoryData] = useState<any[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  // Datas para comparação
-  // Fix: Criar variáveis numéricas para os meses para garantir segurança de tipos
-  const startMonth: number = selectedMonth !== null ? Number(selectedMonth) : 0;
-  const endMonth: number = selectedMonth !== null ? Number(selectedMonth) + 1 : 12;
+  // Datas para comparação - Fix: Corrigir tipagem para garantir que são números
+  const startMonth = Number(selectedMonth !== null ? selectedMonth : 0);
+  const endMonth = Number(selectedMonth !== null ? selectedMonth + 1 : 12);
   
   // Usar as variáveis numéricas no construtor Date
-  const startDate = new Date(selectedYear, startMonth, 1);
-  const endDate = new Date(selectedYear, endMonth, 0);
+  const startDate = new Date(Number(selectedYear), startMonth, 1);
+  const endDate = new Date(Number(selectedYear), endMonth, 0);
 
   // Anos disponíveis para seleção
   const availableYears = Array.from(
@@ -69,7 +67,6 @@ const CategoryAnalysis = () => {
       const currentYear = new Date().getFullYear();
       setSelectedYear(currentYear);
     } else if (!availableYears.includes(selectedYear)) {
-      // Fix: Explicitly cast to number or provide a default number value
       setSelectedYear(availableYears[0] !== undefined ? Number(availableYears[0]) : new Date().getFullYear());
     }
   }, [availableYears, selectedYear]);
