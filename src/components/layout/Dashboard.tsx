@@ -10,6 +10,10 @@ import YearlyChartSection from "@/components/dashboard/sections/YearlyChartSecti
 import TransactionsSection from "@/components/dashboard/sections/TransactionsSection";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { apiService } from "@/services/apiService";
+import { Button } from "@/components/ui/button";
+import { FileSpreadsheet } from "lucide-react";
+import { prepareMonthlyCategoryReport } from "@/utils/exports";
+import { toast } from "sonner";
 
 const Painel = () => {
   const { canEdit, useIdleWarning } = useAuth();
@@ -62,6 +66,18 @@ const Painel = () => {
   const toggleShowValues = () => {
     setShowValues(prev => !prev);
   };
+  
+  // Nova função para gerar o relatório mensal detalhado
+  const handleGenerateDetailedMonthlyReport = async () => {
+    try {
+      toast.info("Gerando relatório mensal detalhado...");
+      await prepareMonthlyCategoryReport(selectedYear, categories, transactions);
+      toast.success("Relatório mensal detalhado gerado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao gerar relatório:", error);
+      toast.error("Erro ao gerar relatório mensal.");
+    }
+  };
 
   // Detectar status de conexão
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -97,6 +113,18 @@ const Painel = () => {
           showValues={showValues}
           onToggleShowValues={toggleShowValues}
         />
+        
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Visão Geral</h2>
+          <Button 
+            onClick={handleGenerateDetailedMonthlyReport}
+            className="flex items-center gap-2"
+            variant="outline"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            Relatório Mensal Detalhado
+          </Button>
+        </div>
         
         <ChartsSection 
           monthlySummary={monthlySummary}

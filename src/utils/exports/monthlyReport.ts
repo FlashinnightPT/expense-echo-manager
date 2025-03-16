@@ -1,6 +1,10 @@
 
 import { utils, write } from 'xlsx';
 import { formatCurrency } from "../financialCalculations";
+import { 
+  prepareCategoryHierarchyForReport, 
+  calculateMonthlyTotalsByType 
+} from "./dataFormatters";
 
 /**
  * Helper function to get all subcategory IDs
@@ -87,50 +91,74 @@ function prepareTypeData(type: "income" | "expense", label: string, year: number
     });
   }
   
-  rootCategories.forEach(rootCat => {
-    const categoryMonthlyTotals: { [key: string]: number } = {};
-    for (let i = 1; i <= 12; i++) {
-      categoryMonthlyTotals[i] = 0;
-    }
+  // Estruturar hierarquia de categorias para o relatório
+  const categoryHierarchy = prepareCategoryHierarchyForReport(categories, transactions, year, type);
+  
+  // Processar cada categoria raiz
+  categoryHierarchy.forEach(rootCat => {
+    // Adicionar linha para a categoria raiz
+    const rootCatRow = {
+      A: rootCat.category.name,
+      B: formatCurrency(rootCat.monthlyValues[1] || 0).replace(/[€$]/g, '').trim(),
+      C: formatCurrency(rootCat.monthlyValues[2] || 0).replace(/[€$]/g, '').trim(),
+      D: formatCurrency(rootCat.monthlyValues[3] || 0).replace(/[€$]/g, '').trim(),
+      E: formatCurrency(rootCat.monthlyValues[4] || 0).replace(/[€$]/g, '').trim(),
+      F: formatCurrency(rootCat.monthlyValues[5] || 0).replace(/[€$]/g, '').trim(),
+      G: formatCurrency(rootCat.monthlyValues[6] || 0).replace(/[€$]/g, '').trim(),
+      H: formatCurrency(rootCat.monthlyValues[7] || 0).replace(/[€$]/g, '').trim(),
+      I: formatCurrency(rootCat.monthlyValues[8] || 0).replace(/[€$]/g, '').trim(),
+      J: formatCurrency(rootCat.monthlyValues[9] || 0).replace(/[€$]/g, '').trim(),
+      K: formatCurrency(rootCat.monthlyValues[10] || 0).replace(/[€$]/g, '').trim(),
+      L: formatCurrency(rootCat.monthlyValues[11] || 0).replace(/[€$]/g, '').trim(),
+      M: formatCurrency(rootCat.monthlyValues[12] || 0).replace(/[€$]/g, '').trim(),
+      N: formatCurrency(Object.values(rootCat.monthlyValues).reduce((sum, value) => sum + value, 0)).replace(/[€$]/g, '').trim(),
+      O: formatCurrency(Object.values(rootCat.monthlyValues).reduce((sum, value) => sum + value, 0) / 12).replace(/[€$]/g, '').trim()
+    };
+    details.push(rootCatRow);
     
-    // Obter todas as subcategorias desta categoria
-    const allSubCategories = getAllSubcategoryIds(rootCat.id, categories);
-    allSubCategories.push(rootCat.id);
-    
-    // Calcular valores para a categoria e suas subcategorias
-    transactions.forEach(transaction => {
-      const date = new Date(transaction.date);
-      const transactionYear = date.getFullYear();
-      const month = date.getMonth() + 1;
+    // Processar subcategorias
+    rootCat.subcategories.forEach(subCat => {
+      // Adicionar linha para a subcategoria
+      const subCatRow = {
+        A: `    ${subCat.category.name}`,
+        B: formatCurrency(subCat.monthlyValues[1] || 0).replace(/[€$]/g, '').trim(),
+        C: formatCurrency(subCat.monthlyValues[2] || 0).replace(/[€$]/g, '').trim(),
+        D: formatCurrency(subCat.monthlyValues[3] || 0).replace(/[€$]/g, '').trim(),
+        E: formatCurrency(subCat.monthlyValues[4] || 0).replace(/[€$]/g, '').trim(),
+        F: formatCurrency(subCat.monthlyValues[5] || 0).replace(/[€$]/g, '').trim(),
+        G: formatCurrency(subCat.monthlyValues[6] || 0).replace(/[€$]/g, '').trim(),
+        H: formatCurrency(subCat.monthlyValues[7] || 0).replace(/[€$]/g, '').trim(),
+        I: formatCurrency(subCat.monthlyValues[8] || 0).replace(/[€$]/g, '').trim(),
+        J: formatCurrency(subCat.monthlyValues[9] || 0).replace(/[€$]/g, '').trim(),
+        K: formatCurrency(subCat.monthlyValues[10] || 0).replace(/[€$]/g, '').trim(),
+        L: formatCurrency(subCat.monthlyValues[11] || 0).replace(/[€$]/g, '').trim(),
+        M: formatCurrency(subCat.monthlyValues[12] || 0).replace(/[€$]/g, '').trim(),
+        N: formatCurrency(Object.values(subCat.monthlyValues).reduce((sum, value) => sum + value, 0)).replace(/[€$]/g, '').trim(),
+        O: formatCurrency(Object.values(subCat.monthlyValues).reduce((sum, value) => sum + value, 0) / 12).replace(/[€$]/g, '').trim()
+      };
+      details.push(subCatRow);
       
-      if (transactionYear === year && 
-          transaction.type === type && 
-          allSubCategories.includes(transaction.categoryId)) {
-        categoryMonthlyTotals[month] += transaction.amount;
-      }
-    });
-    
-    // Calcular total anual e média mensal para categoria
-    const catTotalYear = Object.values(categoryMonthlyTotals).reduce((sum, value) => sum + value, 0);
-    const catMonthsWithValues = Object.values(categoryMonthlyTotals).filter(value => value > 0).length || 12;
-    const catMonthlyAverage = catTotalYear / catMonthsWithValues;
-    
-    details.push({
-      A: rootCat.name,
-      B: formatCurrency(categoryMonthlyTotals[1]).replace(/[€$]/g, '').trim(),
-      C: formatCurrency(categoryMonthlyTotals[2]).replace(/[€$]/g, '').trim(),
-      D: formatCurrency(categoryMonthlyTotals[3]).replace(/[€$]/g, '').trim(),
-      E: formatCurrency(categoryMonthlyTotals[4]).replace(/[€$]/g, '').trim(),
-      F: formatCurrency(categoryMonthlyTotals[5]).replace(/[€$]/g, '').trim(),
-      G: formatCurrency(categoryMonthlyTotals[6]).replace(/[€$]/g, '').trim(),
-      H: formatCurrency(categoryMonthlyTotals[7]).replace(/[€$]/g, '').trim(),
-      I: formatCurrency(categoryMonthlyTotals[8]).replace(/[€$]/g, '').trim(),
-      J: formatCurrency(categoryMonthlyTotals[9]).replace(/[€$]/g, '').trim(),
-      K: formatCurrency(categoryMonthlyTotals[10]).replace(/[€$]/g, '').trim(),
-      L: formatCurrency(categoryMonthlyTotals[11]).replace(/[€$]/g, '').trim(),
-      M: formatCurrency(categoryMonthlyTotals[12]).replace(/[€$]/g, '').trim(),
-      N: formatCurrency(catTotalYear).replace(/[€$]/g, '').trim(),
-      O: formatCurrency(catMonthlyAverage).replace(/[€$]/g, '').trim()
+      // Processar subcategorias de nível 3 (se existirem)
+      subCat.subcategories.forEach(level3Cat => {
+        const level3CatRow = {
+          A: `        ${level3Cat.category.name}`,
+          B: formatCurrency(level3Cat.monthlyValues[1] || 0).replace(/[€$]/g, '').trim(),
+          C: formatCurrency(level3Cat.monthlyValues[2] || 0).replace(/[€$]/g, '').trim(),
+          D: formatCurrency(level3Cat.monthlyValues[3] || 0).replace(/[€$]/g, '').trim(),
+          E: formatCurrency(level3Cat.monthlyValues[4] || 0).replace(/[€$]/g, '').trim(),
+          F: formatCurrency(level3Cat.monthlyValues[5] || 0).replace(/[€$]/g, '').trim(),
+          G: formatCurrency(level3Cat.monthlyValues[6] || 0).replace(/[€$]/g, '').trim(),
+          H: formatCurrency(level3Cat.monthlyValues[7] || 0).replace(/[€$]/g, '').trim(),
+          I: formatCurrency(level3Cat.monthlyValues[8] || 0).replace(/[€$]/g, '').trim(),
+          J: formatCurrency(level3Cat.monthlyValues[9] || 0).replace(/[€$]/g, '').trim(),
+          K: formatCurrency(level3Cat.monthlyValues[10] || 0).replace(/[€$]/g, '').trim(),
+          L: formatCurrency(level3Cat.monthlyValues[11] || 0).replace(/[€$]/g, '').trim(),
+          M: formatCurrency(level3Cat.monthlyValues[12] || 0).replace(/[€$]/g, '').trim(),
+          N: formatCurrency(Object.values(level3Cat.monthlyValues).reduce((sum, value) => sum + value, 0)).replace(/[€$]/g, '').trim(),
+          O: formatCurrency(Object.values(level3Cat.monthlyValues).reduce((sum, value) => sum + value, 0) / 12).replace(/[€$]/g, '').trim()
+        };
+        details.push(level3CatRow);
+      });
     });
   });
   
