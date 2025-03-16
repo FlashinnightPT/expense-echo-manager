@@ -1,5 +1,5 @@
 
-import { useEffect, useState, createContext, useContext, ReactNode } from "react";
+import { useEffect, useState, createContext, useContext, ReactNode, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useIdleTimer } from "./useIdleTimer";
 import { toast } from "sonner";
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Configuração do idle timer
-  const { isIdle, IdleWarningDialog } = useIdleTimer({
+  const { IdleWarningDialog } = useIdleTimer({
     timeout: IDLE_TIMEOUT,
     warningTime: WARNING_TIME,
     onIdle: () => {
@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(JSON.parse(currentUser));
       setIsAuthenticated(true);
     }
-  }, []); // Importante: adicionamos uma dependência vazia para garantir que só executa uma vez
+  }, []); // Dependência vazia para garantir que só executa uma vez
 
   // Função para validar a senha conforme os requisitos
   const validatePassword = (password: string) => {
@@ -182,18 +182,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Verificar se o utilizador tem permissões de edição
   const canEdit = user?.role === "editor";
 
+  // Use useMemo para evitar recálculos desnecessários
+  const authContextValue = useMemo(() => ({
+    user,
+    isAuthenticated,
+    login,
+    logout,
+    canEdit,
+    validatePassword,
+    useIdleWarning: { IdleWarningDialog }
+  }), [user, isAuthenticated, canEdit, IdleWarningDialog]);
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated,
-        login,
-        logout,
-        canEdit,
-        validatePassword,
-        useIdleWarning: { IdleWarningDialog }
-      }}
-    >
+    <AuthContext.Provider value={authContextValue}>
       {children}
     </AuthContext.Provider>
   );

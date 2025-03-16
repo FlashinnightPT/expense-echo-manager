@@ -1,9 +1,8 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface UseIdleTimerProps {
   timeout: number; // tempo total em milissegundos
@@ -17,15 +16,33 @@ export const useIdleTimer = ({
   warningTime = 30000, // 30 segundos por padrão
 }: UseIdleTimerProps) => {
   const [isIdle, setIsIdle] = useState(false);
-  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-  const [warningTimer, setWarningTimer] = useState<NodeJS.Timeout | null>(null);
   const [showWarning, setShowWarning] = useState(false);
   const [countdown, setCountdown] = useState(30);
-  const navigate = useNavigate();
+  
+  // Use refs to avoid dependency issues in useEffect
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const clearAllTimers = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    if (warningTimerRef.current) {
+      clearTimeout(warningTimerRef.current);
+      warningTimerRef.current = null;
+    }
+    
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+  }, []);
 
   const resetTimer = useCallback(() => {
-    if (timer) clearTimeout(timer);
-    if (warningTimer) clearTimeout(warningTimer);
+    clearAllTimers();
     
     if (showWarning) {
       setShowWarning(false);
@@ -33,45 +50,42 @@ export const useIdleTimer = ({
     }
 
     // Definir o temporizador de aviso
-    const newWarningTimer = setTimeout(() => {
+    warningTimerRef.current = setTimeout(() => {
       setShowWarning(true);
       setCountdown(30);
       
       // Iniciar contador regressivo
-      const countdownInterval = setInterval(() => {
+      countdownIntervalRef.current = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
-            clearInterval(countdownInterval);
+            if (countdownIntervalRef.current) {
+              clearInterval(countdownIntervalRef.current);
+            }
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
       
-      // Limpar o intervalo quando o componente for desmontado
-      return () => clearInterval(countdownInterval);
     }, timeout - warningTime);
 
     // Definir o temporizador de logout
-    const newTimer = setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       setIsIdle(true);
       setShowWarning(false);
       onIdle();
     }, timeout);
+  }, [timeout, warningTime, onIdle, showWarning, clearAllTimers]);
 
-    setWarningTimer(newWarningTimer);
-    setTimer(newTimer);
-  }, [timeout, warningTime, onIdle, timer, warningTimer, showWarning]);
-
-  const handleKeepSession = () => {
+  const handleKeepSession = useCallback(() => {
     resetTimer();
-  };
+  }, [resetTimer]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     setShowWarning(false);
     setIsIdle(true);
     onIdle();
-  };
+  }, [onIdle]);
 
   useEffect(() => {
     const events = [
@@ -87,66 +101,62 @@ export const useIdleTimer = ({
     resetTimer();
 
     // Adicionar os event listeners para monitorar atividade
-    const eventListeners = events.map((event) => {
-      return {
-        event,
-        handler: resetTimer
-      };
-    });
-
-    eventListeners.forEach(({ event, handler }) => {
-      window.addEventListener(event, handler);
+    const resetTimerHandler = () => resetTimer();
+    
+    events.forEach((event) => {
+      window.addEventListener(event, resetTimerHandler);
     });
 
     // Limpar os event listeners e temporizadores
     return () => {
-      eventListeners.forEach(({ event, handler }) => {
-        window.removeEventListener(event, handler);
+      events.forEach((event) => {
+        window.removeEventListener(event, resetTimerHandler);
       });
 
-      if (timer) clearTimeout(timer);
-      if (warningTimer) clearTimeout(warningTimer);
+      clearAllTimers();
     };
-  }, [resetTimer, timeout, warningTime, onIdle]);
+  }, [resetTimer, clearAllTimers]);
+
+  const IdleWarningDialog = useCallback(() => (
+    <Dialog open={showWarning} onOpenChange={(open) => {
+      if (!open) handleLogout();
+    }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-center flex flex-col items-center gap-4">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-yellow-100 text-yellow-600">
+              <Clock className="h-6 w-6" />
+            </div>
+            <span>Sessão prestes a expirar</span>
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="py-6 text-center">
+          <p className="mb-4">A sua sessão irá expirar em <span className="font-bold text-xl">{countdown}</span> segundos devido a inatividade.</p>
+          <p className="font-medium">Quer manter a sessão iniciada?</p>
+        </div>
+        
+        <DialogFooter className="flex justify-center gap-4 sm:justify-center">
+          <Button 
+            variant="outline" 
+            onClick={handleLogout}
+          >
+            Não
+          </Button>
+          <Button 
+            onClick={handleKeepSession}
+          >
+            Sim
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  ), [showWarning, countdown, handleKeepSession, handleLogout]);
 
   return { 
     isIdle, 
     resetTimer,
-    IdleWarningDialog: () => (
-      <Dialog open={showWarning} onOpenChange={(open) => {
-        if (!open) handleLogout();
-      }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-center flex flex-col items-center gap-4">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-yellow-100 text-yellow-600">
-                <Clock className="h-6 w-6" />
-              </div>
-              <span>Sessão prestes a expirar</span>
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="py-6 text-center">
-            <p className="mb-4">A sua sessão irá expirar em <span className="font-bold text-xl">{countdown}</span> segundos devido a inatividade.</p>
-            <p className="font-medium">Quer manter a sessão iniciada?</p>
-          </div>
-          
-          <DialogFooter className="flex justify-center gap-4 sm:justify-center">
-            <Button 
-              variant="outline" 
-              onClick={handleLogout}
-            >
-              Não
-            </Button>
-            <Button 
-              onClick={handleKeepSession}
-            >
-              Sim
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    )
+    IdleWarningDialog
   };
 };
 
