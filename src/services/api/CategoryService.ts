@@ -4,17 +4,12 @@ import { ApiServiceCore } from "./ApiServiceCore";
 
 // Service specifically for category operations
 export class CategoryService extends ApiServiceCore {
-  private static instance: CategoryService;
-
   private constructor() {
     super();
   }
 
   public static getInstance(): CategoryService {
-    if (!CategoryService.instance) {
-      CategoryService.instance = new CategoryService();
-    }
-    return CategoryService.instance;
+    return ApiServiceCore.getOrCreateInstance.call(CategoryService);
   }
 
   public async getCategories(): Promise<TransactionCategory[]> {

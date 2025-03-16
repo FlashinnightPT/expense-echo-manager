@@ -6,17 +6,12 @@ import { categoryService } from "./CategoryService";
 
 // Service specifically for backup/restore operations
 export class BackupService extends ApiServiceCore {
-  private static instance: BackupService;
-
   private constructor() {
     super();
   }
 
   public static getInstance(): BackupService {
-    if (!BackupService.instance) {
-      BackupService.instance = new BackupService();
-    }
-    return BackupService.instance;
+    return ApiServiceCore.getOrCreateInstance.call(BackupService);
   }
 
   public async exportDatabase(): Promise<boolean> {

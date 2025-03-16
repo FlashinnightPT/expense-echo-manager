@@ -4,17 +4,12 @@ import { ApiServiceCore } from "./ApiServiceCore";
 
 // Service specifically for transaction operations
 export class TransactionService extends ApiServiceCore {
-  private static instance: TransactionService;
-
   private constructor() {
     super();
   }
 
   public static getInstance(): TransactionService {
-    if (!TransactionService.instance) {
-      TransactionService.instance = new TransactionService();
-    }
-    return TransactionService.instance;
+    return ApiServiceCore.getOrCreateInstance.call(TransactionService);
   }
 
   public async getTransactions(): Promise<Transaction[]> {

@@ -3,7 +3,8 @@ import { toast } from "sonner";
 
 // Core API Service class with basic functionality and connection management
 export class ApiServiceCore {
-  private static instance: ApiServiceCore;
+  // Using protected instead of private to allow proper inheritance
+  protected static instances: Record<string, any> = {};
 
   protected constructor() {
     // Monitorar o estado da conexão
@@ -17,11 +18,15 @@ export class ApiServiceCore {
     });
   }
 
-  public static getInstance(): ApiServiceCore {
-    if (!ApiServiceCore.instance) {
-      ApiServiceCore.instance = new ApiServiceCore();
+  // Generic getInstance method to be used by child classes
+  protected static getOrCreateInstance<T extends ApiServiceCore>(
+    this: new () => T
+  ): T {
+    const className = this.name;
+    if (!ApiServiceCore.instances[className]) {
+      ApiServiceCore.instances[className] = new this();
     }
-    return ApiServiceCore.instance;
+    return ApiServiceCore.instances[className] as T;
   }
 
   // Método para simular a sincronização com o backend quando voltar online

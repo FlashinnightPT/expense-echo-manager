@@ -8,17 +8,12 @@ import { backupService } from "./api/BackupService";
 // This is the main API Service facade that provides a single entry point to all API-related functionality
 // It maintains the exact same interface as the original apiService for backward compatibility
 export class ApiService extends ApiServiceCore {
-  private static instance: ApiService;
-
   private constructor() {
     super();
   }
 
   public static getInstance(): ApiService {
-    if (!ApiService.instance) {
-      ApiService.instance = new ApiService();
-    }
-    return ApiService.instance;
+    return ApiServiceCore.getOrCreateInstance.call(ApiService);
   }
 
   // Transaction methods delegate to transactionService
