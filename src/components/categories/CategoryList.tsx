@@ -135,7 +135,7 @@ const CategoryList = ({
             </div>
             
             {/* Fixed Expense Checkbox - Only shown for expense categories */}
-            {isExpense && (
+            {isExpense && updateFixedExpense && (
               <div className="mt-2 pt-2 border-t border-muted">
                 <FixedExpenseCheckbox 
                   isChecked={!!extendedCategory.isFixedExpense}
