@@ -12,7 +12,7 @@ interface LoadingSpinnerProps {
 export const LoadingSpinner = ({
   className,
   size = 24,
-  text = "A carregar dados...",
+  text = "Estou a tratar das suas contas, p.f. aguarde!",
 }: LoadingSpinnerProps) => {
   return (
     <div className={cn("flex flex-col items-center justify-center p-8", className)}>
@@ -22,7 +22,7 @@ export const LoadingSpinner = ({
   );
 };
 
-export const LoadingPage = ({ text = "A carregar..." }: { text?: string }) => {
+export const LoadingPage = ({ text = "Estou a tratar das suas contas, p.f. aguarde!" }: { text?: string }) => {
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center bg-background">
       <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />

@@ -70,7 +70,7 @@ const Painel = () => {
   };
 
   if (isLoading) {
-    return <LoadingSpinner className="h-screen" text="A carregar o painel..." />;
+    return <LoadingSpinner className="h-screen" text="Estou a tratar das suas contas, p.f. aguarde!" />;
   }
 
   return (
