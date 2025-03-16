@@ -7,15 +7,17 @@ import MonthlyChart from "@/components/charts/MonthlyChart";
 import { formatCurrency, getMonthName } from "@/utils/financialCalculations";
 import { Transaction } from "@/utils/mockData";
 import { Button } from "@/components/ui/button";
-import { FileDown } from "lucide-react";
-import { exportToExcel, prepareMonthlyDataForExport } from "@/utils/exportUtils";
+import { FileDown, Table } from "lucide-react";
+import { exportToExcel, prepareMonthlyDataForExport, prepareMonthlyCategoryReport } from "@/utils/exportUtils";
 import { toast } from "sonner";
+import { useCategoryData } from "@/hooks/useCategoryData";
 
 const Monthly = () => {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [showValues, setShowValues] = useState(true);
+  const { categoryList: categories } = useCategoryData();
   
   useEffect(() => {
     const loadTransactions = () => {
@@ -172,6 +174,22 @@ const Monthly = () => {
     }
   };
   
+  const handleExportDetailedReport = async () => {
+    try {
+      if (transactions.length === 0) {
+        toast.error("Não há dados para exportar neste período");
+        return;
+      }
+      
+      toast.info("Preparando relatório mensal detalhado...");
+      await prepareMonthlyCategoryReport(selectedYear, categories, transactions);
+      toast.success("Relatório mensal exportado com sucesso");
+    } catch (error) {
+      console.error("Error exporting detailed report:", error);
+      toast.error("Erro ao exportar relatório mensal detalhado");
+    }
+  };
+  
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
@@ -195,9 +213,13 @@ const Monthly = () => {
               ))}
             </SelectContent>
           </Select>
-          <Button size="sm" onClick={handleExportData}>
+          <Button size="sm" variant="outline" onClick={handleExportData}>
             <FileDown className="h-4 w-4 mr-2" />
-            Exportar
+            Exportar Tabela
+          </Button>
+          <Button size="sm" onClick={handleExportDetailedReport}>
+            <Table className="h-4 w-4 mr-2" />
+            Relatório Mensal
           </Button>
         </div>
       </div>
