@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { useCategoryData } from "@/hooks/useCategoryData";
 import { useTransactionData } from "@/hooks/useTransactionData";
 import CategoryAnalysisFilters from "./components/CategoryAnalysisFilters";

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/auth";
 import { AppLogo } from "./nav/AppLogo";
@@ -11,9 +11,9 @@ function Header() {
   const location = useLocation();
   const { isAuthenticated, canEdit } = useAuth();
 
-  const isActivePath = (path: string) => {
+  const isActivePath = useCallback((path: string) => {
     return location.pathname === path;
-  };
+  }, [location.pathname]);
 
   const mainNavigation = [
     { name: "Painel", href: "/dashboard" },
@@ -28,10 +28,9 @@ function Header() {
     ...(canEdit ? [{ name: "Utilizadores", href: "/users" }] : []),
   ];
 
-  const closeMenu = () => {
-    // Simple direct close
+  const closeMenu = useCallback(() => {
     setIsOpen(false);
-  };
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

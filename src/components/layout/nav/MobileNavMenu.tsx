@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -18,10 +18,11 @@ export function MobileNavMenu({
 }: MobileNavMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const closeMenu = () => {
-    // Simply close the menu without any delays
+  const handleNavClick = (href: string) => {
     setIsOpen(false);
+    navigate(href);
   };
 
   return (
@@ -45,32 +46,32 @@ export function MobileNavMenu({
         </SheetHeader>
         <div className="grid gap-2 py-6">
           {mainNavigation.map((item) => (
-            <Link
+            <Button
               key={item.name}
-              to={item.href}
-              className={`flex items-center py-2 text-lg hover:text-primary ${
+              variant="ghost"
+              className={`justify-start px-2 ${
                 isActivePath(item.href) ? "font-semibold text-primary" : ""
               }`}
-              onClick={closeMenu}
+              onClick={() => handleNavClick(item.href)}
             >
               {item.name}
-            </Link>
+            </Button>
           ))}
           
           <div className="py-2">
             <p className="mb-2 text-lg">Configurações</p>
             <div className="pl-4 space-y-2 border-l">
               {settingsSubMenu.map((item) => (
-                <Link
+                <Button
                   key={item.name}
-                  to={item.href}
-                  className={`flex items-center py-1 text-md hover:text-primary ${
+                  variant="ghost"
+                  className={`justify-start px-2 ${
                     isActivePath(item.href) ? "font-semibold text-primary" : ""
                   }`}
-                  onClick={closeMenu}
+                  onClick={() => handleNavClick(item.href)}
                 >
                   {item.name}
-                </Link>
+                </Button>
               ))}
             </div>
           </div>
