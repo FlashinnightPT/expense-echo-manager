@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/auth";
 import { AppLogo } from "./nav/AppLogo";
 import { DesktopNavMenu } from "./nav/DesktopNavMenu";
 import { RightActions } from "./nav/RightActions";

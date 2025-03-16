@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import TransactionForm from "@/components/forms/TransactionForm";
 import { Transaction } from "@/utils/mockData";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/auth";
 
 interface DashboardHeaderProps {
   onSaveTransaction: (transaction: Partial<Transaction>) => void;
