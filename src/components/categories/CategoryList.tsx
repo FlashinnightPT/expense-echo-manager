@@ -49,22 +49,22 @@ const CategoryList = ({
     const isExpanded = expandedCategories[category.id] || false;
 
     return (
-      <CategoryItem
-        key={category.id}
-        category={category}
-        isExpanded={isExpanded}
-        children={children}
-        onToggleExpansion={toggleCategoryExpansion}
-        onEditCategory={openEditDialog}
-        onDeleteCategory={handleDeleteCategory}
-        updateFixedExpense={updateFixedExpense}
-      >
-        {children.length > 0 && (
+      <div key={category.id}>
+        <CategoryItem
+          category={category}
+          isExpanded={isExpanded}
+          subcategories={children}
+          onToggleExpansion={toggleCategoryExpansion}
+          onEditCategory={openEditDialog}
+          onDeleteCategory={handleDeleteCategory}
+          updateFixedExpense={updateFixedExpense}
+        />
+        {isExpanded && children.length > 0 && (
           <div className="mt-1 space-y-1">
             {children.map(child => renderCategory(child))}
           </div>
         )}
-      </CategoryItem>
+      </div>
     );
   };
 

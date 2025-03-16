@@ -10,7 +10,7 @@ import { ExtendedTransactionCategory } from "@/components/dashboard/types/catego
 interface CategoryItemProps {
   category: TransactionCategory;
   isExpanded: boolean;
-  children: TransactionCategory[];
+  subcategories: TransactionCategory[];
   onToggleExpansion: (categoryId: string) => void;
   onEditCategory: (category: TransactionCategory) => void;
   onDeleteCategory: (categoryId: string) => void;
@@ -20,7 +20,7 @@ interface CategoryItemProps {
 const CategoryItem = ({
   category,
   isExpanded,
-  children,
+  subcategories,
   onToggleExpansion,
   onEditCategory,
   onDeleteCategory,
@@ -42,7 +42,7 @@ const CategoryItem = ({
         <div className={`flex flex-col p-2 border rounded-md bg-background hover:bg-accent/20 transition-colors`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              {children.length > 0 ? (
+              {subcategories.length > 0 ? (
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7 p-0">
                     {isExpanded ? (
@@ -102,7 +102,7 @@ const CategoryItem = ({
         </div>
         
         <CollapsibleContent>
-          {/* This is where child categories will be rendered */}
+          {/* Child categories will be rendered by the parent component */}
         </CollapsibleContent>
       </Collapsible>
     </div>
