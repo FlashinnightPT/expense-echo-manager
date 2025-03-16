@@ -51,9 +51,30 @@ export const useTransactionData = () => {
     return false;
   };
 
+  // Nova função para obter transações filtradas por período
+  const getFilteredTransactions = (year?: number, month?: number, type?: 'income' | 'expense') => {
+    return transactionList.filter(transaction => {
+      const transactionDate = new Date(transaction.date);
+      const transactionYear = transactionDate.getFullYear();
+      const transactionMonth = transactionDate.getMonth() + 1;
+      
+      // Filtrar por ano se especificado
+      if (year && transactionYear !== year) return false;
+      
+      // Filtrar por mês se especificado
+      if (month && transactionMonth !== month) return false;
+      
+      // Filtrar por tipo se especificado
+      if (type && transaction.type !== type) return false;
+      
+      return true;
+    });
+  };
+
   return {
     transactionList,
     isCategoryUsedInTransactions,
-    confirmClearTransactions
+    confirmClearTransactions,
+    getFilteredTransactions
   };
 };

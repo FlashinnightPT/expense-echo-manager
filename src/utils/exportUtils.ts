@@ -322,3 +322,47 @@ export const prepareTransactionsForExport = (
     };
   });
 };
+
+/**
+ * Prepara dados de categorias por mês para exportação
+ */
+export const prepareCategoryMonthlyReport = (
+  categoryData: any[],
+  year: number,
+  type: 'income' | 'expense'
+) => {
+  const result = [];
+  
+  // Adicionar linha de cabeçalho
+  const headerRow = {
+    Categoria: type === 'income' ? 'RECEITAS' : 'DESPESAS',
+    Jan: '', Fev: '', Mar: '', Abr: '', Mai: '', Jun: '',
+    Jul: '', Ago: '', Set: '', Out: '', Nov: '', Dez: '',
+    Total: '', Media: ''
+  };
+  result.push(headerRow);
+  
+  // Adicionar linhas de categorias
+  categoryData.forEach(cat => {
+    const row = {
+      Categoria: cat.category.name,
+      Jan: formatCurrency(cat.monthlyAmounts[1] || 0).replace(/[€$]/g, '').trim(),
+      Fev: formatCurrency(cat.monthlyAmounts[2] || 0).replace(/[€$]/g, '').trim(),
+      Mar: formatCurrency(cat.monthlyAmounts[3] || 0).replace(/[€$]/g, '').trim(),
+      Abr: formatCurrency(cat.monthlyAmounts[4] || 0).replace(/[€$]/g, '').trim(),
+      Mai: formatCurrency(cat.monthlyAmounts[5] || 0).replace(/[€$]/g, '').trim(),
+      Jun: formatCurrency(cat.monthlyAmounts[6] || 0).replace(/[€$]/g, '').trim(),
+      Jul: formatCurrency(cat.monthlyAmounts[7] || 0).replace(/[€$]/g, '').trim(),
+      Ago: formatCurrency(cat.monthlyAmounts[8] || 0).replace(/[€$]/g, '').trim(),
+      Set: formatCurrency(cat.monthlyAmounts[9] || 0).replace(/[€$]/g, '').trim(),
+      Out: formatCurrency(cat.monthlyAmounts[10] || 0).replace(/[€$]/g, '').trim(),
+      Nov: formatCurrency(cat.monthlyAmounts[11] || 0).replace(/[€$]/g, '').trim(),
+      Dez: formatCurrency(cat.monthlyAmounts[12] || 0).replace(/[€$]/g, '').trim(),
+      Total: formatCurrency(cat.yearlyTotal).replace(/[€$]/g, '').trim(),
+      Media: formatCurrency(cat.monthlyAverage).replace(/[€$]/g, '').trim(),
+    };
+    result.push(row);
+  });
+  
+  return result;
+};
