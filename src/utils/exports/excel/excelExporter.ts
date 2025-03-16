@@ -27,11 +27,38 @@ export const configureColumnWidths = () => {
 };
 
 /**
- * Apply cell styles to the worksheet
+ * Apply cell styles to the worksheet based on category level
  */
 export const applyCellStyles = (worksheet: any) => {
   Object.keys(worksheet).forEach(cell => {
-    if (cell[0] === '3' || cell === 'A8' || cell === 'A20') {
+    // Check if the cell is in column A (category names)
+    if (cell[0] === 'A' && cell !== 'A1') {
+      const value = worksheet[cell].v || '';
+      
+      // Determine indentation level by counting leading spaces
+      const leadingSpaces = value.match(/^\s*/)[0].length;
+      const level = leadingSpaces / 4;
+      
+      if (!worksheet[cell].s) worksheet[cell].s = {};
+      
+      // Style based on indentation level
+      if (level === 0) {
+        // Root level - Bold text
+        worksheet[cell].s.font = { bold: true };
+      } else if (level === 1) {
+        // Level 2 - Slight indent + different color
+        worksheet[cell].s.fill = { fgColor: { rgb: "E6F2FF" } };
+      } else if (level === 2) {
+        // Level 3 - More indent + different color
+        worksheet[cell].s.fill = { fgColor: { rgb: "F5F5F5" } };
+      } else if (level === 3) {
+        // Level 4 - Most indent + different color
+        worksheet[cell].s.fill = { fgColor: { rgb: "FAFAFA" } };
+      }
+    }
+    
+    // Apply special styles for header rows
+    if (cell === 'A1' || cell[0] === '3' || cell === 'A8' || cell === 'A20') {
       if (!worksheet[cell].s) worksheet[cell].s = {};
       worksheet[cell].s.fill = { fgColor: { rgb: "A9D08E" } }; // Verde claro para receitas
       worksheet[cell].s.font = { bold: true };

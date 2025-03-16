@@ -12,6 +12,10 @@ type CategoryHierarchyItem = {
     subcategories: {
       category: TransactionCategory;
       monthlyValues: Record<number, number>;
+      subcategories: {
+        category: TransactionCategory;
+        monthlyValues: Record<number, number>;
+      }[];
     }[];
   }[];
 };
@@ -46,12 +50,17 @@ export const processCategoryHierarchy = (
       rows.push(createMonthlyValuesRow(rootCat.category.name, rootCat.monthlyValues, 0));
       
       // Process level 2 categories
-      rootCat.subcategories.forEach(subCat => {
-        rows.push(createMonthlyValuesRow(subCat.category.name, subCat.monthlyValues, 1));
+      rootCat.subcategories.forEach(level2Cat => {
+        rows.push(createMonthlyValuesRow(level2Cat.category.name, level2Cat.monthlyValues, 1));
         
         // Process level 3 categories
-        subCat.subcategories.forEach(level3Cat => {
+        level2Cat.subcategories.forEach(level3Cat => {
           rows.push(createMonthlyValuesRow(level3Cat.category.name, level3Cat.monthlyValues, 2));
+          
+          // Process level 4 categories
+          level3Cat.subcategories.forEach(level4Cat => {
+            rows.push(createMonthlyValuesRow(level4Cat.category.name, level4Cat.monthlyValues, 3));
+          });
         });
       });
     });

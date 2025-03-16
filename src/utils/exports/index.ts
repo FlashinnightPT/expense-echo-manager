@@ -15,4 +15,3 @@ export * as ExcelFormatters from './excel/formatters';
 export * as ExcelHeaders from './excel/reportHeaders';
 export * as ExcelCategoryReporter from './excel/categoryReportGenerator';
 export * as ExcelExporter from './excel/excelExporter';
-

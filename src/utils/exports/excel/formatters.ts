@@ -34,7 +34,7 @@ export const createMonthlyValuesRow = (
   const yearlyTotal = calculateYearlyTotal(monthlyValues);
   const monthlyAverage = calculateMonthlyAverage(yearlyTotal);
   
-  // Add appropriate indentation
+  // Add appropriate indentation based on category level
   const prefix = ' '.repeat(indent * 4);
   
   return {
