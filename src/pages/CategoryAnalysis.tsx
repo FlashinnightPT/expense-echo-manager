@@ -49,17 +49,18 @@ const CategoryAnalysis = () => {
   const [totalAmount, setTotalAmount] = useState(0);
 
   // Datas para comparação
-  // Fix: Explicitly convert selectedMonth to number and ensure arithmetic operations use numbers
+  // Fix: Create separate numeric variables for months to ensure type safety
   const startMonth = selectedMonth !== null ? Number(selectedMonth) : 0;
   const endMonth = selectedMonth !== null ? Number(selectedMonth) + 1 : 12;
   
-  const startDate = useState(new Date(selectedYear, startMonth, 1))[0];
-  const endDate = useState(new Date(selectedYear, endMonth, 0))[0];
+  // Use the numeric variables in the Date constructor
+  const startDate = new Date(selectedYear, startMonth, 1);
+  const endDate = new Date(selectedYear, endMonth, 0);
 
   // Anos disponíveis para seleção
   const availableYears = Array.from(
     new Set(transactions.map(t => new Date(t.date).getFullYear()))
-  ).sort((a, b) => b - a);
+  ).sort((a, b) => b - a) as number[];
 
   // Se não houver anos nas transações, adicione o ano atual
   useEffect(() => {

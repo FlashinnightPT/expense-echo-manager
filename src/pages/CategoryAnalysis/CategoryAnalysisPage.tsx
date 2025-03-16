@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import { useCategoryData } from "@/hooks/useCategoryData";
@@ -35,8 +36,9 @@ const CategoryAnalysisPage = () => {
   const startMonth = selectedMonth !== null ? Number(selectedMonth) : 0;
   const endMonth = selectedMonth !== null ? Number(selectedMonth) + 1 : 12;
   
-  const startDate = useState(new Date(selectedYear, startMonth, 1))[0];
-  const endDate = useState(new Date(selectedYear, endMonth, 0))[0];
+  // Create the date objects directly without using useState
+  const startDate = new Date(selectedYear, startMonth, 1);
+  const endDate = new Date(selectedYear, endMonth, 0);
 
   // Years available for selection - Fix: Ensure the array is typed as number[]
   const availableYears = Array.from(
