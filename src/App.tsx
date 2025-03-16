@@ -91,7 +91,9 @@ function App() {
               path="/settings" 
               element={
                 <RequireAuth>
-                  <Settings />
+                  <WithHeader>
+                    <Settings />
+                  </WithHeader>
                 </RequireAuth>
               } 
             />
@@ -99,7 +101,9 @@ function App() {
               path="/users" 
               element={
                 <RequireEditor>
-                  <Users />
+                  <WithHeader>
+                    <Users />
+                  </WithHeader>
                 </RequireEditor>
               } 
             />
