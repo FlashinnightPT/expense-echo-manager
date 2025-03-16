@@ -6,11 +6,11 @@ import { useTransactionData } from "@/hooks/useTransactionData";
 import CategoryAnalysisFilters from "./components/CategoryAnalysisFilters";
 import CategoryList from "./components/CategoryList";
 import SubcategoryAnalysisTable from "./components/SubcategoryAnalysisTable";
-import CategoryComparison from "@/components/dashboard/comparison/CategoryComparison";
 import ShowHideValuesButton from "./components/ShowHideValuesButton";
+import CategoryComparisonSection from "./components/CategoryComparisonSection";
 import { useCategoryFilters } from "./hooks/useCategoryFilters";
 import { useSubcategoryAnalysis } from "./hooks/useSubcategoryAnalysis";
-import { createDateRange, getAvailableYears } from "./utils/dateUtils";
+import { getAvailableYears } from "./utils/dateUtils";
 import { filterRootCategories } from "./utils/categoryUtils";
 
 const CategoryAnalysisPage = () => {
@@ -47,9 +47,6 @@ const CategoryAnalysisPage = () => {
     categories,
     getFilteredTransactions
   );
-
-  // Create date range for comparison
-  const { startDate, endDate } = createDateRange(selectedYear, selectedMonth);
   
   // Get available years for selection
   const availableYears = getAvailableYears(transactions);
@@ -103,11 +100,11 @@ const CategoryAnalysisPage = () => {
           />
         )}
         
-        <CategoryComparison 
+        <CategoryComparisonSection
           categories={categories}
           transactions={transactions}
-          startDate={startDate}
-          endDate={endDate}
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
           activeTab={activeTab}
           showValues={showValues}
         />
