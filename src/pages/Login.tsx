@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
@@ -5,14 +6,26 @@ import { useAuth } from "@/hooks/auth";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     // Verificar se o utilizador já está autenticado
+    if (isAuthenticated) {
+      setIsRedirecting(true);
+      // Pequeno timeout para evitar navegação imediata e potenciais loops
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 100);
+    }
+  }, [navigate, isAuthenticated]);
+
+  useEffect(() => {
+    // Verificar cache do navegador
     const currentUser = sessionStorage.getItem("current_user");
     if (currentUser) {
-      setIsLoggedIn(true);
-      // Pequeno timeout para evitar navegação imediata e potenciais loops
+      setIsRedirecting(true);
+      // Pequeno timeout para evitar navegação imediata
       setTimeout(() => {
         navigate("/dashboard");
       }, 100);
@@ -20,9 +33,18 @@ const Login = () => {
   }, [navigate]);
 
   const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
     navigate("/dashboard");
   };
+
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-slate-100 dark:to-slate-900">
+        <div className="text-center">
+          <p className="text-xl">Redirecionando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-slate-100 dark:to-slate-900 p-4">

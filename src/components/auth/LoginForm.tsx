@@ -26,8 +26,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [passwordValid, setPasswordValid] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    // Verificar se existem utilizadores e criar um utilizador padrão se não existir nenhum
     const savedUsers = localStorage.getItem("app_users");
     const users = savedUsers ? JSON.parse(savedUsers) : [];
     
@@ -66,93 +68,101 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    if (!form.username || !form.password) {
-      toast.error("Por favor, preencha todos os campos");
-      return;
-    }
+    try {
+      if (!form.username || !form.password) {
+        toast.error("Por favor, preencha todos os campos");
+        return;
+      }
 
-    const savedUsers = localStorage.getItem("app_users");
-    const users = savedUsers ? JSON.parse(savedUsers) : [];
-    
-    // Se não houver usuários, criar o administrador padrão
-    if (users.length === 0) {
-      const defaultAdmin = {
-        id: "1",
-        name: "Administrador",
-        username: "admin",
-        role: "editor",
-        status: "active",
-        lastLogin: new Date().toISOString()
-      };
+      const savedUsers = localStorage.getItem("app_users");
+      const users = savedUsers ? JSON.parse(savedUsers) : [];
       
-      localStorage.setItem("app_users", JSON.stringify([defaultAdmin]));
-      users.push(defaultAdmin);
+      // Se não houver usuários, criar o administrador padrão
+      if (users.length === 0) {
+        const defaultAdmin = {
+          id: "1",
+          name: "Administrador",
+          username: "admin",
+          role: "editor",
+          status: "active",
+          lastLogin: new Date().toISOString()
+        };
+        
+        localStorage.setItem("app_users", JSON.stringify([defaultAdmin]));
+        users.push(defaultAdmin);
+        
+        toast.info("Utilizador administrador criado automaticamente");
+      }
       
-      toast.info("Utilizador administrador criado automaticamente");
-    }
-    
-    const user = users.find((u: any) => u.username === form.username);
-    
-    if (!user) {
-      toast.error("Utilizador não encontrado");
-      return;
-    }
-    
-    // Verificar se é o administrador padrão com senha admin123
-    if (user.username === "admin" && form.password === "admin123") {
-      // Login como admin com senha padrão
-      const userToSave = {
-        id: user.id,
-        name: user.name,
-        username: user.username,
-        role: user.role
-      };
+      const user = users.find((u: any) => u.username === form.username);
       
-      // Atualizar o último login
-      const updatedUsers = users.map((u: any) => {
-        if (u.username === form.username) {
-          return {
-            ...u,
-            status: "active",
-            lastLogin: new Date().toISOString()
-          };
+      if (!user) {
+        toast.error("Utilizador não encontrado");
+        return;
+      }
+      
+      // Verificar se é o administrador padrão com senha admin123
+      if (user.username === "admin" && form.password === "admin123") {
+        // Login como admin com senha padrão
+        const userToSave = {
+          id: user.id,
+          name: user.name,
+          username: user.username,
+          role: user.role
+        };
+        
+        // Atualizar o último login
+        const updatedUsers = users.map((u: any) => {
+          if (u.username === form.username) {
+            return {
+              ...u,
+              status: "active",
+              lastLogin: new Date().toISOString()
+            };
+          }
+          return u;
+        });
+        
+        localStorage.setItem("app_users", JSON.stringify(updatedUsers));
+        sessionStorage.setItem("current_user", JSON.stringify(userToSave));
+        
+        toast.success("Login realizado com sucesso");
+        
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        } else {
+          navigate("/dashboard");
         }
-        return u;
-      });
-      
-      localStorage.setItem("app_users", JSON.stringify(updatedUsers));
-      sessionStorage.setItem("current_user", JSON.stringify(userToSave));
-      
-      toast.success("Login realizado com sucesso");
-      
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      } else {
-        navigate("/dashboard");
+        return;
       }
-      return;
-    }
-    
-    // Verificar se é primeiro login com senha temporária
-    if (form.password === "temp123") {
-      setIsFirstLogin(true);
-      toast.info("Por favor, altere a sua senha");
-      return;
-    }
+      
+      // Verificar se é primeiro login com senha temporária
+      if (form.password === "temp123") {
+        setIsFirstLogin(true);
+        toast.info("Por favor, altere a sua senha");
+        return;
+      }
 
-    // Passar para o login normal
-    const success = await login(form.username, form.password);
-    if (success) {
-      toast.success("Login realizado com sucesso");
-      
-      if (onLoginSuccess) {
-        onLoginSuccess();
+      // Passar para o login normal
+      const success = await login(form.username, form.password);
+      if (success) {
+        toast.success("Login realizado com sucesso");
+        
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        } else {
+          navigate("/dashboard");
+        }
       } else {
-        navigate("/dashboard");
+        toast.error("Credenciais inválidas");
       }
-    } else {
-      toast.error("Credenciais inválidas");
+    } catch (error) {
+      console.error("Erro ao fazer login:", error);
+      toast.error("Ocorreu um erro ao tentar fazer login");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -165,53 +175,61 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
   const handlePasswordChange = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    if (newPassword !== confirmPassword) {
-      toast.error("As senhas não coincidem");
-      return;
-    }
-    
-    if (!validateNewPassword(newPassword)) {
-      return;
-    }
-
-    toast.success("Senha alterada com sucesso");
-    setIsFirstLogin(false);
-    
-    const savedUsers = localStorage.getItem("app_users");
-    const users = savedUsers ? JSON.parse(savedUsers) : [];
-    
-    const user = users.find((u: any) => u.username === form.username);
-    
-    if (user) {
-      const updatedUsers = users.map((u: any) => {
-        if (u.username === form.username) {
-          return {
-            ...u,
-            status: "active",
-            lastLogin: new Date().toISOString()
-          };
-        }
-        return u;
-      });
-      
-      localStorage.setItem("app_users", JSON.stringify(updatedUsers));
-      
-      sessionStorage.setItem(
-        "current_user", 
-        JSON.stringify({
-          id: user.id,
-          name: user.name,
-          username: user.username,
-          role: user.role
-        })
-      );
-      
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      } else {
-        navigate("/dashboard");
+    try {
+      if (newPassword !== confirmPassword) {
+        toast.error("As senhas não coincidem");
+        return;
       }
+      
+      if (!validateNewPassword(newPassword)) {
+        return;
+      }
+
+      toast.success("Senha alterada com sucesso");
+      setIsFirstLogin(false);
+      
+      const savedUsers = localStorage.getItem("app_users");
+      const users = savedUsers ? JSON.parse(savedUsers) : [];
+      
+      const user = users.find((u: any) => u.username === form.username);
+      
+      if (user) {
+        const updatedUsers = users.map((u: any) => {
+          if (u.username === form.username) {
+            return {
+              ...u,
+              status: "active",
+              lastLogin: new Date().toISOString()
+            };
+          }
+          return u;
+        });
+        
+        localStorage.setItem("app_users", JSON.stringify(updatedUsers));
+        
+        sessionStorage.setItem(
+          "current_user", 
+          JSON.stringify({
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            role: user.role
+          })
+        );
+        
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        } else {
+          navigate("/dashboard");
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao alterar senha:", error);
+      toast.error("Ocorreu um erro ao tentar alterar a senha");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -347,9 +365,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             <Button 
               type="submit" 
               className="w-full"
-              disabled={!passwordValid || newPassword !== confirmPassword}
+              disabled={!passwordValid || newPassword !== confirmPassword || isLoading}
             >
-              Confirmar Alteração
+              {isLoading ? "A processar..." : "Confirmar Alteração"}
             </Button>
           </CardFooter>
         </form>
@@ -410,9 +428,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full">
-            <LogIn className="h-4 w-4 mr-2" />
-            Entrar
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={isLoading}
+          >
+            {isLoading ? "A processar..." : (
+              <>
+                <LogIn className="h-4 w-4 mr-2" />
+                Entrar
+              </>
+            )}
           </Button>
         </CardFooter>
       </form>

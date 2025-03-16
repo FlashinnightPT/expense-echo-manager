@@ -14,6 +14,7 @@ const WARNING_TIME = 30 * 1000; // 30 segundos
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
   const { validatePassword } = usePasswordValidator();
 
@@ -58,13 +59,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Verificar se o utilizador já está autenticado
     const currentUser = sessionStorage.getItem("current_user");
     if (currentUser) {
-      setUser(JSON.parse(currentUser));
-      setIsAuthenticated(true);
+      try {
+        const parsedUser = JSON.parse(currentUser);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error("Erro ao processar utilizador da sessão:", error);
+        sessionStorage.removeItem("current_user");
+      }
     }
+    
+    setIsInitialized(true);
   }, []); // Dependência vazia para garantir que só executa uma vez
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
+      // Resetar o estado anterior em caso de login consecutivo
+      setUser(null);
+      setIsAuthenticated(false);
+      
       // Buscar utilizadores do localStorage
       const savedUsers = localStorage.getItem("app_users");
       const users = savedUsers ? JSON.parse(savedUsers) : [];
@@ -114,6 +127,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       localStorage.setItem("app_users", JSON.stringify(updatedUsers));
       
+      // Atualizar estado e sessão
       setUser(userToSave);
       setIsAuthenticated(true);
       sessionStorage.setItem("current_user", JSON.stringify(userToSave));
@@ -121,6 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return true;
     } catch (error) {
       console.error("Erro no login:", error);
+      toast.error("Ocorreu um erro durante o login");
       return false;
     }
   };
@@ -138,6 +153,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     validatePassword,
     useIdleWarning: { IdleWarningDialog }
   }), [user, isAuthenticated, canEdit, IdleWarningDialog]);
+
+  // Não renderizar nada até que tenhamos verificado a sessão
+  if (!isInitialized) {
+    return null;
+  }
 
   return (
     <AuthContext.Provider value={authContextValue}>
