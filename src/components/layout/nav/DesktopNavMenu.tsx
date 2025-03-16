@@ -21,6 +21,8 @@ export function DesktopNavMenu({
   isActivePath,
   closeMenu
 }: DesktopNavMenuProps) {
+  const location = useLocation();
+
   return (
     <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
       {mainNavigation.map((item) => (
@@ -30,6 +32,12 @@ export function DesktopNavMenu({
           className={`transition-colors hover:text-foreground/80 ${
             isActivePath(item.href) ? "text-foreground font-semibold" : "text-foreground/60"
           }`}
+          onClick={() => {
+            // Force a small delay to ensure proper navigation
+            setTimeout(() => {
+              closeMenu();
+            }, 10);
+          }}
         >
           {item.name}
         </Link>

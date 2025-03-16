@@ -17,9 +17,13 @@ export function MobileNavMenu({
   isActivePath 
 }: MobileNavMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
 
   const closeMenu = () => {
-    setIsOpen(false);
+    // Force a small delay to ensure proper navigation
+    setTimeout(() => {
+      setIsOpen(false);
+    }, 10);
   };
 
   return (
