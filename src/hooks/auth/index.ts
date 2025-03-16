@@ -17,3 +17,6 @@ export {
 
 // Re-export types
 export type { UserRole, User, AuthContextType };
+
+// Default export for backward compatibility
+export default useAuth;

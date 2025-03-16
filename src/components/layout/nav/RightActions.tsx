@@ -1,6 +1,6 @@
 
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useAuth } from "@/hooks/useAuth";
+import useAuth from "@/hooks/useAuth";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import UserMenu from "@/components/auth/UserMenu";
 import { MobileNavMenu } from "./MobileNavMenu";

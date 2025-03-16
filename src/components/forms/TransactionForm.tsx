@@ -9,7 +9,7 @@ import CategorySelector from "./components/CategorySelector";
 import CategoryBreadcrumbNav from "./components/CategoryBreadcrumbNav";
 import AmountInput from "./components/AmountInput";
 import FormActions from "./components/FormActions";
-import { useAuth } from "@/hooks/useAuth";
+import useAuth from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
