@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { aiService } from "@/services/aiService";
-import { SendIcon, LoaderIcon, InfoIcon, KeyIcon, CheckCircle2 } from "lucide-react";
+import { SendIcon, LoaderIcon, InfoIcon, KeyIcon, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useTransactionData } from "@/hooks/useTransactionData";
 
 interface AiChatDialogProps {
@@ -120,6 +120,15 @@ const AiChatDialog: React.FC<AiChatDialogProps> = ({ open, onOpenChange }) => {
                 </p>
               </div>
               
+              <div className="p-2 border border-yellow-200 bg-yellow-50 dark:bg-yellow-950 dark:border-yellow-800 rounded-md">
+                <div className="flex items-start space-x-2">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-yellow-800 dark:text-yellow-400">
+                    Para consultas complexas ou com muitos dados, as respostas podem ser limitadas. Seja específico em suas perguntas.
+                  </p>
+                </div>
+              </div>
+              
               <div className="flex flex-col space-y-2">
                 <Input
                   placeholder="Faça uma pergunta sobre seus dados financeiros..."
@@ -168,7 +177,7 @@ const AiChatDialog: React.FC<AiChatDialogProps> = ({ open, onOpenChange }) => {
             </Button>
           )}
           <p className="text-xs text-muted-foreground">
-            Usando GPT-4o da OpenAI
+            Usando GPT-4o-mini da OpenAI
           </p>
         </DialogFooter>
       </DialogContent>

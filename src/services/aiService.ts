@@ -29,14 +29,18 @@ export class AiService {
     return !!this.apiKey && this.apiKey !== "sua-chave-api-openai-aqui";
   }
 
-  // Método para preparar os dados financeiros para consulta
+  // Método para preparar os dados financeiros para consulta com limite de tokens
   private prepareFinancialData(transactions: Transaction[]): string {
+    // Limitar o número de transações para economizar tokens
+    const MAX_TRANSACTIONS = 50;
+    const limitedTransactions = transactions.slice(-MAX_TRANSACTIONS);
+    
     // Agrupa transações por categoria para gasto médio
-    const categoryMap = new Map<string, { total: number, count: number, transactions: Transaction[] }>();
+    const categoryMap = new Map<string, { total: number, count: number }>();
     
     transactions.forEach(transaction => {
       const key = transaction.categoryId;
-      const entry = categoryMap.get(key) || { total: 0, count: 0, transactions: [] };
+      const entry = categoryMap.get(key) || { total: 0, count: 0 };
       
       // Adicionamos apenas as despesas para cálculos
       if (transaction.type === 'expense') {
@@ -44,7 +48,6 @@ export class AiService {
         entry.count += 1;
       }
       
-      entry.transactions.push(transaction);
       categoryMap.set(key, entry);
     });
     
@@ -59,9 +62,9 @@ export class AiService {
       }
     });
     
-    // Adiciona detalhes sobre as transações
-    dataText += "\nDetalhes das transações:\n";
-    transactions.forEach(t => {
+    // Adiciona detalhes sobre um número limitado de transações mais recentes
+    dataText += `\nDetalhes das ${limitedTransactions.length} transações mais recentes (de um total de ${transactions.length}):\n`;
+    limitedTransactions.forEach(t => {
       const date = new Date(t.date).toLocaleDateString();
       dataText += `Data: ${date}, Descrição: ${t.description}, Valor: ${t.amount.toFixed(2)}, Tipo: ${t.type}, Categoria: ${t.categoryId}\n`;
     });
@@ -85,7 +88,7 @@ export class AiService {
       const messages = [
         {
           role: "system",
-          content: "Você é um assistente financeiro especializado em análise de dados de transações. Use apenas os dados fornecidos para responder às perguntas."
+          content: "Você é um assistente financeiro especializado em análise de dados de transações. Use apenas os dados fornecidos para responder às perguntas. Seja conciso nas respostas."
         },
         {
           role: "user",
@@ -100,7 +103,7 @@ export class AiService {
           "Authorization": `Bearer ${this.apiKey}`
         },
         body: JSON.stringify({
-          model: "gpt-4o",
+          model: "gpt-4o-mini", // Usando o modelo mais leve para economizar tokens
           messages,
           max_tokens: maxTokens,
           temperature: 0.3 // Menor temperatura para respostas mais precisas
