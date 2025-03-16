@@ -1,10 +1,12 @@
 
-import { Database, Download, Upload } from "lucide-react";
+import { Database, Download, HelpCircle, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useSettingsState } from "../hooks/useSettingsState";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface BackupSettingsProps {
   className?: string;
@@ -31,9 +33,26 @@ const BackupSettings = ({ className }: BackupSettingsProps) => {
             <Download className="h-4 w-4 mr-2" />
             Exportar Dados
           </Button>
-          <p className="text-sm text-muted-foreground">
-            Descarregue um ficheiro com todos os seus dados para guardar como backup.
-          </p>
+          <div className="flex items-start gap-1">
+            <p className="text-sm text-muted-foreground">
+              Descarregue um ficheiro com todos os seus dados para guardar como backup.
+            </p>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <Alert>
+                  <AlertTitle>Sobre os backups</AlertTitle>
+                  <AlertDescription>
+                    O arquivo de backup será salvo na sua pasta de downloads padrão com o nome <code className="text-xs">gestor-financeiro-backup-AAAA-MM-DD.json</code> (onde AAAA-MM-DD é a data atual).
+                  </AlertDescription>
+                </Alert>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
         
         <Separator />

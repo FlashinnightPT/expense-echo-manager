@@ -42,7 +42,8 @@ export class BackupService extends ApiServiceCore {
       link.href = url;
       const date = new Date();
       const dateStr = date.toISOString().split('T')[0];
-      link.setAttribute('download', `gestor-financeiro-backup-${dateStr}.json`);
+      const fileName = `gestor-financeiro-backup-${dateStr}.json`;
+      link.setAttribute('download', fileName);
       document.body.appendChild(link);
       
       // Disparar o download
@@ -52,7 +53,11 @@ export class BackupService extends ApiServiceCore {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      toast.success("Backup exportado com sucesso");
+      // Mostrar mensagem com o nome do arquivo e informações sobre a localização
+      toast.success(
+        `Backup exportado como "${fileName}". O arquivo foi salvo na sua pasta de downloads padrão.`,
+        { duration: 6000 }
+      );
       return true;
       
     } catch (error) {
