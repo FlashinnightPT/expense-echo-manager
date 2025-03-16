@@ -49,13 +49,12 @@ const CategoryAnalysis = () => {
   const [totalAmount, setTotalAmount] = useState(0);
 
   // Datas para comparação
-  // Fix: Explicitly convert selectedMonth to number before using in arithmetic
-  const startDate = useState(new Date(selectedYear, selectedMonth !== null ? Number(selectedMonth) : 0, 1))[0];
-  const endDate = useState(new Date(
-    selectedYear, 
-    selectedMonth !== null ? Number(selectedMonth) + 1 : 12, 
-    0
-  ))[0];
+  // Fix: Explicitly convert selectedMonth to number and ensure arithmetic operations use numbers
+  const startMonth = selectedMonth !== null ? Number(selectedMonth) : 0;
+  const endMonth = selectedMonth !== null ? Number(selectedMonth) + 1 : 12;
+  
+  const startDate = useState(new Date(selectedYear, startMonth, 1))[0];
+  const endDate = useState(new Date(selectedYear, endMonth, 0))[0];
 
   // Anos disponíveis para seleção
   const availableYears = Array.from(

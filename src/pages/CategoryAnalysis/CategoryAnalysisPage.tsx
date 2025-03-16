@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import { useCategoryData } from "@/hooks/useCategoryData";
@@ -32,13 +31,12 @@ const CategoryAnalysisPage = () => {
   const [subcategoryData, setSubcategoryData] = useState<any[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  // Dates for comparison - Fix: Explicitly convert selectedMonth to number
-  const startDate = useState(new Date(selectedYear, selectedMonth !== null ? Number(selectedMonth) : 0, 1))[0];
-  const endDate = useState(new Date(
-    selectedYear, 
-    selectedMonth !== null ? Number(selectedMonth) + 1 : 12, 
-    0
-  ))[0];
+  // Dates for comparison - Fix: Create intermediate number variables to ensure type safety
+  const startMonth = selectedMonth !== null ? Number(selectedMonth) : 0;
+  const endMonth = selectedMonth !== null ? Number(selectedMonth) + 1 : 12;
+  
+  const startDate = useState(new Date(selectedYear, startMonth, 1))[0];
+  const endDate = useState(new Date(selectedYear, endMonth, 0))[0];
 
   // Years available for selection - Fix: Ensure the array is typed as number[]
   const availableYears = Array.from(
