@@ -50,8 +50,9 @@ const CategoryAnalysis = () => {
   const [totalAmount, setTotalAmount] = useState(0);
 
   // Datas para comparação
-  const startDate = useState(new Date(selectedYear, selectedMonth || 0, 1))[0];
-  const endDate = useState(new Date(selectedYear, (selectedMonth || 11) + 1, 0))[0];
+  // Fix: Ensure both values in the date constructor are numbers
+  const startDate = useState(new Date(selectedYear, selectedMonth !== null ? selectedMonth : 0, 1))[0];
+  const endDate = useState(new Date(selectedYear, selectedMonth !== null ? (selectedMonth + 1) : 11 + 1, 0))[0];
 
   // Anos disponíveis para seleção
   const availableYears = Array.from(
@@ -64,7 +65,8 @@ const CategoryAnalysis = () => {
       const currentYear = new Date().getFullYear();
       setSelectedYear(currentYear);
     } else if (!availableYears.includes(selectedYear)) {
-      setSelectedYear(availableYears[0]);
+      // Fix: Ensure we're setting a number
+      setSelectedYear(availableYears[0] || new Date().getFullYear());
     }
   }, [availableYears, selectedYear]);
 
@@ -169,7 +171,7 @@ const CategoryAnalysis = () => {
   };
 
   // Function to handle adding a category to comparison
-  const handleAddToComparison = (categoryId, categoryPath) => {
+  const handleAddToComparison = (categoryId: string, categoryPath: string) => {
     // Implementation of adding to comparison
     console.log("Adding to comparison:", categoryId, categoryPath);
   };
@@ -215,7 +217,7 @@ const CategoryAnalysis = () => {
                       </SelectItem>
                     ) : (
                       availableYears.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
+                        <SelectItem key={year.toString()} value={year.toString()}>
                           {year}
                         </SelectItem>
                       ))
@@ -235,9 +237,9 @@ const CategoryAnalysis = () => {
                     <SelectValue placeholder="Todos os meses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os meses</SelectItem>
+                    <SelectItem value="null">Todos os meses</SelectItem>
                     {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-                      <SelectItem key={month} value={month.toString()}>
+                      <SelectItem key={month.toString()} value={month.toString()}>
                         {new Date(2000, month - 1, 1).toLocaleString('pt-PT', { month: 'long' })}
                       </SelectItem>
                     ))}
