@@ -49,7 +49,7 @@ export function DesktopNavMenu({
           <NavigationMenuItem>
             <NavigationMenuTrigger 
               className={`transition-colors hover:text-foreground/80 ${
-                ['/settings', '/categories', '/users'].some(path => isActivePath(path)) ? 
+                ['/settings', '/categories', '/users', '/category-analysis', '/category-comparison'].some(path => isActivePath(path)) ? 
                 "text-foreground font-semibold" : "text-foreground/60"
               }`}>
               Configurações

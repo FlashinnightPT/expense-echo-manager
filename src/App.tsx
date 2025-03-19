@@ -18,6 +18,7 @@ const Monthly = lazy(() => import("@/pages/Monthly"));
 const Yearly = lazy(() => import("@/pages/Yearly"));
 const Categories = lazy(() => import("@/pages/Categories"));
 const CategoryAnalysis = lazy(() => import("@/pages/CategoryAnalysis"));
+const CategoryComparison = lazy(() => import("@/pages/CategoryComparison"));
 const CategoryReport = lazy(() => import("@/pages/CategoryReport"));
 const Settings = lazy(() => import("@/pages/settings"));
 const Users = lazy(() => import("@/pages/Users"));
@@ -90,6 +91,16 @@ function App() {
               <RequireAuth>
                 <WithHeader>
                   <CategoryAnalysis />
+                </WithHeader>
+              </RequireAuth>
+            } 
+          />
+          <Route 
+            path="/category-comparison" 
+            element={
+              <RequireAuth>
+                <WithHeader>
+                  <CategoryComparison />
                 </WithHeader>
               </RequireAuth>
             } 
