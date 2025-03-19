@@ -1,25 +1,24 @@
 
 import { useEffect } from "react";
-import Painel from "@/components/layout/Dashboard";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/auth";
+import { LoadingPage } from "@/components/ui/loading-spinner";
 
 const Index = () => {
-  // Smooth loading animation
-  useEffect(() => {
-    document.body.style.opacity = "0";
-    setTimeout(() => {
-      document.body.style.transition = "opacity 0.5s ease-in-out";
-      document.body.style.opacity = "1";
-    }, 100);
-    
-    return () => {
-      document.body.style.transition = "";
-      document.body.style.opacity = "";
-    };
-  }, []);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
-  return (
-    <Painel />
-  );
+  // Redirect based on authentication status
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    } else {
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Show loading while redirecting
+  return <LoadingPage text="Carregando aplicação..." />;
 };
 
 export default Index;

@@ -1,11 +1,10 @@
-
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import "./App.css";
 
 // Auth Provider
-import { AuthProvider, RequireAuth, RequireEditor } from "@/hooks/useAuth";
+import { AuthProvider, RequireAuth, RequireEditor } from "@/hooks/auth";
 
 // Layout component
 import Header from "@/components/layout/Header";
