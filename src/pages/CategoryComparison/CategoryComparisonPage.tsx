@@ -9,6 +9,7 @@ import CategorySelectionPanel from "./components/CategorySelectionPanel";
 import DateRangeSelector from "./components/DateRangeSelector";
 import { ComparisonItem } from "@/components/dashboard/comparison/utils/comparisonDataUtils";
 import { AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 const CategoryComparisonPage = () => {
   const { categoryList: categories } = useCategoryData();
@@ -25,23 +26,37 @@ const CategoryComparisonPage = () => {
   
   // Add an item to comparison (if not already 5 items)
   const addComparisonItem = (item: ComparisonItem) => {
+    console.log("Adding comparison item:", item);
+    
+    // Check if we've already reached the maximum of 5 categories
     if (comparisonItems.length >= 5) {
+      console.log("Max items reached");
       return false;
     }
     
     // Check if this category with same date range already exists
-    const exists = comparisonItems.some(existing => 
-      existing.id.split('-')[0] === item.id.split('-')[0] && 
-      existing.dateRange?.start.getTime() === item.dateRange?.start.getTime() &&
-      existing.dateRange?.end.getTime() === item.dateRange?.end.getTime()
-    );
+    const exists = comparisonItems.some(existing => {
+      const existingCategoryId = existing.id.split('-')[0];
+      const newCategoryId = item.id.split('-')[0];
+      
+      const sameCategoryId = existingCategoryId === newCategoryId;
+      
+      const sameDateRange = existing.dateRange && item.dateRange && 
+        existing.dateRange.start.getTime() === item.dateRange.start.getTime() &&
+        existing.dateRange.end.getTime() === item.dateRange.end.getTime();
+      
+      return sameCategoryId && sameDateRange;
+    });
     
-    if (!exists) {
-      setComparisonItems(prev => [...prev, item]);
-      return true;
+    if (exists) {
+      console.log("Item already exists");
+      toast.error("Esta categoria já está na comparação para este período.");
+      return false;
     }
     
-    return false;
+    setComparisonItems(prev => [...prev, item]);
+    console.log("Item added successfully");
+    return true;
   };
   
   // Remove an item from comparison
@@ -58,6 +73,10 @@ const CategoryComparisonPage = () => {
   const toggleShowValues = () => {
     setShowValues(prev => !prev);
   };
+
+  useEffect(() => {
+    console.log("Current comparison items:", comparisonItems);
+  }, [comparisonItems]);
 
   return (
     <main className="container mx-auto py-4">

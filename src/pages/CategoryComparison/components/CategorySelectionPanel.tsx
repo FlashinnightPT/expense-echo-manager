@@ -7,6 +7,7 @@ import CategoryTree from "./CategoryTree";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEventBus } from "../hooks/useEventBus";
 import { ComparisonItem, createComparisonItem, calculateCategoryAmount } from "@/components/dashboard/comparison/utils/comparisonDataUtils";
+import { toast } from "sonner";
 
 interface CategorySelectionPanelProps {
   categories: any[];
@@ -30,16 +31,16 @@ const CategorySelectionPanel: React.FC<CategorySelectionPanelProps> = ({
   const { subscribe } = useEventBus();
   
   useEffect(() => {
+    console.log("Setting up date range subscription");
     const unsubscribe = subscribe("dateRangeChanged", (data) => {
+      console.log("Date range changed received:", data);
       setDateRange({
         startDate: data.startDate,
         endDate: data.endDate
       });
     });
     
-    return () => {
-      unsubscribe();
-    };
+    return unsubscribe;
   }, []);
   
   // Filter expense categories
@@ -56,27 +57,38 @@ const CategorySelectionPanel: React.FC<CategorySelectionPanelProps> = ({
   
   // Handle category selection for comparison
   const handleCategorySelect = (categoryId: string, categoryPath: string) => {
-    // Calculate amount for this category in the selected date range
-    const amount = calculateCategoryAmount(
-      categoryId, 
-      transactions, 
-      categories, 
-      dateRange.startDate, 
-      dateRange.endDate
-    );
-    
-    // Create comparison item
-    const comparisonItem = createComparisonItem(
-      categoryId,
-      categoryPath,
-      amount,
-      dateRange.startDate,
-      dateRange.endDate,
-      true // Use custom period
-    );
-    
-    // Add to comparison
-    return onAddComparisonItem(comparisonItem);
+    console.log("Category selected:", categoryId, categoryPath);
+    try {
+      // Calculate amount for this category in the selected date range
+      const amount = calculateCategoryAmount(
+        categoryId, 
+        transactions, 
+        categories, 
+        dateRange.startDate, 
+        dateRange.endDate
+      );
+      
+      // Create comparison item
+      const comparisonItem = createComparisonItem(
+        categoryId,
+        categoryPath,
+        amount,
+        dateRange.startDate,
+        dateRange.endDate,
+        true // Use custom period
+      );
+      
+      // Add to comparison
+      const success = onAddComparisonItem(comparisonItem);
+      if (!success) {
+        toast.error("Não foi possível adicionar à comparação. Máximo de 5 categorias ou já existente.");
+      }
+      return success;
+    } catch (error) {
+      console.error("Error adding category to comparison:", error);
+      toast.error("Erro ao adicionar categoria à comparação");
+      return false;
+    }
   };
   
   return (
