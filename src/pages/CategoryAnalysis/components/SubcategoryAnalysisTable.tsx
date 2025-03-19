@@ -48,8 +48,7 @@ const SubcategoryAnalysisTable = ({
         <TableHeader>
           <TableRow>
             <TableHead>Subcategoria</TableHead>
-            <TableHead className="text-right">Valor</TableHead>
-            <TableHead className="text-right">% do Total</TableHead>
+            <TableHead className="text-right">Valor / Percentagem</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -58,10 +57,16 @@ const SubcategoryAnalysisTable = ({
             <TableRow key={item.category.id}>
               <TableCell>{item.category.name}</TableCell>
               <TableCell className="text-right tabular-nums">
-                {showValues ? formatCurrency(item.amount) : "•••••••"}
-              </TableCell>
-              <TableCell className="text-right tabular-nums">
-                {showValues ? `${item.percentage.toFixed(2)}%` : "•••••••"}
+                {showValues ? (
+                  <>
+                    {formatCurrency(item.amount)} 
+                    <span className="text-muted-foreground ml-2">
+                      ({item.percentage.toFixed(2)}%)
+                    </span>
+                  </>
+                ) : (
+                  "•••••••"
+                )}
               </TableCell>
               <TableCell>
                 <CompareButton 
@@ -76,9 +81,6 @@ const SubcategoryAnalysisTable = ({
             <TableCell>TOTAL</TableCell>
             <TableCell className="text-right tabular-nums">
               {showValues ? formatCurrency(totalAmount) : "•••••••"}
-            </TableCell>
-            <TableCell className="text-right tabular-nums">
-              {showValues ? "100%" : "•••••••"}
             </TableCell>
             <TableCell></TableCell>
           </TableRow>

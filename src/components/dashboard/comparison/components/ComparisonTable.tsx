@@ -1,3 +1,4 @@
+
 import React from "react";
 import { 
   Table, 
@@ -49,8 +50,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
       <TableHeader>
         <TableRow>
           <TableHead>Categoria</TableHead>
-          <TableHead className="text-right">Valor</TableHead>
-          <TableHead className="text-right">% do Total</TableHead>
+          <TableHead className="text-right">Valor / Percentagem</TableHead>
           <TableHead>Período</TableHead>
           <TableHead className="w-[50px]"></TableHead>
         </TableRow>
@@ -62,10 +62,14 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
               {item.path.split(" (")[0]} {/* Remove date range suffix if present */}
             </TableCell>
             <TableCell className="text-right tabular-nums">
-              {showValues ? formatCurrency(item.amount) : hiddenValue}
-            </TableCell>
-            <TableCell className="text-right tabular-nums">
-              {showValues ? (totalAmount > 0 ? ((item.amount / totalAmount) * 100).toFixed(2) : 0) + "%" : hiddenValue}
+              {showValues ? (
+                <>
+                  {formatCurrency(item.amount)}
+                  <span className="text-muted-foreground ml-2">
+                    ({totalAmount > 0 ? ((item.amount / totalAmount) * 100).toFixed(2) : 0}%)
+                  </span>
+                </>
+              ) : hiddenValue}
             </TableCell>
             <TableCell className="text-sm">
               {formatDateRange(item)}
@@ -85,9 +89,6 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           <TableCell>TOTAL</TableCell>
           <TableCell className="text-right tabular-nums">
             {showValues ? formatCurrency(totalAmount) : hiddenValue}
-          </TableCell>
-          <TableCell className="text-right tabular-nums">
-            {showValues ? "100%" : hiddenValue}
           </TableCell>
           <TableCell></TableCell>
           <TableCell></TableCell>
