@@ -1,12 +1,9 @@
 
 import { useState, useEffect, useMemo } from "react";
-import YearlyChart from "@/components/charts/YearlyChart";
-import { Card } from "@/components/ui-custom/Card";
-import { formatCurrency } from "@/utils/financialCalculations";
-import DataTable from "@/components/tables/DataTable";
 import { Transaction } from "@/utils/mockData";
+import { formatCurrency } from "@/utils/financialCalculations";
 
-const Yearly = () => {
+export const useYearlyData = () => {
   const currentYear = new Date().getFullYear();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
@@ -23,7 +20,7 @@ const Yearly = () => {
       }
     };
 
-    // Carregar a preferência de exibição de valores do sessionStorage
+    // Load the preference of displaying values from sessionStorage
     const savedPreference = sessionStorage.getItem('showFinancialValues');
     if (savedPreference) {
       setShowValues(savedPreference === 'true');
@@ -136,7 +133,7 @@ const Yearly = () => {
       differenceRate: item.income > 0 ? ((item.income - item.expense) / item.income * 100).toFixed(2) : "0.00"
     }));
   }, [filteredData]);
-  
+
   // Define table columns
   const columns = [
     {
@@ -174,64 +171,17 @@ const Yearly = () => {
       className: "text-right",
     },
   ];
-  
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Análise Anual</h1>
-          <p className="text-muted-foreground mt-1">
-            Compare os seus dados financeiros entre anos
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {availableYears.map(year => (
-            <button
-              key={year}
-              className={`px-4 py-2 rounded-md border transition-colors ${
-                selectedYears.includes(year) 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-background hover:bg-muted'
-              }`}
-              onClick={() => toggleYear(year)}
-            >
-              {year}
-            </button>
-          ))}
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <Card>
-          <div className="p-6">
-            <p className="text-sm text-muted-foreground">Receitas Totais</p>
-            <p className="text-2xl font-bold mt-1">{showValues ? formatCurrency(totalIncome) : "•••••••"}</p>
-          </div>
-        </Card>
-        <Card>
-          <div className="p-6">
-            <p className="text-sm text-muted-foreground">Despesas Totais</p>
-            <p className="text-2xl font-bold mt-1">{showValues ? formatCurrency(totalExpenses) : "•••••••"}</p>
-          </div>
-        </Card>
-      </div>
-      
-      <div className="mb-8">
-        <Card>
-          <YearlyChart data={filteredData} className="w-full" showValues={showValues} />
-        </Card>
-      </div>
-      
-      <div className="mb-8">
-        <DataTable 
-          data={tableData} 
-          columns={columns} 
-          title="Resumo Anual"
-          emptyMessage="Selecione pelo menos um ano para ver os dados"
-        />
-      </div>
-    </div>
-  );
-};
 
-export default Yearly;
+  return {
+    availableYears,
+    selectedYears,
+    toggleYear,
+    filteredData,
+    totalIncome,
+    totalExpenses,
+    tableData,
+    columns,
+    showValues,
+    currentYear
+  };
+};
