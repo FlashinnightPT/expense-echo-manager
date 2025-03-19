@@ -34,13 +34,17 @@ const CategoryComparisonPage = () => {
       return false;
     }
     
+    // Extract the base category ID (without timestamp)
+    const newCategoryId = item.id.split('-').slice(0, -1).join('-');
+    
     // Check if this category with same date range already exists
     const exists = comparisonItems.some(existing => {
-      const existingCategoryId = existing.id.split('-')[0];
-      const newCategoryId = item.id.split('-')[0];
+      // Extract the base category ID from existing item (without timestamp)
+      const existingCategoryId = existing.id.split('-').slice(0, -1).join('-');
       
       const sameCategoryId = existingCategoryId === newCategoryId;
       
+      // Only consider date range if both items have it
       const sameDateRange = existing.dateRange && item.dateRange && 
         existing.dateRange.start.getTime() === item.dateRange.start.getTime() &&
         existing.dateRange.end.getTime() === item.dateRange.end.getTime();

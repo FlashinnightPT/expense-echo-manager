@@ -34,14 +34,16 @@ const CategorySelectionPanel: React.FC<CategorySelectionPanelProps> = ({
     console.log("Setting up date range subscription");
     const unsubscribe = subscribe("dateRangeChanged", (data) => {
       console.log("Date range changed received:", data);
-      setDateRange({
-        startDate: data.startDate,
-        endDate: data.endDate
-      });
+      if (data && data.startDate && data.endDate) {
+        setDateRange({
+          startDate: new Date(data.startDate),
+          endDate: new Date(data.endDate)
+        });
+      }
     });
     
     return unsubscribe;
-  }, []);
+  }, [subscribe]);
   
   // Filter expense categories
   const expenseCategories = categories.filter(cat => 

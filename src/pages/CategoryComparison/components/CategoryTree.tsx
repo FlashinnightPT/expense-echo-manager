@@ -27,6 +27,7 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
   parentPath = "",
 }) => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   
   // Toggle category expansion
   const toggleExpand = (categoryId: string) => {
@@ -51,13 +52,18 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
   const addToComparison = (categoryId: string, categoryName: string, e: React.MouseEvent) => {
     e.stopPropagation();
     
+    // Prevent selecting the same category multiple times
+    if (selectedCategories.includes(categoryId)) {
+      toast.error(`"${categoryName}" já foi adicionado à comparação`);
+      return;
+    }
+    
     const fullPath = parentPath ? `${parentPath} > ${categoryName}` : categoryName;
     const success = onSelectCategory(categoryId, fullPath);
     
     if (success) {
+      setSelectedCategories(prev => [...prev, categoryId]);
       toast.success(`"${fullPath}" adicionado à comparação`);
-    } else {
-      toast.error("Não foi possível adicionar à comparação. Máximo de 5 categorias ou já existente.");
     }
   };
   
@@ -81,10 +87,11 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
           dateRange.endDate
         );
         
-        // Skip categories with no transactions in period
-        if (amount === 0) return null;
+        // Skip categories with no transactions in period if needed
+        // if (amount === 0) return null;
         
         const isExpanded = expandedCategories.includes(category.id);
+        const isSelected = selectedCategories.includes(category.id);
         const subCategories = getSubcategories(category.id);
         const childLevel = level + 1;
         const childPath = parentPath ? `${parentPath} > ${category.name}` : category.name;
@@ -94,7 +101,8 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
             <div 
               className={cn(
                 "flex items-center justify-between py-1 px-2 rounded-md transition-colors hover:bg-muted/50 cursor-pointer",
-                isExpanded && "bg-muted/30"
+                isExpanded && "bg-muted/30",
+                isSelected && "bg-primary/10"
               )}
               onClick={() => hasChildren(category.id) && toggleExpand(category.id)}
             >
@@ -120,7 +128,7 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
               </div>
               
               <Button 
-                variant="ghost" 
+                variant={isSelected ? "secondary" : "ghost"}
                 size="icon" 
                 className="h-6 w-6 mr-1"
                 onClick={(e) => addToComparison(category.id, category.name, e)}

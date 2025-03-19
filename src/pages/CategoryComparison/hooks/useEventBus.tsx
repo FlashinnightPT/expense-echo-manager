@@ -20,7 +20,17 @@ const eventBus = {
   
   publish(event: EventTypes, data: EventDetail) {
     console.log(`Publishing event: ${event}`, data);
-    document.dispatchEvent(new CustomEvent(event, { detail: data }));
+    
+    // Ensure dates are properly serialized
+    const processedData = { ...data };
+    if (processedData.startDate instanceof Date) {
+      processedData.startDate = processedData.startDate;
+    }
+    if (processedData.endDate instanceof Date) {
+      processedData.endDate = processedData.endDate;
+    }
+    
+    document.dispatchEvent(new CustomEvent(event, { detail: processedData }));
   }
 };
 
@@ -34,8 +44,20 @@ export const useEventBus = () => {
     
     const handler = (data: EventDetail) => {
       console.log(`Event received: ${event}`, data);
-      setEventData(data);
-      callback(data);
+      
+      // Process dates if needed
+      const processedData = { ...data };
+      
+      // Make sure dates are proper Date objects
+      if (processedData.startDate && !(processedData.startDate instanceof Date)) {
+        processedData.startDate = new Date(processedData.startDate);
+      }
+      if (processedData.endDate && !(processedData.endDate instanceof Date)) {
+        processedData.endDate = new Date(processedData.endDate);
+      }
+      
+      setEventData(processedData);
+      callback(processedData);
     };
     
     eventBus.on(event, handler);
