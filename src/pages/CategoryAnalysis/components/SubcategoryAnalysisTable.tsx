@@ -47,16 +47,16 @@ const SubcategoryAnalysisTable = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Subcategoria</TableHead>
-            <TableHead className="text-right">Valor / Percentagem</TableHead>
+            <TableHead className="text-center">Subcategoria</TableHead>
+            <TableHead className="text-center">Valor / Percentagem</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {subcategoryData.map((item) => (
             <TableRow key={item.category.id}>
-              <TableCell>{item.category.name}</TableCell>
-              <TableCell className="text-right tabular-nums">
+              <TableCell className="text-center">{item.category.name}</TableCell>
+              <TableCell className="text-center tabular-nums">
                 {showValues ? (
                   <>
                     {formatCurrency(item.amount)} 
@@ -78,8 +78,8 @@ const SubcategoryAnalysisTable = ({
             </TableRow>
           ))}
           <TableRow className="font-bold">
-            <TableCell>TOTAL</TableCell>
-            <TableCell className="text-right tabular-nums">
+            <TableCell className="text-center">TOTAL</TableCell>
+            <TableCell className="text-center tabular-nums">
               {showValues ? formatCurrency(totalAmount) : "•••••••"}
             </TableCell>
             <TableCell></TableCell>

@@ -49,45 +49,49 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Categoria</TableHead>
-          <TableHead className="text-right">Valor / Percentagem</TableHead>
-          <TableHead>Período</TableHead>
+          <TableHead className="text-center">Categoria</TableHead>
+          <TableHead className="text-center">Valor / Percentagem</TableHead>
+          <TableHead className="text-center">Período</TableHead>
           <TableHead className="w-[50px]"></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {comparisonData.map((item) => (
-          <TableRow key={item.id}>
-            <TableCell className="font-medium">
-              {item.path.split(" (")[0]} {/* Remove date range suffix if present */}
-            </TableCell>
-            <TableCell className="text-right tabular-nums">
-              {showValues ? (
-                <>
-                  {formatCurrency(item.amount)}
-                  <span className="text-muted-foreground ml-2">
-                    ({totalAmount > 0 ? ((item.amount / totalAmount) * 100).toFixed(2) : 0}%)
-                  </span>
-                </>
-              ) : hiddenValue}
-            </TableCell>
-            <TableCell className="text-sm">
-              {formatDateRange(item)}
-            </TableCell>
-            <TableCell>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onRemoveCategory(item.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </TableCell>
-          </TableRow>
-        ))}
+        {comparisonData.map((item) => {
+          const percentage = totalAmount > 0 ? ((item.amount / totalAmount) * 100).toFixed(2) : "0.00";
+          
+          return (
+            <TableRow key={item.id}>
+              <TableCell className="font-medium text-center">
+                {item.path.split(" (")[0]} {/* Remove date range suffix if present */}
+              </TableCell>
+              <TableCell className="text-center tabular-nums">
+                {showValues ? (
+                  <>
+                    {formatCurrency(item.amount)}
+                    <span className="text-muted-foreground ml-2">
+                      ({percentage}%)
+                    </span>
+                  </>
+                ) : hiddenValue}
+              </TableCell>
+              <TableCell className="text-sm text-center">
+                {formatDateRange(item)}
+              </TableCell>
+              <TableCell>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onRemoveCategory(item.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          );
+        })}
         <TableRow className="font-bold">
-          <TableCell>TOTAL</TableCell>
-          <TableCell className="text-right tabular-nums">
+          <TableCell className="text-center">TOTAL</TableCell>
+          <TableCell className="text-center tabular-nums">
             {showValues ? formatCurrency(totalAmount) : hiddenValue}
           </TableCell>
           <TableCell></TableCell>

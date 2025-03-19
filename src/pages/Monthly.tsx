@@ -131,34 +131,44 @@ const Monthly = () => {
       header: "Mês",
       accessorFn: (row) => row.monthName,
       sortable: true,
+      className: "text-center",
     },
     {
       id: "income",
       header: "Receitas",
       accessorFn: (row) => showValues ? formatCurrency(row.income) : "•••••••",
       sortable: true,
-      className: "text-right",
+      className: "text-center",
     },
     {
       id: "expense",
       header: "Despesas",
       accessorFn: (row) => showValues ? formatCurrency(row.expense) : "•••••••",
       sortable: true,
-      className: "text-right",
+      className: "text-center",
     },
     {
       id: "balance",
       header: "Saldo",
       accessorFn: (row) => showValues ? formatCurrency(row.balance) : "•••••••",
       sortable: true,
-      className: "text-right",
+      className: "text-center",
     },
     {
       id: "differenceRate",
       header: "Diferença",
-      accessorFn: (row) => showValues ? `${row.differenceRate}%` : "•••••••",
+      accessorFn: (row) => {
+        if (!showValues) return "•••••••";
+        
+        // Display both the value and percentage
+        return (
+          <>
+            {formatCurrency(row.balance)} <span className="text-muted-foreground">({row.differenceRate}%)</span>
+          </>
+        );
+      },
       sortable: true,
-      className: "text-right",
+      className: "text-center",
     },
   ];
   
