@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { ApiServiceCore } from "./ApiServiceCore";
 import { transactionService } from "./TransactionService";
 import { categoryService } from "./CategoryService";
+import { supabase } from "../supabaseClient";
 
 // Service specifically for backup/restore operations
 export class BackupService extends ApiServiceCore {
@@ -16,7 +17,7 @@ export class BackupService extends ApiServiceCore {
 
   public async exportDatabase(): Promise<boolean> {
     try {
-      // Reutiliza a função existente
+      // Obter dados do Supabase se estiver conectado, ou do localStorage caso contrário
       const transactions = await transactionService.getTransactions();
       const categories = await categoryService.getCategories();
       const users = localStorage.getItem('app_users');
@@ -27,7 +28,8 @@ export class BackupService extends ApiServiceCore {
         categories,
         users: users ? JSON.parse(users) : [],
         timestamp: Date.now(),
-        version: "1.0"
+        version: "1.0",
+        source: this.isConnected() ? "supabase" : "localStorage"
       };
       
       // Converter para string JSON
@@ -61,12 +63,8 @@ export class BackupService extends ApiServiceCore {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        // Mostrar mensagem detalhada sobre o local do arquivo
-        const desktopPath = 'C:\\Users\\[SeuUsuário]\\Desktop';
-        const downloadsPath = 'C:\\Users\\[SeuUsuário]\\Downloads';
-        
         toast.success(
-          `Backup "${fileName}" exportado com sucesso! O arquivo deve estar na sua pasta de Downloads (${downloadsPath}) ou no Desktop (${desktopPath}). Verifique também a barra de downloads do seu navegador.`,
+          `Backup "${fileName}" exportado com sucesso! Verifique a barra de downloads do seu navegador.`,
           { duration: 10000 }
         );
         
@@ -88,7 +86,7 @@ export class BackupService extends ApiServiceCore {
       try {
         const reader = new FileReader();
         
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           try {
             if (!e.target || !e.target.result) {
               toast.error("Erro ao ler arquivo");
@@ -106,7 +104,40 @@ export class BackupService extends ApiServiceCore {
               return;
             }
             
-            // Salvar os dados no localStorage
+            // Se estiver conectado ao Supabase, fazer upload para o banco de dados
+            if (this.isConnected()) {
+              toast.info("Importando dados para o Supabase...");
+              
+              // Limpar tabelas existentes
+              await supabase.from('transactions').delete().neq('id', 'dummy');
+              await supabase.from('categories').delete().neq('id', 'dummy');
+              
+              // Importar categorias
+              if (backup.categories && backup.categories.length > 0) {
+                const { error: catError } = await supabase
+                  .from('categories')
+                  .insert(backup.categories);
+                
+                if (catError) {
+                  console.error("Erro ao importar categorias:", catError);
+                  toast.error("Erro ao importar categorias para o Supabase");
+                }
+              }
+              
+              // Importar transações
+              if (backup.transactions && backup.transactions.length > 0) {
+                const { error: transError } = await supabase
+                  .from('transactions')
+                  .insert(backup.transactions);
+                
+                if (transError) {
+                  console.error("Erro ao importar transações:", transError);
+                  toast.error("Erro ao importar transações para o Supabase");
+                }
+              }
+            }
+            
+            // Sempre atualizar o localStorage como cache
             localStorage.setItem('transactions', JSON.stringify(backup.transactions));
             localStorage.setItem('categories', JSON.stringify(backup.categories));
             

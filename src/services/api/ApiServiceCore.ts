@@ -1,19 +1,27 @@
 
 import { toast } from "sonner";
+import { supabase, checkSupabaseConnection } from "../supabaseClient";
 
-// Core API Service class with basic functionality and connection management
+// Core API Service class com funcionalidade para Supabase e fallback para localStorage
 export class ApiServiceCore {
   // Using protected instead of private to allow proper inheritance
   protected static instances: Record<string, any> = {};
+  protected connected: boolean = false;
+  protected pendingOperations: Array<() => Promise<void>> = [];
 
   protected constructor() {
+    // Inicializar verificação de conexão
+    this.checkConnection();
+    
     // Monitorar o estado da conexão
     window.addEventListener('online', () => {
       toast.success("Conexão com o servidor restaurada");
+      this.checkConnection();
       this.syncData();
     });
     
     window.addEventListener('offline', () => {
+      this.connected = false;
       toast.warning("Sem conexão com o servidor. Modo offline ativado.");
     });
   }
@@ -29,14 +37,47 @@ export class ApiServiceCore {
     return ApiServiceCore.instances[className] as T;
   }
 
-  // Método para simular a sincronização com o backend quando voltar online
-  protected syncData() {
-    console.log("Sincronizando dados com o servidor...");
-    // Aqui seria implementada a sincronização real com o backend
+  // Verificar conexão com o Supabase
+  protected async checkConnection(): Promise<void> {
+    this.connected = await checkSupabaseConnection();
+    console.log(`Supabase connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
   }
 
-  // Método para verificar a conexão
+  // Método para sincronizar dados pendentes quando voltar online
+  protected async syncData(): Promise<void> {
+    if (!this.connected) return;
+    
+    console.log("Sincronizando dados pendentes com o servidor...");
+    
+    // Executar operações pendentes
+    const operations = [...this.pendingOperations];
+    this.pendingOperations = [];
+    
+    for (const operation of operations) {
+      try {
+        await operation();
+      } catch (error) {
+        console.error("Erro ao sincronizar operação:", error);
+        // Readicionar operação à fila se falhar
+        this.pendingOperations.push(operation);
+      }
+    }
+    
+    if (this.pendingOperations.length > 0) {
+      toast.warning(`${this.pendingOperations.length} operações não puderam ser sincronizadas.`);
+    } else if (operations.length > 0) {
+      toast.success("Dados sincronizados com sucesso!");
+    }
+  }
+
+  // Método para verificar a conexão atual
   public isConnected(): boolean {
-    return navigator.onLine;
+    return this.connected && navigator.onLine;
+  }
+  
+  // Método para adicionar operação à fila quando offline
+  protected addPendingOperation(operation: () => Promise<void>): void {
+    this.pendingOperations.push(operation);
+    toast.info("Operação guardada para sincronização posterior");
   }
 }
