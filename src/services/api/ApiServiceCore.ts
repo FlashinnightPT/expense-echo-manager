@@ -75,8 +75,8 @@ export class ApiServiceCore {
     return this.connected && navigator.onLine;
   }
   
-  // Método para adicionar operação à fila quando offline
-  protected addPendingOperation(operation: () => Promise<void>): void {
+  // Método para adicionar operação à fila quando offline - now public
+  public addPendingOperation(operation: () => Promise<void>): void {
     this.pendingOperations.push(operation);
     toast.info("Operação guardada para sincronização posterior");
   }

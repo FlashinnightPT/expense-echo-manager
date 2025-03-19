@@ -90,7 +90,7 @@ export class UserCrudOperations {
         const users = savedUsers ? JSON.parse(savedUsers) : [];
         localStorage.setItem('app_users', JSON.stringify([...users, userData]));
         
-        // Adicionar à fila de operações pendentes
+        // Now using the public method
         this.apiCore.addPendingOperation(async () => {
           await this.createUser(userData);
         });
@@ -140,7 +140,7 @@ export class UserCrudOperations {
         );
         localStorage.setItem('app_users', JSON.stringify(updatedUsers));
         
-        // Adicionar à fila de operações pendentes
+        // Now using the public method
         this.apiCore.addPendingOperation(async () => {
           await this.updateUser(userData);
         });
@@ -181,7 +181,7 @@ export class UserCrudOperations {
         const filteredUsers = users.filter((u: UserData) => u.id !== userId);
         localStorage.setItem('app_users', JSON.stringify(filteredUsers));
         
-        // Adicionar à fila de operações pendentes
+        // Now using the public method
         this.apiCore.addPendingOperation(async () => {
           await this.deleteUser(userId);
         });
