@@ -41,6 +41,9 @@ const CategoryYearTable = ({
   
   const { toggleCategory, isExpanded } = useCategoryExpansion();
   
+  // Check if there are categories of this type
+  const hasCategories = categories.some(cat => cat.type === type);
+  
   // Render a category row with its children
   const renderCategoryRows = (
     categoryData: any, 
@@ -69,10 +72,11 @@ const CategoryYearTable = ({
     );
   };
   
-  if (!hasData) {
-    return <EmptyDataMessage type={type} year={year} />;
+  if (!hasCategories) {
+    return <EmptyDataMessage type={type} year={year} hasCategories={false} />;
   }
 
+  // Always render the table if there are categories, even if there are no transactions
   return (
     <div className="overflow-x-auto">
       <Table className="min-w-[1200px]">
@@ -93,6 +97,15 @@ const CategoryYearTable = ({
             monthlyAverage={monthlyAverage}
             showValues={showValues}
           />
+          
+          {/* Show message if we have categories but no transactions */}
+          {yearlyTotal === 0 && categoryHierarchy.length > 0 && (
+            <TableRow>
+              <TableCell colSpan={14} className="text-center text-muted-foreground py-4">
+                Não existem transações de {type === 'income' ? 'receitas' : 'despesas'} para o ano {year}
+              </TableCell>
+            </TableRow>
+          )}
           
           {/* Category Rows with hierarchical structure */}
           {categoryHierarchy.map((categoryData, index) => (

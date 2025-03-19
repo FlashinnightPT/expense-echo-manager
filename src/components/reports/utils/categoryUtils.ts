@@ -55,6 +55,16 @@ export const calculateMonthlyAmounts = (
 };
 
 /**
+ * Find all categories of a specific type, organized by level
+ */
+export const findCategoriesByType = (
+  categories: TransactionCategory[],
+  type: 'income' | 'expense'
+): TransactionCategory[] => {
+  return categories.filter(cat => cat.type === type);
+};
+
+/**
  * Find root categories of a specific type
  */
 export const findRootCategories = (

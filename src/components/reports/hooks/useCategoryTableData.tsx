@@ -5,7 +5,8 @@ import {
   getAllSubcategoryIds,
   calculateMonthlyAmounts,
   findRootCategories,
-  calculateTotals
+  calculateTotals,
+  findCategoriesByType
 } from "../utils/categoryUtils";
 import { 
   organizeTransactionsByMonth,
@@ -34,6 +35,9 @@ export function useCategoryTableData(
   
   // Create a hierarchical structure of categories
   const categoryHierarchy = useMemo(() => {
+    // Get all categories of the given type
+    const typeCategories = findCategoriesByType(categories, type);
+    
     // Find root categories (level 1)
     const rootCategories = findRootCategories(categories, type);
     
@@ -80,10 +84,10 @@ export function useCategoryTableData(
     return yearlyTotal / 12;
   }, [yearlyTotal]);
   
-  // Check if there is any data to display
+  // Check if there are categories to display of this type, not just transactions
   const hasData = useMemo(() => {
-    return yearlyTotal > 0;
-  }, [yearlyTotal]);
+    return categories.some(cat => cat.type === type);
+  }, [categories, type]);
 
   return {
     categoryHierarchy,
