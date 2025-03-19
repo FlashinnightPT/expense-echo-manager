@@ -2,7 +2,7 @@
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { ApiServiceCore } from "./api/ApiServiceCore";
 import { transactionService } from "./api/TransactionService";
-import { categoryService } from "./api/CategoryService";
+import { categoryService } from "./api/category/CategoryService";
 import { backupService } from "./api/BackupService";
 
 // This is the main API Service facade that provides a single entry point to all API-related functionality
