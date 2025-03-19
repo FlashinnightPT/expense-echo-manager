@@ -9,6 +9,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  ComposedChart,
+  Bar,
 } from "recharts";
 import { Card, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { YearlyData } from "@/utils/mockData";
@@ -24,6 +26,7 @@ interface ChartDataPoint {
   year: string;
   Income: number;
   Expenses: number;
+  Difference: number;
 }
 
 const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) => {
@@ -41,16 +44,22 @@ const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) =
       setChartData([{
         year: currentYear.toString(),
         Income: 0,
-        Expenses: 0
+        Expenses: 0,
+        Difference: 0
       }]);
       return;
     }
 
-    const transformedData = data.map((item) => ({
-      year: item.year ? item.year.toString() : "",
-      Income: item.income || 0,
-      Expenses: item.expense || 0
-    }));
+    const transformedData = data.map((item) => {
+      const income = item.income || 0;
+      const expense = item.expense || 0;
+      return {
+        year: item.year ? item.year.toString() : "",
+        Income: income,
+        Expenses: expense,
+        Difference: income - expense
+      };
+    });
     setChartData(transformedData);
   }, [data]);
 
@@ -64,6 +73,11 @@ const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) =
               {`${entry.name}: ${showValues ? formatCurrency(entry.value) : "•••••••"}`}
             </p>
           ))}
+          {payload.length >= 2 && (
+            <p className="text-sm mt-1 pt-1 border-t">
+              {`Diferença: ${showValues ? formatCurrency(payload[0].payload.Difference) : "•••••••"}`}
+            </p>
+          )}
         </div>
       );
     }
@@ -78,7 +92,7 @@ const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) =
       <div className="h-[300px] w-full">
         {isClient && (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart
+            <ComposedChart
               data={chartData}
               margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
             >
@@ -116,7 +130,15 @@ const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) =
                 animationDuration={1500}
                 animationBegin={300}
               />
-            </LineChart>
+              <Bar
+                dataKey="Difference"
+                fill="hsl(var(--primary))"
+                radius={[4, 4, 0, 0]}
+                animationDuration={1500}
+                animationBegin={600}
+                opacity={0.7}
+              />
+            </ComposedChart>
           </ResponsiveContainer>
         )}
       </div>

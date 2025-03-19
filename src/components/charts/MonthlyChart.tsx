@@ -9,6 +9,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  Line,
+  ComposedChart,
 } from "recharts";
 import { Card, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { MonthlyData } from "@/utils/mockData";
@@ -25,6 +27,7 @@ interface ChartDataPoint {
   month: string;
   Income: number;
   Expenses: number;
+  Difference: number;
 }
 
 const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChartProps) => {
@@ -43,7 +46,8 @@ const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChart
         emptyData.push({
           month: getMonthName(i),
           Income: 0,
-          Expenses: 0
+          Expenses: 0,
+          Difference: 0
         });
       }
       setChartData(emptyData);
@@ -53,11 +57,16 @@ const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChart
     // Transform the provided data
     const transformedData = data
       .filter((item) => item.year === year)
-      .map((item) => ({
-        month: getMonthName(item.month),
-        Income: item.income || 0,
-        Expenses: item.expense || 0
-      }));
+      .map((item) => {
+        const income = item.income || 0;
+        const expense = item.expense || 0;
+        return {
+          month: getMonthName(item.month),
+          Income: income,
+          Expenses: expense,
+          Difference: income - expense
+        };
+      });
     
     // If filtered data is empty, create empty data
     if (transformedData.length === 0) {
@@ -66,7 +75,8 @@ const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChart
         emptyData.push({
           month: getMonthName(i),
           Income: 0,
-          Expenses: 0
+          Expenses: 0,
+          Difference: 0
         });
       }
       setChartData(emptyData);
@@ -85,6 +95,11 @@ const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChart
               {`${entry.name}: ${showValues ? formatCurrency(entry.value) : "•••••••"}`}
             </p>
           ))}
+          {payload.length >= 2 && (
+            <p className="text-sm mt-1 pt-1 border-t">
+              {`Diferença: ${showValues ? formatCurrency(payload[0].payload.Difference) : "•••••••"}`}
+            </p>
+          )}
         </div>
       );
     }
@@ -99,7 +114,7 @@ const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChart
       <div className="h-[300px] w-full">
         {isClient && (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
+            <ComposedChart
               data={chartData}
               margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
             >
@@ -131,7 +146,17 @@ const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChart
                 animationDuration={1500}
                 animationBegin={300}
               />
-            </BarChart>
+              <Line
+                type="monotone"
+                dataKey="Difference"
+                stroke="hsl(var(--primary))"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+                animationDuration={1500}
+                animationBegin={600}
+              />
+            </ComposedChart>
           </ResponsiveContainer>
         )}
       </div>
