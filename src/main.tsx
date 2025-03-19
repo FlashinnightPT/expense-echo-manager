@@ -7,6 +7,9 @@ import { ThemeProvider } from './components/ThemeProvider.tsx'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './hooks/auth'
 
+// Log initial render
+console.log("Main: Initializing application");
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>

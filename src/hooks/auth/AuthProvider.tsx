@@ -21,10 +21,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Logout function
   const logout = () => {
+    console.log("AuthProvider: Logging out user");
     sessionStorage.removeItem("current_user");
     setUser(null);
     setIsAuthenticated(false);
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   // Idle timer configuration
@@ -62,22 +63,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           console.log("AuthProvider: No user in session");
         }
-        
-        // Important: Always set to true even if there were issues
-        setIsInitialized(true);
-        console.log("AuthProvider: Auth initialization completed");
       } catch (error) {
         console.error("Erro ao inicializar autenticação:", error);
-        // Even on error, we should set isInitialized to true
+      } finally {
+        // Always set to true regardless of any errors
+        console.log("AuthProvider: Setting isInitialized to true");
         setIsInitialized(true);
       }
     };
 
-    initAuth();
-  }, []); // Executar apenas uma vez
+    // Ensure initialization happens only once
+    if (!isInitialized) {
+      initAuth();
+    }
+  }, [isInitialized]); // Only run when isInitialized changes
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
+      console.log("AuthProvider: Attempting login for", username);
       // Reiniciar estado anterior em caso de login consecutivo
       setUser(null);
       setIsAuthenticated(false);
@@ -111,6 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(userToSave);
       setIsAuthenticated(true);
       sessionStorage.setItem("current_user", JSON.stringify(userToSave));
+      console.log("AuthProvider: Login successful for", username);
       
       return true;
     } catch (error) {
@@ -135,7 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useIdleWarning: { IdleWarningDialog }
   }), [user, isAuthenticated, isInitialized, canEdit, IdleWarningDialog]);
 
-  console.log("AuthProvider: Rendering with isInitialized =", isInitialized);
+  console.log("AuthProvider: Rendering with isInitialized =", isInitialized, "isAuthenticated =", isAuthenticated);
   
   return (
     <AuthContext.Provider value={authContextValue}>

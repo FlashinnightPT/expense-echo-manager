@@ -1,6 +1,6 @@
 
-import { Suspense, lazy } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Suspense, lazy, useEffect } from "react";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import "./App.css";
 
@@ -33,6 +33,12 @@ const WithHeader = ({ children }: { children: React.ReactNode }) => (
 );
 
 function App() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    console.log("App: Current location", location.pathname);
+  }, [location]);
+  
   console.log("App component rendering");
   return (
     <>
