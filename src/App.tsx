@@ -1,10 +1,11 @@
+
 import { Suspense, lazy } from "react";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import "./App.css";
 
 // Auth Provider
-import { AuthProvider, RequireAuth, RequireEditor } from "@/hooks/auth";
+import { RequireAuth, RequireEditor } from "@/hooks/auth";
 
 // Layout component
 import Header from "@/components/layout/Header";
@@ -33,103 +34,101 @@ const WithHeader = ({ children }: { children: React.ReactNode }) => (
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Suspense fallback={<LoadingPage />}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route 
-              path="/dashboard" 
-              element={
-                <RequireAuth>
-                  <Painel />
-                </RequireAuth>
-              } 
-            />
-            <Route 
-              path="/monthly" 
-              element={
-                <RequireAuth>
-                  <WithHeader>
-                    <Monthly />
-                  </WithHeader>
-                </RequireAuth>
-              } 
-            />
-            <Route 
-              path="/yearly" 
-              element={
-                <RequireAuth>
-                  <WithHeader>
-                    <Yearly />
-                  </WithHeader>
-                </RequireAuth>
-              } 
-            />
-            <Route 
-              path="/categories" 
-              element={
-                <RequireAuth>
-                  <WithHeader>
-                    <Categories />
-                  </WithHeader>
-                </RequireAuth>
-              } 
-            />
-            <Route 
-              path="/category-analysis" 
-              element={
-                <RequireAuth>
-                  <WithHeader>
-                    <CategoryAnalysis />
-                  </WithHeader>
-                </RequireAuth>
-              } 
-            />
-            <Route 
-              path="/category-report" 
-              element={
-                <RequireAuth>
-                  <WithHeader>
-                    <CategoryReport />
-                  </WithHeader>
-                </RequireAuth>
-              } 
-            />
-            <Route 
-              path="/settings" 
-              element={
-                <RequireAuth>
-                  <WithHeader>
-                    <Settings />
-                  </WithHeader>
-                </RequireAuth>
-              } 
-            />
-            <Route 
-              path="/users" 
-              element={
-                <RequireEditor>
-                  <WithHeader>
-                    <Users />
-                  </WithHeader>
-                </RequireEditor>
-              } 
-            />
-            <Route 
-              path="*" 
-              element={
+    <>
+      <Suspense fallback={<LoadingPage />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <RequireAuth>
+                <Painel />
+              </RequireAuth>
+            } 
+          />
+          <Route 
+            path="/monthly" 
+            element={
+              <RequireAuth>
                 <WithHeader>
-                  <NotFound />
+                  <Monthly />
                 </WithHeader>
-              } 
-            />
-          </Routes>
-        </Suspense>
-        <Toaster position="top-right" />
-      </AuthProvider>
-    </BrowserRouter>
+              </RequireAuth>
+            } 
+          />
+          <Route 
+            path="/yearly" 
+            element={
+              <RequireAuth>
+                <WithHeader>
+                  <Yearly />
+                </WithHeader>
+              </RequireAuth>
+            } 
+          />
+          <Route 
+            path="/categories" 
+            element={
+              <RequireAuth>
+                <WithHeader>
+                  <Categories />
+                </WithHeader>
+              </RequireAuth>
+            } 
+          />
+          <Route 
+            path="/category-analysis" 
+            element={
+              <RequireAuth>
+                <WithHeader>
+                  <CategoryAnalysis />
+                </WithHeader>
+              </RequireAuth>
+            } 
+          />
+          <Route 
+            path="/category-report" 
+            element={
+              <RequireAuth>
+                <WithHeader>
+                  <CategoryReport />
+                </WithHeader>
+              </RequireAuth>
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <RequireAuth>
+                <WithHeader>
+                  <Settings />
+                </WithHeader>
+              </RequireAuth>
+            } 
+          />
+          <Route 
+            path="/users" 
+            element={
+              <RequireEditor>
+                <WithHeader>
+                  <Users />
+                </WithHeader>
+              </RequireEditor>
+            } 
+          />
+          <Route 
+            path="*" 
+            element={
+              <WithHeader>
+                <NotFound />
+              </WithHeader>
+            } 
+          />
+        </Routes>
+      </Suspense>
+      <Toaster position="top-right" />
+    </>
   );
 }
 

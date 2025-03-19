@@ -6,16 +6,18 @@ import { LoadingPage } from "@/components/ui/loading-spinner";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isInitialized } = useAuth();
 
   // Redirect based on authentication status
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/dashboard");
-    } else {
-      navigate("/login");
+    if (isInitialized) {
+      if (isAuthenticated) {
+        navigate("/dashboard");
+      } else {
+        navigate("/login");
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, isInitialized]);
 
   // Show loading while redirecting
   return <LoadingPage text="Carregando aplicação..." />;
