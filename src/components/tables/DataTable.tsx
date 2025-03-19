@@ -1,33 +1,13 @@
 
-import { Table } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { cn } from "@/lib/utils";
+import { Table } from "@/components/ui/table";
+import { DataTableProps } from "./types/table-types";
 import TableHeaderComponent from "./components/TableHeader";
 import TableBodyComponent from "./components/TableBody";
 import TablePagination from "./components/TablePagination";
 import TableSearch from "./components/TableSearch";
 import { useTableData } from "./hooks/useTableData";
-
-interface DataTableProps<T> {
-  data: T[];
-  columns: {
-    id: string;
-    header: string;
-    accessorFn: (row: T) => React.ReactNode;
-    sortable?: boolean;
-    className?: string;
-  }[];
-  title?: string;
-  searchable?: boolean;
-  searchPlaceholder?: string;
-  className?: string;
-  cardClassName?: string;
-  tableClassName?: string;
-  emptyMessage?: string;
-  onRowClick?: (row: T) => void;
-  pagination?: boolean;
-  itemsPerPage?: number;
-}
 
 const DataTable = <T extends Record<string, any>>({
   data,

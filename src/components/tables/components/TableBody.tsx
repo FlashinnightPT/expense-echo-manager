@@ -1,16 +1,11 @@
 
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { Column } from "../types/table-types";
 
 interface TableBodyProps<T> {
   data: T[];
-  columns: {
-    id: string;
-    header: string;
-    accessorFn: (row: T) => React.ReactNode;
-    sortable?: boolean;
-    className?: string;
-  }[];
+  columns: Column<T>[];
   onRowClick?: (row: T) => void;
   emptyMessage: string;
 }

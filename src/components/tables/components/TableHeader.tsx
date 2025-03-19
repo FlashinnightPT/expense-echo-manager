@@ -2,15 +2,10 @@
 import { ArrowUpDown, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Column } from "../types/table-types";
 
 interface TableHeaderProps<T> {
-  columns: {
-    id: string;
-    header: string;
-    accessorFn: (row: T) => React.ReactNode;
-    sortable?: boolean;
-    className?: string;
-  }[];
+  columns: Column<T>[];
   sortBy: string | null;
   sortOrder: "asc" | "desc";
   onSort: (columnId: string) => void;
