@@ -1,5 +1,5 @@
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { 
   Table, 
   TableBody, 
@@ -10,6 +10,9 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency, getMonthName, buildCategoryHierarchy } from "@/utils/financialCalculations";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
+import { ChevronRight, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface CategoryYearTableProps {
   transactions: Transaction[];
@@ -26,6 +29,17 @@ const CategoryYearTable = ({
   type,
   showValues
 }: CategoryYearTableProps) => {
+  // State to track expanded categories
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  
+  // Toggle category expansion
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }));
+  };
+  
   // Organize transactions by month
   const monthlyTransactions = useMemo(() => {
     const result: Record<number, Transaction[]> = {};
@@ -48,75 +62,66 @@ const CategoryYearTable = ({
     return result;
   }, [transactions]);
   
-  // Get root categories of the specified type
-  const rootCategories = useMemo(() => {
-    return categories.filter(cat => 
-      cat.level === 2 && cat.type === type
+  // Create a hierarchical structure of categories
+  const categoryHierarchy = useMemo(() => {
+    // Build a map of categories by ID for quick lookup
+    const categoryMap = new Map<string, TransactionCategory>();
+    categories.forEach(category => {
+      categoryMap.set(category.id, category);
+    });
+    
+    // Find root categories (level 1)
+    const rootCategories = categories.filter(cat => 
+      cat.type === type && cat.level === 1
     );
-  }, [categories, type]);
-  
-  // Build category data by month
-  const categoryMonthData = useMemo(() => {
-    // Create a data structure for each root category with monthly amounts
-    return rootCategories.map(rootCategory => {
-      const monthlyAmounts: Record<number, number> = {};
-      const childCategories: TransactionCategory[] = [];
-      
-      // Get all direct child categories
-      categories.forEach(cat => {
-        if (cat.parentId === rootCategory.id) {
-          childCategories.push(cat);
-        }
-      });
-      
-      // Calculate monthly totals for this root category
-      for (let month = 1; month <= 12; month++) {
-        const monthTransactions = monthlyTransactions[month];
-        if (!monthTransactions || monthTransactions.length === 0) {
-          monthlyAmounts[month] = 0;
-          continue;
+    
+    // Create a hierarchy of categories with their monthly data
+    const buildHierarchy = (parentCategories: TransactionCategory[]) => {
+      return parentCategories.map(parent => {
+        // Find all child categories
+        const children = categories.filter(cat => cat.parentId === parent.id);
+        
+        // Calculate monthly amounts for this category
+        const monthlyAmounts: Record<number, number> = {};
+        
+        for (let month = 1; month <= 12; month++) {
+          const monthTransactions = monthlyTransactions[month];
+          
+          // Get all subcategory IDs including this category
+          const getAllSubcategoryIds = (categoryId: string): string[] => {
+            const subcats = categories.filter(cat => cat.parentId === categoryId);
+            if (subcats.length === 0) return [categoryId];
+            
+            return [
+              categoryId,
+              ...subcats.flatMap(subcat => getAllSubcategoryIds(subcat.id))
+            ];
+          };
+          
+          const allCategoryIds = getAllSubcategoryIds(parent.id);
+          
+          // Sum transactions for this category and all its children
+          monthlyAmounts[month] = monthTransactions
+            .filter(t => allCategoryIds.includes(t.categoryId))
+            .reduce((sum, t) => sum + t.amount, 0);
         }
         
-        // Calculate the total amount for this category in this month
-        monthlyAmounts[month] = monthTransactions
-          .filter(t => {
-            // Include transactions directly in this category
-            if (t.categoryId === rootCategory.id) return true;
-            
-            // Include transactions in any child category
-            const isChildTransaction = categories.some(cat => {
-              if (cat.id === t.categoryId) {
-                // Check if this category is a descendant of our root category
-                let currentCat: TransactionCategory | undefined = cat;
-                while (currentCat?.parentId) {
-                  const parentCat = categories.find(c => c.id === currentCat?.parentId);
-                  if (!parentCat) break;
-                  
-                  if (parentCat.id === rootCategory.id) return true;
-                  currentCat = parentCat;
-                }
-              }
-              return false;
-            });
-            
-            return isChildTransaction;
-          })
-          .reduce((sum, t) => sum + t.amount, 0);
-      }
-      
-      // Calculate yearly total and monthly average
-      const yearlyTotal = Object.values(monthlyAmounts).reduce((sum, amount) => sum + amount, 0);
-      const monthlyAverage = yearlyTotal / 12;
-      
-      return {
-        category: rootCategory,
-        childCategories,
-        monthlyAmounts,
-        yearlyTotal,
-        monthlyAverage
-      };
-    });
-  }, [rootCategories, categories, monthlyTransactions]);
+        // Calculate yearly total and monthly average
+        const yearlyTotal = Object.values(monthlyAmounts).reduce((sum, amount) => sum + amount, 0);
+        const monthlyAverage = yearlyTotal / 12;
+        
+        return {
+          category: parent,
+          children: buildHierarchy(children),
+          monthlyAmounts,
+          yearlyTotal,
+          monthlyAverage
+        };
+      });
+    };
+    
+    return buildHierarchy(rootCategories);
+  }, [categories, monthlyTransactions, type]);
   
   // Calculate monthly totals across all categories
   const monthlyTotals = useMemo(() => {
@@ -125,13 +130,14 @@ const CategoryYearTable = ({
     for (let month = 1; month <= 12; month++) {
       totals[month] = 0;
       
-      categoryMonthData.forEach(catData => {
-        totals[month] += catData.monthlyAmounts[month] || 0;
-      });
+      // Sum all transactions for this month and type
+      totals[month] = monthlyTransactions[month]
+        .filter(t => t.type === type)
+        .reduce((sum, t) => sum + t.amount, 0);
     }
     
     return totals;
-  }, [categoryMonthData]);
+  }, [monthlyTransactions, type]);
   
   // Calculate yearly total and monthly average
   const yearlyTotal = useMemo(() => {
@@ -146,6 +152,67 @@ const CategoryYearTable = ({
   const hasData = useMemo(() => {
     return yearlyTotal > 0;
   }, [yearlyTotal]);
+  
+  // Render a category row with its children
+  const renderCategoryRows = (
+    categoryData: any, 
+    level: number = 0,
+    isLastChild: boolean = false
+  ) => {
+    const { category, children, monthlyAmounts, yearlyTotal, monthlyAverage } = categoryData;
+    const isExpanded = expandedCategories[category.id] || false;
+    const hasChildren = children && children.length > 0;
+    const indentPadding = `${level * 1.5}rem`;
+    
+    return (
+      <>
+        <TableRow className={cn(
+          "transition-colors",
+          level === 0 ? "bg-muted/20" : "",
+          isExpanded && hasChildren ? "border-b-0" : ""
+        )}>
+          <TableCell className="sticky left-0 bg-background font-medium">
+            <div 
+              className="flex items-center cursor-pointer" 
+              style={{ paddingLeft: indentPadding }}
+              onClick={() => hasChildren && toggleCategory(category.id)}
+            >
+              {hasChildren ? (
+                <Button variant="ghost" size="icon" className="h-6 w-6 p-0 mr-1 hover:bg-transparent">
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </Button>
+              ) : (
+                <div className="w-6" />
+              )}
+              {category.name}
+            </div>
+          </TableCell>
+          
+          {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+            <TableCell key={month} className="text-right tabular-nums">
+              {showValues ? formatCurrency(monthlyAmounts[month] || 0) : "•••••••"}
+            </TableCell>
+          ))}
+          
+          <TableCell className="text-right tabular-nums font-medium">
+            {showValues ? formatCurrency(yearlyTotal) : "•••••••"}
+          </TableCell>
+          
+          <TableCell className="text-right tabular-nums">
+            {showValues ? formatCurrency(monthlyAverage) : "•••••••"}
+          </TableCell>
+        </TableRow>
+        
+        {isExpanded && hasChildren && children.map((child: any, index: number) => (
+          renderCategoryRows(child, level + 1, index === children.length - 1)
+        ))}
+      </>
+    );
+  };
   
   if (!hasData) {
     return (
@@ -189,24 +256,9 @@ const CategoryYearTable = ({
             </TableCell>
           </TableRow>
           
-          {/* Category Rows */}
-          {categoryMonthData.map(catData => (
-            <TableRow key={catData.category.id}>
-              <TableCell className="sticky left-0 bg-background font-medium">
-                {catData.category.name}
-              </TableCell>
-              {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                <TableCell key={month} className="text-right tabular-nums">
-                  {showValues ? formatCurrency(catData.monthlyAmounts[month] || 0) : "•••••••"}
-                </TableCell>
-              ))}
-              <TableCell className="text-right tabular-nums font-medium">
-                {showValues ? formatCurrency(catData.yearlyTotal) : "•••••••"}
-              </TableCell>
-              <TableCell className="text-right tabular-nums">
-                {showValues ? formatCurrency(catData.monthlyAverage) : "•••••••"}
-              </TableCell>
-            </TableRow>
+          {/* Category Rows with hierarchical structure */}
+          {categoryHierarchy.map((categoryData, index) => (
+            renderCategoryRows(categoryData, 0, index === categoryHierarchy.length - 1)
           ))}
         </TableBody>
       </Table>
