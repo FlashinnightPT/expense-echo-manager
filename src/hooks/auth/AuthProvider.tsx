@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -120,12 +119,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const authContextValue = useMemo(() => ({
     user,
     isAuthenticated,
+    isInitialized,
     login,
     logout,
     canEdit,
     validatePassword,
     useIdleWarning: { IdleWarningDialog }
-  }), [user, isAuthenticated, canEdit, IdleWarningDialog]);
+  }), [user, isAuthenticated, isInitialized, canEdit, IdleWarningDialog]);
 
   // Não renderizar nada até verificarmos a sessão
   if (!isInitialized) {
