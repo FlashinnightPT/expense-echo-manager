@@ -1,4 +1,3 @@
-
 import { ApiServiceCore } from './ApiServiceCore';
 import { supabase } from '../supabaseClient';
 import { UserRole } from '@/hooks/auth';
@@ -230,13 +229,13 @@ class UserServiceClass extends ApiServiceCore {
     const users = await this.getUsers();
     
     if (!users || users.length === 0) {
-      const defaultAdmin = {
+      const defaultAdmin: UserData = {
         id: "1",
         name: "Administrador",
         username: "admin",
         password: "admin123", // Para validação inicial
         role: "editor" as UserRole,
-        status: "active",
+        status: "active" as "active" | "pending" | "inactive",
         lastLogin: new Date().toISOString()
       };
       
@@ -247,4 +246,3 @@ class UserServiceClass extends ApiServiceCore {
 }
 
 export const UserService = UserServiceClass.getInstance();
-
