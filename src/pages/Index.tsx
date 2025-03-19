@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/auth";
 import { LoadingPage } from "@/components/ui/loading-spinner";
@@ -7,26 +7,26 @@ import { LoadingPage } from "@/components/ui/loading-spinner";
 const Index = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isInitialized } = useAuth();
-  const [attempted, setAttempted] = useState(false);
 
   // Redirect based on authentication status
   useEffect(() => {
-    console.log("Index: Auth state", { isAuthenticated, isInitialized, attempted });
+    console.log("Index: Auth state", { isAuthenticated, isInitialized });
     
-    if (isInitialized && !attempted) {
-      setAttempted(true);
-      
+    // Only redirect once the auth is initialized
+    if (isInitialized) {
       if (isAuthenticated) {
         console.log("Index: Redirecting to dashboard");
+        // Use replace to avoid building up history stack
         navigate("/dashboard", { replace: true });
       } else {
         console.log("Index: Redirecting to login");
+        // Use replace to avoid building up history stack
         navigate("/login", { replace: true });
       }
     }
-  }, [isAuthenticated, navigate, isInitialized, attempted]);
+  }, [isAuthenticated, navigate, isInitialized]);
 
-  // Show loading while redirecting
+  // Show loading while initializing or redirecting
   return <LoadingPage text="Carregando aplicação..." />;
 };
 

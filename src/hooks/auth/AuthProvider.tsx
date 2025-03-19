@@ -40,15 +40,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   });
 
+  // Initialize auth system once when component mounts
   useEffect(() => {
-    // Inicializar o sistema de autenticação
     const initAuth = async () => {
-      console.log("AuthProvider: Initializing auth system");
+      console.log("AuthProvider: Starting auth initialization");
       try {
-        // Inicializar o utilizador administrador padrão, se necessário
+        // Initialize default admin user if needed
         await UserService.initializeDefaultAdmin();
         
-        // Verificar se o utilizador está autenticado (via sessão)
+        // Check for user in session storage
         const currentUser = sessionStorage.getItem("current_user");
         if (currentUser) {
           try {
@@ -66,26 +66,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         console.error("Erro ao inicializar autenticação:", error);
       } finally {
-        // Always set to true regardless of any errors
-        console.log("AuthProvider: Setting isInitialized to true");
+        // Always set isInitialized to true regardless of any errors
+        console.log("AuthProvider: Auth initialization completed, setting isInitialized = true");
         setIsInitialized(true);
       }
     };
 
-    // Ensure initialization happens only once
-    if (!isInitialized) {
-      initAuth();
-    }
-  }, [isInitialized]); // Only run when isInitialized changes
+    console.log("AuthProvider: useEffect running");
+    initAuth();
+    
+    // This effect should only run once on mount
+  }, []); 
 
+  // Login function
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
       console.log("AuthProvider: Attempting login for", username);
-      // Reiniciar estado anterior em caso de login consecutivo
+      // Reset previous state in case of consecutive login attempts
       setUser(null);
       setIsAuthenticated(false);
       
-      // Obter utilizador do sistema
+      // Get user from system
       const foundUser = await UserService.getUserByUsername(username);
       
       if (!foundUser) {
@@ -93,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
-      // Verificar se a senha corresponde (validação simples temporária)
+      // Verify password matches (temporary simple validation)
       if (foundUser.password && foundUser.password !== password && 
           !(foundUser.username === "admin" && password === "admin123")) {
         console.log("Senha inválida para o utilizador:", username);
@@ -107,10 +108,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         role: foundUser.role
       };
       
-      // Atualizar o último login
+      // Update last login
       await UserService.updateLastLogin(foundUser.id);
       
-      // Atualizar estado e sessão
+      // Update state and session
       setUser(userToSave);
       setIsAuthenticated(true);
       sessionStorage.setItem("current_user", JSON.stringify(userToSave));
@@ -124,10 +125,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Verificar se o utilizador tem permissões de editor
+  // Check if user has editor permissions
   const canEdit = user?.role === "editor";
 
-  // Usar useMemo para evitar recálculos desnecessários
+  // Use useMemo to avoid unnecessary recalculations
   const authContextValue = useMemo(() => ({
     user,
     isAuthenticated,

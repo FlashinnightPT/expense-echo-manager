@@ -12,28 +12,16 @@ const Login = () => {
   useEffect(() => {
     // Check if user is already authenticated
     if (isAuthenticated) {
+      console.log("Login: User is already authenticated, redirecting to dashboard");
       setIsRedirecting(true);
-      // Small timeout to avoid immediate navigation and potential loops
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 100);
+      // Use replace to avoid adding to history
+      navigate("/dashboard", { replace: true });
     }
   }, [navigate, isAuthenticated]);
 
-  useEffect(() => {
-    // Check browser cache
-    const currentUser = sessionStorage.getItem("current_user");
-    if (currentUser) {
-      setIsRedirecting(true);
-      // Small timeout to avoid immediate navigation
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 100);
-    }
-  }, [navigate]);
-
   const handleLoginSuccess = () => {
-    navigate("/dashboard");
+    console.log("Login: Login success, redirecting to dashboard");
+    navigate("/dashboard", { replace: true });
   };
 
   if (isRedirecting) {
