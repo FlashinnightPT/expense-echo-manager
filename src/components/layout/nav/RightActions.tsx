@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { BrainCircuit } from "lucide-react";
 import AiChatDialog from "@/components/ai/AiChatDialog";
 
-interface RightActionsProps {
+export interface RightActionsProps {
   mainNavigation: Array<{ name: string; href: string }>;
   settingsSubMenu: Array<{ name: string; href: string }>;
   isActivePath: (path: string) => boolean;

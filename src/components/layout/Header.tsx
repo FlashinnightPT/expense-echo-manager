@@ -55,7 +55,11 @@ const Header = () => {
           />
           
           {/* Right side actions (user menu, theme toggle, etc) */}
-          <RightActions />
+          <RightActions 
+            mainNavigation={mainNavigation}
+            settingsSubMenu={settingsSubMenu}
+            isActivePath={isActivePath}
+          />
           
           {/* Mobile Navigation */}
           <MobileNavMenu 
