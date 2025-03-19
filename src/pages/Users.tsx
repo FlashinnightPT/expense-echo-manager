@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserPlus, Mail, Lock, User, Eye, EyeOff, Pencil, Trash2, Shield } from "lucide-react";
 import { toast } from "sonner";
@@ -54,44 +55,43 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { UserService, UserData } from "@/services/api/UserService";
+import { LoadingPage } from "@/components/ui/loading-spinner";
 
-// Tipos
-type UserRole = "editor" | "viewer";
-
-interface User {
-  id: string;
-  name: string;
-  username: string;
-  role: UserRole;
-  status: "active" | "pending" | "inactive";
-  lastLogin?: string;
-}
+// Tipo para o UserRole já existe em UserData
 
 const Users = () => {
   const navigate = useNavigate();
   const { validatePassword } = useAuth();
-  const [users, setUsers] = useState<User[]>(() => {
-    const savedUsers = localStorage.getItem("app_users");
-    return savedUsers ? JSON.parse(savedUsers) : [
-      {
-        id: "1",
-        name: "Administrador",
-        username: "admin",
-        role: "editor" as UserRole,
-        status: "active",
-        lastLogin: "2023-06-15T10:30:00"
-      }
-    ];
-  });
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const [newUser, setNewUser] = useState({
     name: "",
     username: "",
-    role: "viewer" as UserRole
+    role: "viewer" as UserData['role']
   });
   
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  
+  // Carregar utilizadores
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        setLoading(true);
+        const loadedUsers = await UserService.getUsers();
+        setUsers(loadedUsers);
+      } catch (error) {
+        console.error("Erro ao carregar utilizadores:", error);
+        toast.error("Não foi possível carregar a lista de utilizadores");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadUsers();
+  }, []);
   
   // Gerar senha temporária aleatória
   const generateTemporaryPassword = () => {
@@ -99,7 +99,7 @@ const Users = () => {
   };
   
   // Adicionar novo utilizador
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!newUser.name || !newUser.username) {
       toast.error("Por favor, preencha todos os campos");
       return;
@@ -112,61 +112,93 @@ const Users = () => {
     }
     
     const tempPassword = generateTemporaryPassword();
-    const newUserData: User = {
+    const newUserData: UserData = {
       id: Date.now().toString(),
       name: newUser.name,
       username: newUser.username,
+      password: tempPassword, // Senha temporária
       role: newUser.role,
       status: "pending"
     };
     
-    const updatedUsers = [...users, newUserData];
-    setUsers(updatedUsers);
-    localStorage.setItem("app_users", JSON.stringify(updatedUsers));
-    
-    // Simular envio de credenciais
-    console.log(`Credenciais para ${newUser.name}: Username: ${newUser.username}, Senha temporária: ${tempPassword}`);
-    
-    toast.success(`Utilizador ${newUser.name} adicionado com sucesso`);
-    toast.info(`Username: ${newUser.username} / Senha temporária: ${tempPassword}`);
-    
-    // Limpar o formulário
-    setNewUser({
-      name: "",
-      username: "",
-      role: "viewer"
-    });
-    
-    setIsAddUserOpen(false);
+    try {
+      setLoading(true);
+      await UserService.createUser(newUserData);
+      
+      // Recarregar a lista de utilizadores
+      const updatedUsers = await UserService.getUsers();
+      setUsers(updatedUsers);
+      
+      // Simular envio de credenciais
+      console.log(`Credenciais para ${newUser.name}: Username: ${newUser.username}, Senha temporária: ${tempPassword}`);
+      
+      toast.success(`Utilizador ${newUser.name} adicionado com sucesso`);
+      toast.info(`Username: ${newUser.username} / Senha temporária: ${tempPassword}`);
+      
+      // Limpar o formulário
+      setNewUser({
+        name: "",
+        username: "",
+        role: "viewer"
+      });
+      
+      setIsAddUserOpen(false);
+    } catch (error) {
+      console.error("Erro ao adicionar utilizador:", error);
+      toast.error("Não foi possível adicionar o utilizador");
+    } finally {
+      setLoading(false);
+    }
   };
   
   // Eliminar utilizador
-  const handleDeleteUser = () => {
+  const handleDeleteUser = async () => {
     if (!userToDelete) return;
     
-    const updatedUsers = users.filter(user => user.id !== userToDelete);
-    setUsers(updatedUsers);
-    localStorage.setItem("app_users", JSON.stringify(updatedUsers));
-    
-    toast.success("Utilizador removido com sucesso");
-    setUserToDelete(null);
+    try {
+      setLoading(true);
+      await UserService.deleteUser(userToDelete);
+      
+      // Recarregar a lista de utilizadores
+      const updatedUsers = await UserService.getUsers();
+      setUsers(updatedUsers);
+      
+      toast.success("Utilizador removido com sucesso");
+    } catch (error) {
+      console.error("Erro ao eliminar utilizador:", error);
+      toast.error("Não foi possível eliminar o utilizador");
+    } finally {
+      setLoading(false);
+      setUserToDelete(null);
+    }
   };
   
-  // Função de simulação de envio de email
-  const sendPasswordResetEmail = (username: string) => {
+  // Função de simulação de envio de email com nova senha
+  const sendPasswordResetEmail = async (userId: string, username: string) => {
     const tempPassword = generateTemporaryPassword();
-    console.log(`Nova senha temporária para ${username}: ${tempPassword}`);
-    toast.success(`Nova senha temporária para ${username}: ${tempPassword}`);
+    
+    try {
+      await UserService.updateUser({
+        id: userId,
+        password: tempPassword
+      });
+      
+      console.log(`Nova senha temporária para ${username}: ${tempPassword}`);
+      toast.success(`Nova senha temporária para ${username}: ${tempPassword}`);
+    } catch (error) {
+      console.error("Erro ao redefinir senha:", error);
+      toast.error("Não foi possível redefinir a senha do utilizador");
+    }
   };
   
-  const getRoleBadge = (role: UserRole) => {
+  const getRoleBadge = (role: UserData['role']) => {
     if (role === "editor") {
       return <Badge className="bg-blue-500">Leitura e edição</Badge>;
     }
     return <Badge variant="outline">Leitura</Badge>;
   };
   
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: UserData['status']) => {
     switch (status) {
       case "active":
         return <Badge className="bg-green-500">Ativo</Badge>;
@@ -178,6 +210,10 @@ const Users = () => {
         return null;
     }
   };
+
+  if (loading && users.length === 0) {
+    return <LoadingPage text="A carregar utilizadores..." />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -250,7 +286,7 @@ const Users = () => {
                     <Label htmlFor="role">Nível de Acesso</Label>
                     <Select 
                       value={newUser.role} 
-                      onValueChange={(value: UserRole) => setNewUser({...newUser, role: value})}
+                      onValueChange={(value: UserData['role']) => setNewUser({...newUser, role: value})}
                     >
                       <SelectTrigger id="role">
                         <SelectValue placeholder="Selecione o nível de acesso" />
@@ -296,7 +332,7 @@ const Users = () => {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => sendPasswordResetEmail(user.username)}
+                          onClick={() => sendPasswordResetEmail(user.id, user.username)}
                           title="Redefinir senha"
                         >
                           <Lock className="h-4 w-4" />

@@ -6,6 +6,7 @@ import { User } from "./types";
 import AuthContext from "./useAuthContext";
 import usePasswordValidator from "./usePasswordValidator";
 import { useIdleTimer } from "../useIdleTimer";
+import { UserService } from "@/services/api/UserService";
 
 // Define timeout for automatic logout (in milliseconds)
 const IDLE_TIMEOUT = 3 * 60 * 1000; // 3 minutes
@@ -39,77 +40,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   });
 
   useEffect(() => {
-    // Check if users exist and create a default user if none exist
-    const savedUsers = localStorage.getItem("app_users");
-    if (!savedUsers || JSON.parse(savedUsers).length === 0) {
-      // Create default admin user if no users exist
-      const defaultAdmin = {
-        id: "1",
-        name: "Administrador",
-        username: "admin",
-        password: "admin123", // Store password for validation
-        role: "editor",
-        status: "active",
-        lastLogin: new Date().toISOString()
-      };
-      
-      localStorage.setItem("app_users", JSON.stringify([defaultAdmin]));
-      console.log("Default admin user created");
-    }
-
-    // Check if user is already authenticated
-    const currentUser = sessionStorage.getItem("current_user");
-    if (currentUser) {
+    // Inicializar o sistema de autenticação
+    const initAuth = async () => {
       try {
-        const parsedUser = JSON.parse(currentUser);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
+        // Inicializar o utilizador administrador padrão, se necessário
+        await UserService.initializeDefaultAdmin();
+        
+        // Verificar se o utilizador está autenticado (via sessão)
+        const currentUser = sessionStorage.getItem("current_user");
+        if (currentUser) {
+          try {
+            const parsedUser = JSON.parse(currentUser);
+            setUser(parsedUser);
+            setIsAuthenticated(true);
+          } catch (error) {
+            console.error("Erro ao processar utilizador da sessão:", error);
+            sessionStorage.removeItem("current_user");
+          }
+        }
+        
+        setIsInitialized(true);
       } catch (error) {
-        console.error("Error processing session user:", error);
-        sessionStorage.removeItem("current_user");
+        console.error("Erro ao inicializar autenticação:", error);
+        setIsInitialized(true);
       }
-    }
-    
-    setIsInitialized(true);
-  }, []); // Empty dependency to ensure it only runs once
+    };
+
+    initAuth();
+  }, []); // Executar apenas uma vez
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      // Reset previous state in case of consecutive login
+      // Reiniciar estado anterior em caso de login consecutivo
       setUser(null);
       setIsAuthenticated(false);
       
-      // Fetch users from localStorage
-      const savedUsers = localStorage.getItem("app_users");
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
-      
-      // If there are no users, create the default user
-      if (users.length === 0) {
-        const defaultAdmin = {
-          id: "1",
-          name: "Administrador",
-          username: "admin",
-          password: "admin123", // Store password for validation
-          role: "editor",
-          status: "active",
-          lastLogin: new Date().toISOString()
-        };
-        users.push(defaultAdmin);
-        localStorage.setItem("app_users", JSON.stringify(users));
-      }
-      
-      const foundUser = users.find((u: any) => u.username === username);
+      // Obter utilizador do sistema
+      const foundUser = await UserService.getUserByUsername(username);
       
       if (!foundUser) {
-        console.log("User not found:", username);
-        console.log("Available users:", users);
+        console.log("Utilizador não encontrado:", username);
         return false;
       }
       
-      // Check if password matches (simple validation for demo)
+      // Verificar se a senha corresponde (validação simples temporária)
       if (foundUser.password && foundUser.password !== password && 
           !(foundUser.username === "admin" && password === "admin123")) {
-        console.log("Invalid password for user:", username);
+        console.log("Senha inválida para o utilizador:", username);
         return false;
       }
       
@@ -120,37 +97,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         role: foundUser.role
       };
       
-      // Update last login
-      const updatedUsers = users.map((u: any) => {
-        if (u.username === username) {
-          return {
-            ...u,
-            status: "active",
-            lastLogin: new Date().toISOString()
-          };
-        }
-        return u;
-      });
+      // Atualizar o último login
+      await UserService.updateLastLogin(foundUser.id);
       
-      localStorage.setItem("app_users", JSON.stringify(updatedUsers));
-      
-      // Update state and session
+      // Atualizar estado e sessão
       setUser(userToSave);
       setIsAuthenticated(true);
       sessionStorage.setItem("current_user", JSON.stringify(userToSave));
       
       return true;
     } catch (error) {
-      console.error("Login error:", error);
-      toast.error("An error occurred during login");
+      console.error("Erro no login:", error);
+      toast.error("Ocorreu um erro durante o login");
       return false;
     }
   };
 
-  // Check if user has editor permissions
+  // Verificar se o utilizador tem permissões de editor
   const canEdit = user?.role === "editor";
 
-  // Use useMemo to avoid unnecessary recalculations
+  // Usar useMemo para evitar recálculos desnecessários
   const authContextValue = useMemo(() => ({
     user,
     isAuthenticated,
@@ -161,7 +127,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useIdleWarning: { IdleWarningDialog }
   }), [user, isAuthenticated, canEdit, IdleWarningDialog]);
 
-  // Don't render anything until we've checked the session
+  // Não renderizar nada até verificarmos a sessão
   if (!isInitialized) {
     return null;
   }

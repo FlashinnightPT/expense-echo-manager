@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Eye, EyeOff, LogIn, User, Lock, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -8,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/auth";
+import { UserService } from "@/services/api/UserService";
 
 interface LoginFormProps {
   onLoginSuccess?: () => void;
@@ -27,31 +27,31 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [passwordValid, setPasswordValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Verificar se existem utilizadores e criar um utilizador padrão se não existir nenhum
-    const savedUsers = localStorage.getItem("app_users");
-    const users = savedUsers ? JSON.parse(savedUsers) : [];
+    const initializeUsers = async () => {
+      try {
+        await UserService.initializeDefaultAdmin();
+        
+        const users = await UserService.getUsers();
+        if (users.length === 1 && users[0].username === "admin") {
+          setForm({
+            username: "admin",
+            password: "admin123",
+          });
+          
+          toast.info("Utilizador administrador criado automaticamente. Username: admin / Senha: admin123");
+        }
+        
+        setIsInitialized(true);
+      } catch (error) {
+        console.error("Erro ao inicializar utilizadores:", error);
+        setIsInitialized(true);
+      }
+    };
     
-    if (users.length === 0) {
-      const defaultAdmin = {
-        id: "1",
-        name: "Administrador",
-        username: "admin",
-        role: "editor",
-        status: "active",
-        lastLogin: new Date().toISOString()
-      };
-      
-      localStorage.setItem("app_users", JSON.stringify([defaultAdmin]));
-      
-      setForm({
-        username: "admin",
-        password: "admin123",
-      });
-      
-      toast.info("Utilizador administrador criado automaticamente. Username: admin / Senha: admin123");
-    }
+    initializeUsers();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,76 +76,34 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         return;
       }
 
-      const savedUsers = localStorage.getItem("app_users");
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
-      
-      // Se não houver usuários, criar o administrador padrão
-      if (users.length === 0) {
-        const defaultAdmin = {
-          id: "1",
-          name: "Administrador",
-          username: "admin",
-          role: "editor",
-          status: "active",
-          lastLogin: new Date().toISOString()
-        };
-        
-        localStorage.setItem("app_users", JSON.stringify([defaultAdmin]));
-        users.push(defaultAdmin);
-        
-        toast.info("Utilizador administrador criado automaticamente");
-      }
-      
-      const user = users.find((u: any) => u.username === form.username);
+      const user = await UserService.getUserByUsername(form.username);
       
       if (!user) {
         toast.error("Utilizador não encontrado");
         return;
       }
       
-      // Verificar se é o administrador padrão com senha admin123
       if (user.username === "admin" && form.password === "admin123") {
-        // Login como admin com senha padrão
-        const userToSave = {
-          id: user.id,
-          name: user.name,
-          username: user.username,
-          role: user.role
-        };
+        const success = await login(form.username, form.password);
         
-        // Atualizar o último login
-        const updatedUsers = users.map((u: any) => {
-          if (u.username === form.username) {
-            return {
-              ...u,
-              status: "active",
-              lastLogin: new Date().toISOString()
-            };
+        if (success) {
+          toast.success("Login realizado com sucesso");
+          
+          if (onLoginSuccess) {
+            onLoginSuccess();
+          } else {
+            navigate("/dashboard");
           }
-          return u;
-        });
-        
-        localStorage.setItem("app_users", JSON.stringify(updatedUsers));
-        sessionStorage.setItem("current_user", JSON.stringify(userToSave));
-        
-        toast.success("Login realizado com sucesso");
-        
-        if (onLoginSuccess) {
-          onLoginSuccess();
-        } else {
-          navigate("/dashboard");
         }
         return;
       }
       
-      // Verificar se é primeiro login com senha temporária
       if (form.password === "temp123") {
         setIsFirstLogin(true);
         toast.info("Por favor, altere a sua senha");
         return;
       }
 
-      // Passar para o login normal
       const success = await login(form.username, form.password);
       if (success) {
         toast.success("Login realizado com sucesso");
@@ -173,7 +131,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     return validation.isValid;
   };
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
@@ -187,38 +145,25 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         return;
       }
 
+      const user = await UserService.getUserByUsername(form.username);
+      
+      if (!user) {
+        toast.error("Utilizador não encontrado");
+        return;
+      }
+      
+      await UserService.updateUser({
+        id: user.id,
+        password: newPassword,
+        status: "active"
+      });
+      
       toast.success("Senha alterada com sucesso");
       setIsFirstLogin(false);
       
-      const savedUsers = localStorage.getItem("app_users");
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
+      const success = await login(form.username, newPassword);
       
-      const user = users.find((u: any) => u.username === form.username);
-      
-      if (user) {
-        const updatedUsers = users.map((u: any) => {
-          if (u.username === form.username) {
-            return {
-              ...u,
-              status: "active",
-              lastLogin: new Date().toISOString()
-            };
-          }
-          return u;
-        });
-        
-        localStorage.setItem("app_users", JSON.stringify(updatedUsers));
-        
-        sessionStorage.setItem(
-          "current_user", 
-          JSON.stringify({
-            id: user.id,
-            name: user.name,
-            username: user.username,
-            role: user.role
-          })
-        );
-        
+      if (success) {
         if (onLoginSuccess) {
           onLoginSuccess();
         } else {
@@ -238,6 +183,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     setNewPassword(value);
     validateNewPassword(value);
   };
+
+  if (!isInitialized) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardContent className="flex items-center justify-center py-10">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">A inicializar o sistema de autenticação...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isFirstLogin) {
     return (
