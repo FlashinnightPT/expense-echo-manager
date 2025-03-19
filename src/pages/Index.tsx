@@ -10,10 +10,14 @@ const Index = () => {
 
   // Redirect based on authentication status
   useEffect(() => {
+    console.log("Index: Auth state", { isAuthenticated, isInitialized });
+    
     if (isInitialized) {
       if (isAuthenticated) {
+        console.log("Index: Redirecting to dashboard");
         navigate("/dashboard");
       } else {
+        console.log("Index: Redirecting to login");
         navigate("/login");
       }
     }

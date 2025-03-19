@@ -4,17 +4,17 @@ import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { ThemeProvider } from './components/ThemeProvider.tsx'
-import { AuthProvider } from './hooks/auth'
 import { BrowserRouter } from 'react-router-dom'
+import { AuthProvider } from './hooks/auth'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="system">
-      <BrowserRouter>
+    <BrowserRouter>
+      <ThemeProvider defaultTheme="system">
         <AuthProvider>
           <App />
         </AuthProvider>
-      </BrowserRouter>
-    </ThemeProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   </React.StrictMode>,
 )

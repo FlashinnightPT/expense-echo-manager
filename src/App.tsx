@@ -33,6 +33,7 @@ const WithHeader = ({ children }: { children: React.ReactNode }) => (
 );
 
 function App() {
+  console.log("App component rendering");
   return (
     <>
       <Suspense fallback={<LoadingPage />}>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Inicializar o sistema de autenticação
     const initAuth = async () => {
+      console.log("AuthProvider: Initializing auth system");
       try {
         // Inicializar o utilizador administrador padrão, se necessário
         await UserService.initializeDefaultAdmin();
@@ -52,15 +54,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const parsedUser = JSON.parse(currentUser);
             setUser(parsedUser);
             setIsAuthenticated(true);
+            console.log("AuthProvider: User authenticated from session", parsedUser);
           } catch (error) {
             console.error("Erro ao processar utilizador da sessão:", error);
             sessionStorage.removeItem("current_user");
           }
+        } else {
+          console.log("AuthProvider: No user in session");
         }
         
+        // Important: Always set to true even if there were issues
         setIsInitialized(true);
+        console.log("AuthProvider: Auth initialization completed");
       } catch (error) {
         console.error("Erro ao inicializar autenticação:", error);
+        // Even on error, we should set isInitialized to true
         setIsInitialized(true);
       }
     };
@@ -127,11 +135,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useIdleWarning: { IdleWarningDialog }
   }), [user, isAuthenticated, isInitialized, canEdit, IdleWarningDialog]);
 
-  // Não renderizar nada até verificarmos a sessão
-  if (!isInitialized) {
-    return null;
-  }
-
+  console.log("AuthProvider: Rendering with isInitialized =", isInitialized);
+  
   return (
     <AuthContext.Provider value={authContextValue}>
       {children}
