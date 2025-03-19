@@ -11,7 +11,7 @@ import { RequireAuth, RequireEditor } from "@/hooks/auth";
 import Header from "@/components/layout/Header";
 import { LoadingPage } from "@/components/ui/loading-spinner";
 
-// Páginas principais
+// Main pages
 import Index from "@/pages/Index";
 const Painel = lazy(() => import("@/components/layout/Dashboard"));
 const Monthly = lazy(() => import("@/pages/Monthly"));

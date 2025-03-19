@@ -17,15 +17,13 @@ export function MobileNavMenu({
   isActivePath 
 }: MobileNavMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation();
   const navigate = useNavigate();
 
   const handleNavClick = (href: string) => {
-    // Primeiro fechar o menu
+    // Close the menu first
     setIsOpen(false);
     
-    // Aguardar o fechamento do menu antes de navegar
-    // para evitar problemas de renderização
+    // Wait for the menu to close before navigating
     setTimeout(() => {
       navigate(href);
     }, 100);

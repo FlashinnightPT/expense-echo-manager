@@ -21,12 +21,9 @@ export function DesktopNavMenu({
   isActivePath,
   closeMenu
 }: DesktopNavMenuProps) {
-  const location = useLocation();
-  
-  // Função de navegação simplificada que apenas fecha o menu
+  // Function that handles navigation and closes the menu
   const handleNavigation = () => {
-    // Forçar um pequeno atraso para garantir que o React Router tenha tempo 
-    // para processar a navegação antes de fechar o menu
+    // Force a small delay to ensure React Router has time to process navigation
     setTimeout(() => {
       closeMenu();
     }, 10);
