@@ -45,10 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initAuth = async () => {
       console.log("AuthProvider: Starting auth initialization");
       try {
-        // Initialize default admin user if needed
-        await UserService.initializeDefaultAdmin();
-        
-        // Check for user in session storage
+        // Check for user in session storage first (faster)
         const currentUser = sessionStorage.getItem("current_user");
         if (currentUser) {
           try {
@@ -63,17 +60,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           console.log("AuthProvider: No user in session");
         }
+        
+        // Initialize default admin user if needed (do this after session check)
+        await UserService.initializeDefaultAdmin();
       } catch (error) {
         console.error("Erro ao inicializar autenticação:", error);
+        toast.error("Erro de conexão com o servidor. Funcionando em modo offline.");
       } finally {
-        // Always set isInitialized to true regardless of any errors
+        // CRITICAL: Always set isInitialized to true regardless of any errors
         console.log("AuthProvider: Auth initialization completed, setting isInitialized = true");
         setIsInitialized(true);
       }
     };
 
     console.log("AuthProvider: useEffect running");
-    initAuth();
+    // Set a short timeout to ensure other components have mounted
+    // This helps prevent routing issues on initial load
+    setTimeout(() => {
+      initAuth();
+    }, 100);
     
     // This effect should only run once on mount
   }, []); 

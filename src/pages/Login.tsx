@@ -3,26 +3,33 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/hooks/auth";
+import { LoadingPage } from "@/components/ui/loading-spinner";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isInitialized } = useAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    // Check if user is already authenticated
-    if (isAuthenticated) {
+    // Check if user is already authenticated and auth is initialized
+    if (isInitialized && isAuthenticated && !isRedirecting) {
       console.log("Login: User is already authenticated, redirecting to dashboard");
       setIsRedirecting(true);
       // Use replace to avoid adding to history
       navigate("/dashboard", { replace: true });
     }
-  }, [navigate, isAuthenticated]);
+  }, [navigate, isAuthenticated, isInitialized, isRedirecting]);
 
   const handleLoginSuccess = () => {
     console.log("Login: Login success, redirecting to dashboard");
+    setIsRedirecting(true);
     navigate("/dashboard", { replace: true });
   };
+
+  // If auth is not initialized yet, show loading
+  if (!isInitialized) {
+    return <LoadingPage text="Carregando..." />;
+  }
 
   if (isRedirecting) {
     return (
