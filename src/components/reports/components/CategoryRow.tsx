@@ -27,7 +27,7 @@ const CategoryRow = ({
   
   return (
     <TableRow className={cn(
-      "transition-colors",
+      "transition-colors hover:bg-accent/50",
       level === 0 ? "bg-muted/20" : "",
       isExpanded && hasChildren ? "border-b-0" : ""
     )}>
@@ -35,7 +35,7 @@ const CategoryRow = ({
         <div 
           className="flex items-center cursor-pointer" 
           style={{ paddingLeft: indentPadding }}
-          onClick={hasChildren ? onToggle : undefined}
+          onClick={onToggle}
         >
           {hasChildren ? (
             <Button variant="ghost" size="icon" className="h-6 w-6 p-0 mr-1 hover:bg-transparent">
@@ -46,7 +46,7 @@ const CategoryRow = ({
               )}
             </Button>
           ) : (
-            <div className="w-6" />
+            <div className="w-6 mr-1" />
           )}
           {category.name}
         </div>

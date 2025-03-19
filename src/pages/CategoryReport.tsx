@@ -6,10 +6,10 @@ import { Card } from "@/components/ui-custom/Card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { FileDown } from "lucide-react";
+import { FileDown, EyeOff, Eye } from "lucide-react";
 import { toast } from "sonner";
 import CategoryYearTable from "@/components/reports/CategoryYearTable";
-import { exportToExcel } from "@/utils/exportUtils";
+import { prepareMonthlyCategoryReport } from "@/utils/exports/monthlyReport";
 
 const CategoryReport = () => {
   const currentYear = new Date().getFullYear();
@@ -56,12 +56,19 @@ const CategoryReport = () => {
   // Handle export data
   const handleExportData = () => {
     try {
-      // This will be implemented when we create the export function
+      prepareMonthlyCategoryReport(selectedYear, categoryList, filteredTransactions);
       toast.success("Relatório exportado com sucesso");
     } catch (error) {
       console.error("Error exporting report:", error);
       toast.error("Erro ao exportar relatório");
     }
+  };
+
+  // Toggle show/hide values
+  const toggleShowValues = () => {
+    setShowValues(prev => !prev);
+    // Save preference to sessionStorage
+    sessionStorage.setItem('showFinancialValues', (!showValues).toString());
   };
 
   return (
@@ -74,6 +81,15 @@ const CategoryReport = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={toggleShowValues}
+            className="gap-2"
+          >
+            {showValues ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {showValues ? "Ocultar valores" : "Mostrar valores"}
+          </Button>
           <Select
             value={selectedYear.toString()}
             onValueChange={(value) => setSelectedYear(parseInt(value))}

@@ -98,19 +98,18 @@ const CategoryYearTable = ({
             showValues={showValues}
           />
           
-          {/* Show message if we have categories but no transactions */}
-          {yearlyTotal === 0 && categoryHierarchy.length > 0 && (
+          {/* Category Rows with hierarchical structure */}
+          {categoryHierarchy.length > 0 ? (
+            categoryHierarchy.map((categoryData, index) => (
+              renderCategoryRows(categoryData, 0, index === categoryHierarchy.length - 1)
+            ))
+          ) : (
             <TableRow>
               <TableCell colSpan={14} className="text-center text-muted-foreground py-4">
-                Não existem transações de {type === 'income' ? 'receitas' : 'despesas'} para o ano {year}
+                Não existem categorias de {type === 'income' ? 'receitas' : 'despesas'} cadastradas
               </TableCell>
             </TableRow>
           )}
-          
-          {/* Category Rows with hierarchical structure */}
-          {categoryHierarchy.map((categoryData, index) => (
-            renderCategoryRows(categoryData, 0, index === categoryHierarchy.length - 1)
-          ))}
         </TableBody>
       </Table>
     </div>

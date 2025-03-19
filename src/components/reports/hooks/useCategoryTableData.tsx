@@ -57,9 +57,10 @@ export function useCategoryTableData(
         // Calculate yearly total and monthly average
         const { yearlyTotal, monthlyAverage } = calculateTotals(monthlyAmounts);
         
+        // Always include children in the hierarchy, even if they have no transactions
         return {
           category: parent,
-          children: buildHierarchy(children),
+          children: children.length > 0 ? buildHierarchy(children) : [],
           monthlyAmounts,
           yearlyTotal,
           monthlyAverage
