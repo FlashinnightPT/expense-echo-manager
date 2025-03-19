@@ -1,8 +1,7 @@
-
 import { toast } from "sonner";
 import { ApiServiceCore } from "./ApiServiceCore";
 import { transactionService } from "./TransactionService";
-import { categoryService } from "./CategoryService";
+import { categoryService } from "./category/CategoryService";
 import { supabase } from "../supabaseClient";
 
 // Service specifically for backup/restore operations
