@@ -9,7 +9,8 @@ const EmptyDataMessage = ({ type, year, hasCategories }: EmptyDataMessageProps) 
   if (!hasCategories) {
     return (
       <div className="text-center p-8 text-muted-foreground">
-        Não existem categorias de {type === 'income' ? 'receitas' : 'despesas'} definidas
+        Não existem categorias de {type === 'income' ? 'receitas' : 'despesas'} definidas.
+        Por favor, adicione categorias na página de Categorias.
       </div>
     );
   }

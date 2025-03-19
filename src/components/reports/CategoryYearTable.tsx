@@ -57,6 +57,7 @@ const CategoryYearTable = ({
     return (
       <>
         <CategoryRow 
+          key={category.id}
           categoryData={categoryData}
           level={level}
           isExpanded={expanded}
