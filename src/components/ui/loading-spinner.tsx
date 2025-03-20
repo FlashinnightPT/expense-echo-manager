@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 interface LoadingSpinnerProps {
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
+  text?: string;
 }
 
 const sizeClasses = {
@@ -15,7 +16,21 @@ const sizeClasses = {
   xl: "h-12 w-12"
 };
 
-export function LoadingSpinner({ size = "md", className }: LoadingSpinnerProps) {
+export function LoadingSpinner({ size = "md", className, text }: LoadingSpinnerProps) {
+  if (text) {
+    return (
+      <div className={cn("flex flex-col items-center justify-center", className)}>
+        <Loader2 
+          className={cn(
+            "animate-spin text-muted-foreground mb-2",
+            sizeClasses[size]
+          )} 
+        />
+        <p className="text-muted-foreground text-sm">{text}</p>
+      </div>
+    );
+  }
+  
   return (
     <Loader2 
       className={cn(
