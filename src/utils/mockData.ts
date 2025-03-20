@@ -3,12 +3,10 @@
 export type TransactionCategory = {
   id: string;
   name: string;
-  type: "income" | "expense";
+  type: 'income' | 'expense';
   level: number;
-  parentId?: string;
-  parentName?: string; // Used for Excel import
-  children?: TransactionCategory[]; // Add this property to fix the TypeScript errors
-  isFixedExpense?: boolean; // Add this property to fix the TypeScript errors
+  parentId?: string | null;
+  isFixedExpense?: boolean;
 };
 
 export type Transaction = {
@@ -17,7 +15,7 @@ export type Transaction = {
   amount: number;
   date: string;
   categoryId: string;
-  type: "income" | "expense";
+  type: 'income' | 'expense';
 };
 
 export type MonthlyData = {

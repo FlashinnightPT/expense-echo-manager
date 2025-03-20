@@ -1,6 +1,7 @@
 
 import React from "react";
-import { Card } from "@/components/ui-custom/Card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { formatCurrency } from "@/utils/financialCalculations";
 
 interface YearlyHeaderProps {
@@ -9,58 +10,121 @@ interface YearlyHeaderProps {
   toggleYear: (year: number) => void;
   totalIncome: number;
   totalExpenses: number;
+  totalFixedIncome: number;
+  totalFixedExpenses: number;
   showValues: boolean;
 }
 
-const YearlyHeader: React.FC<YearlyHeaderProps> = ({
+const YearlyHeader = ({
   availableYears,
   selectedYears,
   toggleYear,
   totalIncome,
   totalExpenses,
+  totalFixedIncome,
+  totalFixedExpenses,
   showValues
-}) => {
+}: YearlyHeaderProps) => {
+  const hiddenValue = "•••••••";
+  
   return (
-    <>
-      <div className="flex items-center justify-between mb-8">
+    <div className="mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Análise Anual</h1>
+          <h1 className="text-3xl font-bold">Visão Anual</h1>
           <p className="text-muted-foreground mt-1">
-            Compare os seus dados financeiros entre anos
+            Compare receitas e despesas ao longo dos anos
           </p>
         </div>
+        
         <div className="flex flex-wrap gap-2">
-          {availableYears.map(year => (
-            <button
+          {availableYears.map((year) => (
+            <Button
               key={year}
-              className={`px-4 py-2 rounded-md border transition-colors ${
-                selectedYears.includes(year) 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-background hover:bg-muted'
-              }`}
+              variant={selectedYears.includes(year) ? "default" : "outline"}
               onClick={() => toggleYear(year)}
+              size="sm"
             >
               {year}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card>
-          <div className="p-6">
-            <p className="text-sm text-muted-foreground">Receitas Totais</p>
-            <p className="text-2xl font-bold mt-1">{showValues ? formatCurrency(totalIncome) : "•••••••"}</p>
-          </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Receitas Totais
+            </CardTitle>
+            <CardDescription>
+              {selectedYears.length > 1 
+                ? `${selectedYears[0]} - ${selectedYears[selectedYears.length - 1]}` 
+                : selectedYears[0]}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-finance-income">
+              {showValues ? formatCurrency(totalIncome) : hiddenValue}
+            </div>
+          </CardContent>
         </Card>
+        
         <Card>
-          <div className="p-6">
-            <p className="text-sm text-muted-foreground">Despesas Totais</p>
-            <p className="text-2xl font-bold mt-1">{showValues ? formatCurrency(totalExpenses) : "•••••••"}</p>
-          </div>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Despesas Totais
+            </CardTitle>
+            <CardDescription>
+              {selectedYears.length > 1 
+                ? `${selectedYears[0]} - ${selectedYears[selectedYears.length - 1]}` 
+                : selectedYears[0]}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-finance-expense">
+              {showValues ? formatCurrency(totalExpenses) : hiddenValue}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Receitas Fixas
+            </CardTitle>
+            <CardDescription>
+              {selectedYears.length > 1 
+                ? `${selectedYears[0]} - ${selectedYears[selectedYears.length - 1]}` 
+                : selectedYears[0]}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-primary">
+              {showValues ? formatCurrency(totalFixedIncome) : hiddenValue}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Despesas Fixas
+            </CardTitle>
+            <CardDescription>
+              {selectedYears.length > 1 
+                ? `${selectedYears[0]} - ${selectedYears[selectedYears.length - 1]}` 
+                : selectedYears[0]}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-destructive">
+              {showValues ? formatCurrency(totalFixedExpenses) : hiddenValue}
+            </div>
+          </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 };
 

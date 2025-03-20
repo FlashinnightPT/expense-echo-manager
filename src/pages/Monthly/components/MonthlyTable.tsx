@@ -1,78 +1,77 @@
 
-import DataTable from "@/components/tables/DataTable";
+import React from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { formatCurrency } from "@/utils/financialCalculations";
-import { ReactNode } from "react";
+
+interface TableDataItem {
+  month: number;
+  monthName: string;
+  income: number;
+  expense: number;
+  balance: number;
+  differenceRate: string;
+  fixedIncome?: number;
+  fixedExpense?: number;
+}
 
 interface MonthlyTableProps {
-  tableData: {
-    month: number;
-    monthName: string;
-    income: number;
-    expense: number;
-    balance: number;
-    differenceRate: string;
-  }[];
+  tableData: TableDataItem[];
   showValues: boolean;
   selectedYear: number;
 }
 
 const MonthlyTable = ({ tableData, showValues, selectedYear }: MonthlyTableProps) => {
-  const columns = [
-    {
-      id: "monthName",
-      header: "Mês",
-      accessorFn: (row: any) => row.monthName,
-      sortable: true,
-      className: "text-center",
-    },
-    {
-      id: "income",
-      header: "Receitas",
-      accessorFn: (row: any) => showValues ? formatCurrency(row.income) : "•••••••",
-      sortable: true,
-      className: "text-center",
-    },
-    {
-      id: "expense",
-      header: "Despesas",
-      accessorFn: (row: any) => showValues ? formatCurrency(row.expense) : "•••••••",
-      sortable: true,
-      className: "text-center",
-    },
-    {
-      id: "balance",
-      header: "Saldo",
-      accessorFn: (row: any) => showValues ? formatCurrency(row.balance) : "•••••••",
-      sortable: true,
-      className: "text-center",
-    },
-    {
-      id: "differenceRate",
-      header: "Diferença",
-      accessorFn: (row: any): ReactNode => {
-        if (!showValues) return "•••••••";
-        
-        // Display both the value and percentage
-        return (
-          <>
-            {formatCurrency(row.balance)} <span className="text-muted-foreground">({row.differenceRate}%)</span>
-          </>
-        );
-      },
-      sortable: true,
-      className: "text-center",
-    },
-  ];
+  const hiddenValue = "•••••••";
 
   return (
-    <div className="mb-8">
-      <DataTable 
-        data={tableData} 
-        columns={columns} 
-        title={`Dados Mensais de ${selectedYear}`}
-        emptyMessage="Não há dados disponíveis para este ano"
-      />
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Dados Mensais de {selectedYear}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Mês</TableHead>
+                <TableHead className="text-right">Receitas</TableHead>
+                <TableHead className="text-right">Despesas</TableHead>
+                <TableHead className="text-right">Saldo</TableHead>
+                <TableHead className="text-right">Diferença</TableHead>
+                <TableHead className="text-right">Receitas Fixas</TableHead>
+                <TableHead className="text-right">Despesas Fixas</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tableData.map((row) => (
+                <TableRow key={row.month}>
+                  <TableCell className="font-medium">{row.monthName}</TableCell>
+                  <TableCell className="text-right text-finance-income">
+                    {showValues ? formatCurrency(row.income) : hiddenValue}
+                  </TableCell>
+                  <TableCell className="text-right text-finance-expense">
+                    {showValues ? formatCurrency(row.expense) : hiddenValue}
+                  </TableCell>
+                  <TableCell className={`text-right ${row.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {showValues ? formatCurrency(row.balance) : hiddenValue}
+                  </TableCell>
+                  <TableCell className={`text-right ${parseFloat(row.differenceRate) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {showValues ? `${row.differenceRate}%` : hiddenValue}
+                  </TableCell>
+                  <TableCell className="text-right text-finance-income">
+                    {showValues ? formatCurrency(row.fixedIncome || 0) : hiddenValue}
+                  </TableCell>
+                  <TableCell className="text-right text-finance-expense">
+                    {showValues ? formatCurrency(row.fixedExpense || 0) : hiddenValue}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

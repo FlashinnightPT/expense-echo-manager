@@ -13,12 +13,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TransactionCategory } from "@/utils/mockData";
+import { FixedExpenseCheckbox } from "@/components/categories/FixedExpenseCheckbox";
 
 interface EditCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   category: TransactionCategory | null;
-  onSave: (newName: string) => void;
+  onSave: (newName: string, isFixedExpense?: boolean) => void;
 }
 
 export function EditCategoryDialog({ 
@@ -28,18 +29,24 @@ export function EditCategoryDialog({
   onSave
 }: EditCategoryDialogProps) {
   const [newName, setNewName] = useState("");
+  const [isFixed, setIsFixed] = useState(false);
 
   useEffect(() => {
     if (category) {
       setNewName(category.name);
+      setIsFixed(category.isFixedExpense || false);
     }
   }, [category]);
 
   const handleSave = () => {
     if (newName.trim()) {
-      onSave(newName);
+      onSave(newName, isFixed);
       onOpenChange(false);
     }
+  };
+
+  const handleToggleFixed = () => {
+    setIsFixed(!isFixed);
   };
 
   return (
@@ -65,6 +72,17 @@ export function EditCategoryDialog({
                 className="col-span-3"
               />
             </div>
+            
+            {category.type === "expense" && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="col-start-2 col-span-3">
+                  <FixedExpenseCheckbox 
+                    checked={isFixed} 
+                    onToggle={handleToggleFixed} 
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
         
