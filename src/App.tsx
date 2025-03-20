@@ -11,8 +11,11 @@ import { RequireAuth, RequireEditor } from "@/hooks/auth";
 import Header from "@/components/layout/Header";
 import { LoadingPage } from "@/components/ui/loading-spinner";
 
-// Main pages
+// Main pages - Important: Import Login without lazy loading
 import Index from "@/pages/Index";
+import Login from "@/pages/Login"; // Direct import for faster loading
+
+// Lazy loaded pages
 const Painel = lazy(() => import("@/components/layout/Dashboard"));
 const Monthly = lazy(() => import("@/pages/Monthly"));
 const Yearly = lazy(() => import("@/pages/Yearly"));
@@ -22,7 +25,6 @@ const CategoryComparison = lazy(() => import("@/pages/CategoryComparison"));
 const CategoryReport = lazy(() => import("@/pages/CategoryReport"));
 const Settings = lazy(() => import("@/pages/settings"));
 const Users = lazy(() => import("@/pages/Users"));
-const Login = lazy(() => import("@/pages/Login"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 // Layout component that includes the Header

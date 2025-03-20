@@ -74,11 +74,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     console.log("AuthProvider: useEffect running");
-    // Set a short timeout to ensure other components have mounted
-    // This helps prevent routing issues on initial load
-    setTimeout(() => {
-      initAuth();
-    }, 100);
+    // Immediately run the initialization
+    initAuth();
     
     // This effect should only run once on mount
   }, []); 

@@ -10,6 +10,7 @@ const Login = () => {
   const { isAuthenticated, isInitialized } = useAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
+  // Log state for debugging
   useEffect(() => {
     console.log("Login page - Auth state:", { isAuthenticated, isInitialized, isRedirecting });
     
