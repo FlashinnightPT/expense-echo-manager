@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useMemo } from "react";
-import { Transaction } from "@/utils/mockData";
+import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { getMonthName } from "@/utils/financialCalculations";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -8,26 +8,34 @@ export const useMonthlyData = () => {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [categories, setCategories] = useState<TransactionCategory[]>([]);
   const [showValues, setShowValues] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Fetch transactions from Supabase
+  // Fetch transactions and categories from Supabase
   useEffect(() => {
-    const fetchTransactions = async () => {
+    const fetchData = async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('transactions')
-          .select('*');
+        // Fetch both transactions and categories in parallel
+        const [transactionsResponse, categoriesResponse] = await Promise.all([
+          supabase.from('transactions').select('*'),
+          supabase.from('categories').select('*')
+        ]);
           
-        if (error) {
-          console.error("Error fetching transactions:", error);
+        if (transactionsResponse.error) {
+          console.error("Error fetching transactions:", transactionsResponse.error);
+          return;
+        }
+
+        if (categoriesResponse.error) {
+          console.error("Error fetching categories:", categoriesResponse.error);
           return;
         }
         
-        if (data) {
+        if (transactionsResponse.data) {
           // Convert database records to application model
-          const formattedData = data.map(item => ({
+          const formattedData = transactionsResponse.data.map(item => ({
             id: item.id,
             description: item.description,
             amount: Number(item.amount),
@@ -38,8 +46,27 @@ export const useMonthlyData = () => {
           
           setTransactions(formattedData);
         }
+
+        if (categoriesResponse.data) {
+          // Convert database records to application model with isFixedExpense property
+          const formattedCategories = categoriesResponse.data.map(item => {
+            // Check if the category has a fixed expense property
+            const isFixedExpense = 'isfixedexpense' in item ? !!item.isfixedexpense : false;
+            
+            return {
+              id: item.id,
+              name: item.name,
+              type: item.type as 'income' | 'expense',
+              level: item.level,
+              parentId: item.parentid,
+              isFixedExpense: isFixedExpense
+            };
+          });
+          
+          setCategories(formattedCategories);
+        }
       } catch (error) {
-        console.error("Error fetching transactions:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -52,23 +79,35 @@ export const useMonthlyData = () => {
     }
 
     // Initial fetch
-    fetchTransactions();
+    fetchData();
 
     // Subscribe to real-time changes
-    const subscription = supabase
+    const transactionSubscription = supabase
       .channel('public:transactions')
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public',
         table: 'transactions' 
       }, () => {
-        fetchTransactions();
+        fetchData();
+      })
+      .subscribe();
+      
+    const categorySubscription = supabase
+      .channel('public:categories')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public',
+        table: 'categories' 
+      }, () => {
+        fetchData();
       })
       .subscribe();
 
-    // Cleanup subscription
+    // Cleanup subscriptions
     return () => {
-      subscription.unsubscribe();
+      transactionSubscription.unsubscribe();
+      categorySubscription.unsubscribe();
     };
   }, []);
   
@@ -93,6 +132,31 @@ export const useMonthlyData = () => {
       setSelectedYear(availableYears[0]);
     }
   }, [availableYears, selectedYear]);
+
+  // Function to check if transaction is fixed
+  const isFixedTransaction = (transaction: Transaction) => {
+    const categoryId = transaction.categoryId;
+    if (!categoryId) return false;
+    
+    // Find the category
+    const category = categories.find(c => c.id === categoryId);
+    if (!category) return false;
+    
+    // Check if category is fixed
+    if (category.isFixedExpense) return true;
+    
+    // Check parent categories
+    let parentId = category.parentId;
+    while (parentId) {
+      const parentCategory = categories.find(c => c.id === parentId);
+      if (!parentCategory) break;
+      
+      if (parentCategory.isFixedExpense) return true;
+      parentId = parentCategory.parentId;
+    }
+    
+    return false;
+  };
   
   const monthlyData = useMemo(() => {
     const monthlyDataMap = new Map<number, { income: number; expense: number; fixedIncome: number; fixedExpense: number }>();
@@ -107,13 +171,19 @@ export const useMonthlyData = () => {
       
       if (year === selectedYear) {
         const monthData = monthlyDataMap.get(month) || { income: 0, expense: 0, fixedIncome: 0, fixedExpense: 0 };
+        
         if (transaction.type === 'income') {
           monthData.income += transaction.amount;
-          // We'll handle fixed income in future implementation
+          if (isFixedTransaction(transaction)) {
+            monthData.fixedIncome += transaction.amount;
+          }
         } else {
           monthData.expense += transaction.amount;
-          // We'll identify fixed expenses with categoryId in future version
+          if (isFixedTransaction(transaction)) {
+            monthData.fixedExpense += transaction.amount;
+          }
         }
+        
         monthlyDataMap.set(month, monthData);
       }
     });
@@ -133,7 +203,7 @@ export const useMonthlyData = () => {
     }
     
     return result;
-  }, [transactions, selectedYear]);
+  }, [transactions, selectedYear, categories]);
   
   const tableData = useMemo(() => {
     return monthlyData.map(item => {

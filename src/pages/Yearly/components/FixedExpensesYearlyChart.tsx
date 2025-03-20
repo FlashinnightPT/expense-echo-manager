@@ -9,6 +9,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  Line,
+  ComposedChart,
 } from "recharts";
 import { Card, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { formatCurrency } from "@/utils/financialCalculations";
@@ -22,6 +24,7 @@ interface ChartDataPoint {
   year: string;
   FixedIncome: number;
   FixedExpenses: number;
+  Difference: number;
 }
 
 const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpensesYearlyChartProps) => {
@@ -39,16 +42,20 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
       setChartData([{
         year: currentYear.toString(),
         FixedIncome: 0,
-        FixedExpenses: 0
+        FixedExpenses: 0,
+        Difference: 0
       }]);
       return;
     }
 
     const transformedData = filteredData.map((item) => {
+      const fixedIncome = item.fixedIncome || 0;
+      const fixedExpenses = item.fixedExpense || 0;
       return {
         year: item.year ? item.year.toString() : "",
-        FixedIncome: item.fixedIncome || 0,
-        FixedExpenses: item.fixedExpense || 0
+        FixedIncome: fixedIncome,
+        FixedExpenses: fixedExpenses,
+        Difference: fixedIncome - fixedExpenses
       };
     });
     setChartData(transformedData);
@@ -64,6 +71,11 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
               {`${entry.name}: ${showValues ? formatCurrency(entry.value) : "•••••••"}`}
             </p>
           ))}
+          {payload.length >= 2 && payload[0].payload.Difference !== undefined && (
+            <p className="text-sm mt-1 pt-1 border-t" style={{ color: "hsl(var(--primary))" }}>
+              {`Diferença: ${showValues ? formatCurrency(payload[0].payload.Difference) : "•••••••"}`}
+            </p>
+          )}
         </div>
       );
     }
@@ -78,7 +90,7 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
       <div className="h-[300px] w-full">
         {isClient && (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
+            <ComposedChart
               data={chartData}
               margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
             >
@@ -110,7 +122,17 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
                 animationDuration={1500}
                 animationBegin={300}
               />
-            </BarChart>
+              <Line
+                type="monotone"
+                dataKey="Difference"
+                stroke="hsl(var(--success))"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+                animationDuration={1500}
+                animationBegin={600}
+              />
+            </ComposedChart>
           </ResponsiveContainer>
         )}
       </div>
