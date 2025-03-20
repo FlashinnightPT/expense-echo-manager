@@ -28,10 +28,18 @@ export function useCategoryTableData(
   year: number,
   type: 'income' | 'expense'
 ): CategoryTableData {
+  // Filter transactions for the selected year
+  const yearTransactions = useMemo(() => {
+    return transactions.filter(tx => {
+      const txDate = new Date(tx.date);
+      return txDate.getFullYear() === year && tx.type === type;
+    });
+  }, [transactions, year, type]);
+  
   // Organize transactions by month
   const monthlyTransactions = useMemo(() => {
-    return organizeTransactionsByMonth(transactions);
-  }, [transactions]);
+    return organizeTransactionsByMonth(yearTransactions);
+  }, [yearTransactions]);
   
   // Create a hierarchical structure of categories
   const categoryHierarchy = useMemo(() => {
@@ -89,10 +97,12 @@ export function useCategoryTableData(
     return yearlyTotal / 12;
   }, [yearlyTotal]);
   
-  // Check if there are categories to display of this type, not just transactions
+  // Check if there's at least one transaction or category of this type
   const hasData = useMemo(() => {
-    return categories.some(cat => cat.type === type);
-  }, [categories, type]);
+    const hasCategoriesOfType = categories.some(cat => cat.type === type);
+    const hasTransactionsOfType = yearTransactions.length > 0;
+    return hasCategoriesOfType || hasTransactionsOfType;
+  }, [categories, yearTransactions, type]);
 
   return {
     categoryHierarchy,

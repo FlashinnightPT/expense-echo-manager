@@ -71,6 +71,14 @@ const CategoryReport = () => {
     sessionStorage.setItem('showFinancialValues', (!showValues).toString());
   };
 
+  // Load showValues preference from sessionStorage
+  useEffect(() => {
+    const savedPreference = sessionStorage.getItem('showFinancialValues');
+    if (savedPreference !== null) {
+      setShowValues(savedPreference === 'true');
+    }
+  }, []);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">

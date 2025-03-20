@@ -29,7 +29,11 @@ export const useCategoryExpansion = () => {
 
   // Expand all categories
   const expandAll = useCallback((categoryIds: string[]) => {
-    setExpandedCategories(new Set(categoryIds));
+    setExpandedCategories(prev => {
+      const newExpanded = new Set(prev);
+      categoryIds.forEach(id => newExpanded.add(id));
+      return newExpanded;
+    });
   }, []);
 
   // Collapse all categories

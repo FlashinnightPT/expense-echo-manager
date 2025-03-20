@@ -42,7 +42,7 @@ export const calculateMonthlyAmounts = (
   const monthlyAmounts: Record<number, number> = {};
   
   for (let month = 1; month <= 12; month++) {
-    const monthTransactions = monthlyTransactions[month];
+    const monthTransactions = monthlyTransactions[month] || [];
     const allCategoryIds = getAllSubcategoryIds(categoryId, categories);
     
     // Sum transactions for this category and all its children
@@ -71,8 +71,20 @@ export const findRootCategories = (
   categories: TransactionCategory[],
   type: 'income' | 'expense'
 ): TransactionCategory[] => {
-  return categories.filter(cat => 
+  // For level 1 categories (if they exist)
+  const level1Categories = categories.filter(cat => 
     cat.type === type && cat.level === 1
+  );
+  
+  if (level1Categories.length > 0) {
+    return level1Categories;
+  }
+  
+  // Fallback to level 2 categories with no parent
+  return categories.filter(cat => 
+    cat.type === type && 
+    cat.level === 2 && 
+    (!cat.parentId || !categories.some(c => c.id === cat.parentId))
   );
 };
 

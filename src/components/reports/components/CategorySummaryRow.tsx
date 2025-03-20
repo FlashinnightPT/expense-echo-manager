@@ -19,8 +19,8 @@ const CategorySummaryRow = ({
 }: CategorySummaryRowProps) => {
   // Different background colors for income vs expense
   const bgColor = type === 'income' 
-    ? "bg-green-100/50" 
-    : "bg-orange-100/50";
+    ? "bg-green-100/70" 
+    : "bg-orange-100/70";
   
   return (
     <TableRow className={`font-bold ${bgColor}`}>
