@@ -51,8 +51,9 @@ export const printConnectionInfo = () => {
   const isOnline = navigator.onLine;
   console.log("Estado de conexão à Internet:", isOnline ? "Online" : "Offline");
   
-  // Verificar URL do Supabase
-  console.log("URL Supabase:", supabase.supabaseUrl);
+  // Verificar informações do projeto Supabase
+  // Não podemos acessar supabaseUrl diretamente pois é protegido
+  console.log("Projeto Supabase:", "iqxesudkiapkhrursghh");
   
   // Executar teste de conexão
   testSupabaseConnection().then(isConnected => {
