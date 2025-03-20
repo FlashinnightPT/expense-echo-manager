@@ -16,11 +16,12 @@ const Categories = () => {
     categoryList, 
     isLoading,
     handleSaveCategory, 
-    handleDeleteCategory,
+    handleDeleteCategory, 
     confirmDeleteCategory,
     updateCategoryName,
     moveCategory,
     updateFixedExpense,
+    updateCategoryActive,
     clearNonRootCategories
   } = useCategoryData();
 
@@ -60,6 +61,15 @@ const Categories = () => {
     }
   };
 
+  const handleUpdateCategory = async (categoryId: string, newName: string, isActive?: boolean) => {
+    // Update both name and active status if provided
+    if (isActive !== undefined && isActive !== categoryList.find(c => c.id === categoryId)?.isActive) {
+      await updateCategoryActive(categoryId, isActive);
+    }
+    
+    return updateCategoryName(categoryId, newName);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
@@ -96,7 +106,7 @@ const Categories = () => {
           <CategoryList 
             categoryList={categoryList}
             handleDeleteCategory={attemptCategoryDeletion}
-            updateCategoryName={updateCategoryName}
+            updateCategoryName={handleUpdateCategory}
             moveCategory={moveCategory}
             updateFixedExpense={updateFixedExpense}
             isLoading={isLoading}

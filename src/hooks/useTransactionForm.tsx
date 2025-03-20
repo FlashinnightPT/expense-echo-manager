@@ -50,7 +50,10 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
     // Inicializar categorias baseadas no tipo selecionado, começando no nível adequado
     // Como suas categorias começam no nível 2, ajustamos aqui
     const firstLevelCategories = allCategories.filter(
-      (category) => category.type === formData.type && category.level === 2
+      (category) => 
+        category.type === formData.type && 
+        category.level === 2 && 
+        category.isActive !== false // Mostrar apenas categorias ativas
     );
     
     console.log("First level categories:", firstLevelCategories);
@@ -91,9 +94,9 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
           type: selectedCategory.type || formData.type
         });
         
-        // Verifica se existem subcategorias
+        // Verifica se existem subcategorias ativas
         const childCategories = allCategories.filter(
-          (category) => category.parentId === value
+          (category) => category.parentId === value && category.isActive !== false
         );
         
         if (childCategories.length > 0) {
@@ -132,7 +135,10 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
     // Se volta ao início, mostrar categorias de primeiro nível (nível 2 no seu caso)
     if (index === 0) {
       const firstLevelCategories = allCategories.filter(
-        (category) => category.type === formData.type && category.level === 2
+        (category) => 
+          category.type === formData.type && 
+          category.level === 2 &&
+          category.isActive !== false // Mostrar apenas categorias ativas
       );
       
       setAvailableCategories(firstLevelCategories);
@@ -142,7 +148,9 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
       // Senão, mostrar subcategorias do nível selecionado
       const parentId = newPath[newPath.length - 1];
       const childCategories = allCategories.filter(
-        (category) => category.parentId === parentId
+        (category) => 
+          category.parentId === parentId && 
+          category.isActive !== false // Mostrar apenas categorias ativas
       );
       setAvailableCategories(childCategories);
       
@@ -153,7 +161,10 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
       }
       
       // Verificar se a categoria selecionada é folha
-      const hasChildren = allCategories.some(cat => cat.parentId === parentId);
+      const hasChildren = allCategories.some(cat => 
+        cat.parentId === parentId && 
+        cat.isActive !== false // Verificar apenas categorias ativas
+      );
       setIsAtLeafCategory(!hasChildren);
     }
   };

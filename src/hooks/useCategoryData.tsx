@@ -76,10 +76,16 @@ export const useCategoryData = () => {
         return;
       }
 
+      // Default to active for new categories
+      const categoryToSave = {
+        ...category,
+        isActive: category.isActive !== false
+      };
+
       setIsLoading(true);
       
       // Salva categoria no Supabase primeiro
-      const savedCategory = await categoryService.saveCategory(category);
+      const savedCategory = await categoryService.saveCategory(categoryToSave);
       
       console.log("Categoria salva no Supabase:", savedCategory);
       
@@ -165,6 +171,37 @@ export const useCategoryData = () => {
     } catch (error) {
       console.error("Erro ao atualizar categoria:", error);
       toast.error("Erro ao atualizar categoria");
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateCategoryActive = async (categoryId: string, isActive: boolean) => {
+    try {
+      setIsLoading(true);
+      
+      // Encontra a categoria para atualizar
+      const categoryToUpdate = categoryList.find(cat => cat.id === categoryId);
+      if (!categoryToUpdate) return false;
+      
+      // Cria objeto atualizado
+      const updatedCategory = { ...categoryToUpdate, isActive };
+      
+      // Atualiza no Supabase
+      const savedCategory = await categoryService.saveCategory(updatedCategory);
+      
+      // Atualiza a lista local
+      const updatedList = categoryList.map(cat => 
+        cat.id === categoryId ? { ...savedCategory, isActive } : cat
+      );
+      
+      setCategoryList(updatedList);
+      toast.success(`Categoria ${isActive ? 'ativada' : 'desativada'} com sucesso`);
+      return true;
+    } catch (error) {
+      console.error("Erro ao atualizar status da categoria:", error);
+      toast.error("Erro ao atualizar status da categoria");
       return false;
     } finally {
       setIsLoading(false);
@@ -323,6 +360,7 @@ export const useCategoryData = () => {
     updateCategoryName,
     moveCategory,
     updateFixedExpense,
+    updateCategoryActive,
     clearNonRootCategories
   };
 };

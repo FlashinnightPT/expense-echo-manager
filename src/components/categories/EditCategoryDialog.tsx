@@ -14,12 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TransactionCategory } from "@/utils/mockData";
 import FixedExpenseCheckbox from "@/components/categories/FixedExpenseCheckbox";
+import { Switch } from "@/components/ui/switch";
 
 interface EditCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   category: TransactionCategory | null;
-  onSave: (newName: string, isFixedExpense?: boolean) => void;
+  onSave: (newName: string, isFixedExpense?: boolean, isActive?: boolean) => void;
 }
 
 export function EditCategoryDialog({ 
@@ -30,23 +31,29 @@ export function EditCategoryDialog({
 }: EditCategoryDialogProps) {
   const [newName, setNewName] = useState("");
   const [isFixed, setIsFixed] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
     if (category) {
       setNewName(category.name);
       setIsFixed(category.isFixedExpense || false);
+      setIsActive(category.isActive !== false); // Default to true if undefined
     }
   }, [category]);
 
   const handleSave = () => {
     if (newName.trim()) {
-      onSave(newName, isFixed);
+      onSave(newName, isFixed, isActive);
       onOpenChange(false);
     }
   };
 
   const handleToggleFixed = () => {
     setIsFixed(!isFixed);
+  };
+
+  const handleToggleActive = () => {
+    setIsActive(!isActive);
   };
 
   return (
@@ -83,6 +90,20 @@ export function EditCategoryDialog({
                 </div>
               </div>
             )}
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="isActive" className="text-right">
+                Ativa
+              </Label>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="isActive"
+                  checked={isActive}
+                  onCheckedChange={handleToggleActive}
+                />
+                <span className="text-sm">{isActive ? "Ativa" : "Inativa"}</span>
+              </div>
+            </div>
           </div>
         )}
         

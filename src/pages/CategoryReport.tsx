@@ -6,16 +6,18 @@ import { Card } from "@/components/ui-custom/Card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { FileDown, EyeOff, Eye } from "lucide-react";
+import { FileDown } from "lucide-react";
 import { toast } from "sonner";
 import CategoryYearTable from "@/components/reports/CategoryYearTable";
 import { prepareMonthlyCategoryReport } from "@/utils/exports/monthlyReport";
+import { useFinancialValues } from "@/hooks/useFinancialValues";
+import ShowHideValuesButton from "@/pages/CategoryAnalysis/components/ShowHideValuesButton";
 
 const CategoryReport = () => {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [activeTab, setActiveTab] = useState<"income" | "expense">("income");
-  const [showValues, setShowValues] = useState(true);
+  const { showValues, toggleShowValues } = useFinancialValues();
   
   const { transactionList } = useTransactionData();
   const { categoryList } = useCategoryData();
@@ -53,31 +55,28 @@ const CategoryReport = () => {
     });
   }, [transactionList, selectedYear]);
   
+  // Filter categories based on the selected year
+  const filteredCategories = useMemo(() => {
+    // For current year or past years, show all categories
+    // For future years, hide inactive categories
+    if (selectedYear <= currentYear) {
+      return categoryList;
+    } else {
+      // For future years, filter out inactive categories
+      return categoryList.filter(cat => cat.isActive !== false);
+    }
+  }, [categoryList, selectedYear, currentYear]);
+  
   // Handle export data
   const handleExportData = () => {
     try {
-      prepareMonthlyCategoryReport(selectedYear, categoryList, filteredTransactions);
+      prepareMonthlyCategoryReport(selectedYear, filteredCategories, filteredTransactions);
       toast.success("Relatório exportado com sucesso");
     } catch (error) {
       console.error("Error exporting report:", error);
       toast.error("Erro ao exportar relatório");
     }
   };
-
-  // Toggle show/hide values
-  const toggleShowValues = () => {
-    setShowValues(prev => !prev);
-    // Save preference to sessionStorage
-    sessionStorage.setItem('showFinancialValues', (!showValues).toString());
-  };
-
-  // Load showValues preference from sessionStorage
-  useEffect(() => {
-    const savedPreference = sessionStorage.getItem('showFinancialValues');
-    if (savedPreference !== null) {
-      setShowValues(savedPreference === 'true');
-    }
-  }, []);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -89,15 +88,10 @@ const CategoryReport = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={toggleShowValues}
-            className="gap-2"
-          >
-            {showValues ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            {showValues ? "Ocultar valores" : "Mostrar valores"}
-          </Button>
+          <ShowHideValuesButton 
+            showValues={showValues} 
+            toggleShowValues={toggleShowValues}
+          />
           <Select
             value={selectedYear.toString()}
             onValueChange={(value) => setSelectedYear(parseInt(value))}
@@ -128,7 +122,7 @@ const CategoryReport = () => {
           <TabsContent value="income" className="pt-6">
             <CategoryYearTable 
               transactions={filteredTransactions}
-              categories={categoryList}
+              categories={filteredCategories}
               year={selectedYear}
               type="income"
               showValues={showValues}
@@ -138,7 +132,7 @@ const CategoryReport = () => {
           <TabsContent value="expense" className="pt-6">
             <CategoryYearTable 
               transactions={filteredTransactions}
-              categories={categoryList}
+              categories={filteredCategories}
               year={selectedYear}
               type="expense"
               showValues={showValues}

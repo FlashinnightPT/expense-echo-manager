@@ -27,6 +27,9 @@ const CategoryRow = ({
   const { category, monthlyAmounts, yearlyTotal, monthlyAverage } = categoryData;
   const indentPadding = `${level * 1.5}rem`;
   
+  // Check if category is inactive
+  const isInactive = category.isActive === false;
+  
   // For root categories, use a different background
   const bgColor = level === 0 
     ? category.type === 'income' ? "bg-green-50/30" : "bg-orange-50/30" 
@@ -37,7 +40,8 @@ const CategoryRow = ({
       "transition-colors hover:bg-accent/50",
       bgColor,
       isExpanded && hasChildren ? "border-b-0" : "",
-      isLastInGroup && level > 0 ? "border-b-2 border-muted" : ""
+      isLastInGroup && level > 0 ? "border-b-2 border-muted" : "",
+      isInactive && "opacity-60"
     )}>
       <TableCell className="sticky left-0 bg-background font-medium">
         <div 
@@ -56,7 +60,12 @@ const CategoryRow = ({
           ) : (
             <div className="w-6 mr-1" />
           )}
-          {category.name}
+          <span className={cn(
+            isInactive && "line-through text-muted-foreground"
+          )}>
+            {category.name}
+            {isInactive && <span className="ml-2 text-xs">(inativa)</span>}
+          </span>
         </div>
       </TableCell>
       
