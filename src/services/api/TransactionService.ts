@@ -1,7 +1,7 @@
 
 import { Transaction } from "@/utils/mockData";
 import { ApiServiceCore } from "./ApiServiceCore";
-import { mariadbClient } from "../mariadbClient";
+import { supabase } from "../supabaseClient";
 import { toast } from "sonner";
 
 // Service specifically for transaction operations
@@ -15,14 +15,18 @@ export class TransactionService extends ApiServiceCore {
     return ApiServiceCore.getOrCreateInstance.call(TransactionService);
   }
   
-  // Garantir que a tabela existe no MariaDB
+  // Garantir que a tabela existe no Supabase
   private async ensureTableExists(): Promise<void> {
     try {
       // Este método apenas verifica se conseguimos acessar a tabela
-      const result = await mariadbClient.executeQuery('SHOW TABLES LIKE "transactions"');
+      // A criação real da tabela deve ser feita no console do Supabase
+      const { error } = await supabase
+        .from('transactions')
+        .select('id')
+        .limit(1);
       
-      if (Array.isArray(result) && result.length === 0) {
-        console.warn('Tabela de transações pode não existir');
+      if (error) {
+        console.warn('Tabela de transações pode não existir:', error.message);
       }
     } catch (error) {
       console.error('Erro ao verificar tabela de transações:', error);
@@ -32,14 +36,18 @@ export class TransactionService extends ApiServiceCore {
   public async getTransactions(): Promise<Transaction[]> {
     if (this.isConnected()) {
       try {
-        const data = await mariadbClient.executeQuery<Transaction>('SELECT * FROM transactions');
+        const { data, error } = await supabase
+          .from('transactions')
+          .select('*');
+        
+        if (error) throw error;
         
         // Atualizar o localStorage como cache
         localStorage.setItem('transactions', JSON.stringify(data || []));
         
         return data || [];
       } catch (error) {
-        console.error("Erro ao buscar transações do MariaDB:", error);
+        console.error("Erro ao buscar transações do Supabase:", error);
         toast.error("Erro ao buscar transações. Usando dados em cache.");
         
         // Fallback para localStorage
@@ -70,29 +78,25 @@ export class TransactionService extends ApiServiceCore {
     
     if (this.isConnected()) {
       try {
-        await mariadbClient.executeQuery(
-          'INSERT INTO transactions (id, description, amount, date, category_id, type) VALUES (?, ?, ?, ?, ?, ?)',
-          [
-            newTransaction.id,
-            newTransaction.description,
-            newTransaction.amount,
-            newTransaction.date,
-            newTransaction.categoryId,
-            newTransaction.type
-          ]
-        );
+        const { data, error } = await supabase
+          .from('transactions')
+          .insert([newTransaction])
+          .select()
+          .single();
+        
+        if (error) throw error;
         
         // Atualizar cache local
         const transactions = await this.getTransactions();
-        const updatedTransactions = [...transactions, newTransaction];
+        const updatedTransactions = [...transactions, data || newTransaction];
         localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
         
         // Simula evento para outros componentes
         window.dispatchEvent(new Event('storage'));
         
-        return newTransaction;
+        return data || newTransaction;
       } catch (error) {
-        console.error("Erro ao salvar transação no MariaDB:", error);
+        console.error("Erro ao salvar transação no Supabase:", error);
         toast.error("Erro ao salvar transação online. Salvando localmente.");
         
         // Adicionar operação à fila para sincronizar depois
@@ -135,10 +139,12 @@ export class TransactionService extends ApiServiceCore {
   public async deleteTransaction(transactionId: string): Promise<boolean> {
     if (this.isConnected()) {
       try {
-        await mariadbClient.executeQuery(
-          'DELETE FROM transactions WHERE id = ?',
-          [transactionId]
-        );
+        const { error } = await supabase
+          .from('transactions')
+          .delete()
+          .eq('id', transactionId);
+        
+        if (error) throw error;
         
         // Atualizar cache local
         const storedTransactions = localStorage.getItem('transactions');
@@ -153,7 +159,7 @@ export class TransactionService extends ApiServiceCore {
         
         return true;
       } catch (error) {
-        console.error("Erro ao excluir transação do MariaDB:", error);
+        console.error("Erro ao excluir transação do Supabase:", error);
         toast.error("Erro ao excluir transação online. Excluindo localmente.");
         
         // Adicionar operação à fila para sincronizar depois

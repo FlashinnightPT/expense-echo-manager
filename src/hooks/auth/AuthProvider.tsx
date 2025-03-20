@@ -59,8 +59,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         } else {
           console.log("AuthProvider: No user in session");
-          // If we don't have a user, make sure we're initialized as unauthenticated
-          setIsAuthenticated(false);
         }
         
         // Initialize default admin user if needed (do this after session check)
@@ -76,8 +74,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     console.log("AuthProvider: useEffect running");
-    // Immediately run the initialization
-    initAuth();
+    // Set a short timeout to ensure other components have mounted
+    // This helps prevent routing issues on initial load
+    setTimeout(() => {
+      initAuth();
+    }, 100);
     
     // This effect should only run once on mount
   }, []); 
@@ -149,7 +150,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider value={authContextValue}>
       {children}
-      <IdleWarningDialog />
     </AuthContext.Provider>
   );
 };

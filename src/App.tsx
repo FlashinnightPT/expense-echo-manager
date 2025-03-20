@@ -1,5 +1,5 @@
 
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import "./App.css";
@@ -11,11 +11,8 @@ import { RequireAuth, RequireEditor } from "@/hooks/auth";
 import Header from "@/components/layout/Header";
 import { LoadingPage } from "@/components/ui/loading-spinner";
 
-// Import Login and Index without lazy loading to avoid delay
-import Login from "@/pages/Login";
+// Main pages
 import Index from "@/pages/Index";
-
-// Lazy loaded pages
 const Painel = lazy(() => import("@/components/layout/Dashboard"));
 const Monthly = lazy(() => import("@/pages/Monthly"));
 const Yearly = lazy(() => import("@/pages/Yearly"));
@@ -25,6 +22,7 @@ const CategoryComparison = lazy(() => import("@/pages/CategoryComparison"));
 const CategoryReport = lazy(() => import("@/pages/CategoryReport"));
 const Settings = lazy(() => import("@/pages/settings"));
 const Users = lazy(() => import("@/pages/Users"));
+const Login = lazy(() => import("@/pages/Login"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 // Layout component that includes the Header
@@ -38,15 +36,17 @@ const WithHeader = ({ children }: { children: React.ReactNode }) => (
 function App() {
   const location = useLocation();
   
+  useEffect(() => {
+    console.log("App: Current location", location.pathname);
+  }, [location]);
+  
+  console.log("App component rendering");
   return (
     <>
       <Suspense fallback={<LoadingPage />}>
         <Routes>
-          {/* Public routes - directly accessible */}
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
-          
-          {/* Protected routes */}
           <Route 
             path="/dashboard" 
             element={

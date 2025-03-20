@@ -1,7 +1,7 @@
 
 import { CategoryServiceBase } from "./CategoryServiceBase";
 import { TransactionCategory } from "@/utils/mockData";
-import { mariadbClient } from "../../mariadbClient";
+import { supabase } from "../../supabaseClient";
 import { toast } from "sonner";
 
 // Class specifically for category deletion operations
@@ -9,10 +9,12 @@ export class CategoryDeleteService extends CategoryServiceBase {
   public async deleteCategory(categoryId: string): Promise<boolean> {
     if (this.isConnected()) {
       try {
-        await mariadbClient.executeQuery(
-          'DELETE FROM categories WHERE id = ?',
-          [categoryId]
-        );
+        const { error } = await supabase
+          .from('categories')
+          .delete()
+          .eq('id', categoryId);
+        
+        if (error) throw error;
         
         // Update local cache
         const storedCategories = localStorage.getItem('categories');
@@ -27,7 +29,7 @@ export class CategoryDeleteService extends CategoryServiceBase {
         
         return true;
       } catch (error) {
-        console.error("Erro ao excluir categoria do MariaDB:", error);
+        console.error("Erro ao excluir categoria do Supabase:", error);
         toast.error("Erro ao excluir categoria online. Excluindo localmente.");
         
         // Add operation to queue for later sync

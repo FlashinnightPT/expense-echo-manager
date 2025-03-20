@@ -10,10 +10,7 @@ const Login = () => {
   const { isAuthenticated, isInitialized } = useAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Log state for debugging
   useEffect(() => {
-    console.log("Login page - Auth state:", { isAuthenticated, isInitialized, isRedirecting });
-    
     // Check if user is already authenticated and auth is initialized
     if (isInitialized && isAuthenticated && !isRedirecting) {
       console.log("Login: User is already authenticated, redirecting to dashboard");
@@ -34,7 +31,6 @@ const Login = () => {
     return <LoadingPage text="Carregando..." />;
   }
 
-  // Only redirect if authenticated
   if (isRedirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-slate-100 dark:to-slate-900">
@@ -45,7 +41,6 @@ const Login = () => {
     );
   }
 
-  // Otherwise show login form
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-slate-100 dark:to-slate-900 p-4">
       <div className="w-full max-w-md">
