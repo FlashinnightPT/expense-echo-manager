@@ -1,6 +1,6 @@
 
 import { toast } from "sonner";
-import { supabase, checkSupabaseConnection } from "../supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 
 // Core API Service class com funcionalidade para Supabase e fallback para localStorage
 export class ApiServiceCore {
@@ -39,8 +39,14 @@ export class ApiServiceCore {
 
   // Verificar conexão com o Supabase
   protected async checkConnection(): Promise<void> {
-    this.connected = await checkSupabaseConnection();
-    console.log(`Supabase connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
+    try {
+      const { data, error } = await supabase.from('transactions').select('count');
+      this.connected = !error;
+      console.log(`Supabase connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
+    } catch (error) {
+      this.connected = false;
+      console.error("Error checking Supabase connection:", error);
+    }
   }
 
   // Método para sincronizar dados pendentes quando voltar online

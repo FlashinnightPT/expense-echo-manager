@@ -1,7 +1,7 @@
 
 import { TransactionCategory } from "@/utils/mockData";
 import { CategoryServiceBase } from "./CategoryServiceBase";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 // Class specifically for category fetch operations

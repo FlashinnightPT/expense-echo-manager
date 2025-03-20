@@ -9,7 +9,79 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          createdat: string | null
+          id: string
+          level: number
+          name: string
+          parentid: string | null
+          type: string
+        }
+        Insert: {
+          createdat?: string | null
+          id: string
+          level?: number
+          name: string
+          parentid?: string | null
+          type: string
+        }
+        Update: {
+          createdat?: string | null
+          id?: string
+          level?: number
+          name?: string
+          parentid?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_parentid_fkey"
+            columns: ["parentid"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          categoryid: string | null
+          createdat: string | null
+          date: string
+          description: string
+          id: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          categoryid?: string | null
+          createdat?: string | null
+          date: string
+          description: string
+          id: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          categoryid?: string | null
+          createdat?: string | null
+          date?: string
+          description?: string
+          id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_categoryid_fkey"
+            columns: ["categoryid"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

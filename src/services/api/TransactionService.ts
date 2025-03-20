@@ -1,7 +1,7 @@
 
 import { Transaction } from "@/utils/mockData";
 import { ApiServiceCore } from "./ApiServiceCore";
-import { supabase } from "../supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 // Service specifically for transaction operations

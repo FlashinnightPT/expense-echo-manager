@@ -1,6 +1,6 @@
 
 import { ApiServiceCore } from "../ApiServiceCore";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 // Base class for category operations containing shared functionality
