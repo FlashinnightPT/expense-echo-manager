@@ -46,7 +46,7 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({
       const percentage = totalAmount > 0 ? (item.amount / totalAmount) * 100 : 0;
       
       return {
-        name: item.name,
+        name: item.name.split(" (")[0], // Remove date range for cleaner display
         value: visualizationMode === "absolute" ? item.amount : percentage,
         color: CHART_COLORS[index % CHART_COLORS.length],
         percentage,
@@ -71,8 +71,12 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({
       return [`${value.toFixed(2)}%`, name];
     }
   };
+
+  // If no data, return a message
+  if (chartData.length === 0) {
+    return <div className="text-center py-10 text-muted-foreground">Nenhum dado para exibir</div>;
+  }
   
-  // Bar chart or pie chart based on number of items
   return (
     <div className="h-[400px] w-full">
       <ChartContainer config={chartConfig}>
