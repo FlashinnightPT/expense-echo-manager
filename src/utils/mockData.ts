@@ -258,17 +258,7 @@ export const transactions: Transaction[] = Array.from({ length: 30 }, (_, i) => 
 
 // Helper function to flatten categories for easier search
 export const flattenCategories = (categories: TransactionCategory[]): TransactionCategory[] => {
-  let result: TransactionCategory[] = [];
-  
-  for (const category of categories) {
-    result.push(category);
-    
-    if (category.children && category.children.length > 0) {
-      result = [...result, ...flattenCategories(category.children)];
-    }
-  }
-  
-  return result;
+  return categories;
 };
 
 export const flattenedCategories = flattenCategories(categories);
@@ -281,26 +271,7 @@ export const getCategoryById = (id: string): TransactionCategory | undefined => 
 // Function to build a hierarchical structure of categories
 export const buildCategoryHierarchy = () => {
   const rootCategories = categories.filter(cat => cat.level === 2);
-  const result = [...rootCategories];
-  
-  // Create a map for easier access
-  const categoriesMap = new Map<string, TransactionCategory>();
-  categories.forEach(cat => {
-    categoriesMap.set(cat.id, { ...cat, children: [] });
-  });
-  
-  // Add children to their parents
-  categories.forEach(cat => {
-    if (cat.parentId) {
-      const parent = categoriesMap.get(cat.parentId);
-      if (parent && parent.children) {
-        parent.children.push(categoriesMap.get(cat.id) || cat);
-      }
-    }
-  });
-  
-  // Return only root categories with their full hierarchy
-  return result.map(cat => categoriesMap.get(cat.id) || cat);
+  return rootCategories;
 };
 
 // Function to filter transactions by period (month and year)

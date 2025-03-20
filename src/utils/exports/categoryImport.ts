@@ -1,4 +1,3 @@
-
 import { read, utils } from 'xlsx';
 import { TransactionCategory } from "../mockData";
 
@@ -74,8 +73,7 @@ const validateAndProcessCategoryData = (data: any[]): {
         name: categoryName,
         type,
         level: highestLevel + 1, // Adjust level for the app (app uses level 2, 3, 4)
-        parentId,
-        parentName
+        parentId
       };
       
       // Store in map for parent relationships

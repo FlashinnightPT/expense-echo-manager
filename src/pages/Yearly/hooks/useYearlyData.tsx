@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { formatCurrency } from "@/utils/financialCalculations";
@@ -148,7 +147,7 @@ export const useYearlyData = () => {
     }
   };
   
-  // Check if a transaction's category or any of its parent categories are fixed
+  // Update the isFixedTransaction function
   const isFixedTransaction = (transaction: Transaction) => {
     const categoryId = transaction.categoryId;
     if (!categoryId) return false;
@@ -157,7 +156,7 @@ export const useYearlyData = () => {
     const category = categories.find(c => c.id === categoryId);
     if (!category) return false;
     
-    // If this category is fixed, return true
+    // Check if category is fixed
     if (category.isFixedExpense) return true;
     
     // Check parent categories
