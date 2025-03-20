@@ -59,6 +59,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         } else {
           console.log("AuthProvider: No user in session");
+          // If we don't have a user, make sure we're initialized as unauthenticated
+          setIsAuthenticated(false);
         }
         
         // Initialize default admin user if needed (do this after session check)
@@ -150,6 +152,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       <IdleWarningDialog />
     </AuthContext.Provider>
   );
-}
+};
 
 export default AuthProvider;

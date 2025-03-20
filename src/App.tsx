@@ -1,5 +1,5 @@
 
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import "./App.css";
@@ -11,9 +11,9 @@ import { RequireAuth, RequireEditor } from "@/hooks/auth";
 import Header from "@/components/layout/Header";
 import { LoadingPage } from "@/components/ui/loading-spinner";
 
-// Main pages - Important: Import Login without lazy loading
+// Import Login and Index without lazy loading to avoid delay
+import Login from "@/pages/Login";
 import Index from "@/pages/Index";
-import Login from "@/pages/Login"; // Direct import for faster loading
 
 // Lazy loaded pages
 const Painel = lazy(() => import("@/components/layout/Dashboard"));
@@ -38,15 +38,11 @@ const WithHeader = ({ children }: { children: React.ReactNode }) => (
 function App() {
   const location = useLocation();
   
-  useEffect(() => {
-    console.log("App: Current location", location.pathname);
-  }, [location]);
-  
   return (
     <>
       <Suspense fallback={<LoadingPage />}>
         <Routes>
-          {/* Public routes */}
+          {/* Public routes - directly accessible */}
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           
