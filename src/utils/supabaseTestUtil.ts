@@ -45,6 +45,49 @@ export const testSupabaseConnection = async (): Promise<boolean> => {
 };
 
 /**
+ * Função para testar a conexão com a tabela de utilizadores
+ * @returns Promise<number> - Número de utilizadores na base de dados
+ */
+export const testUserConnection = async (): Promise<number> => {
+  try {
+    const { data, error, count } = await supabase
+      .from('users')
+      .select('*', { count: 'exact' });
+    
+    if (error) {
+      console.error("Erro na comunicação com tabela de utilizadores:", error);
+      toast.error(`Erro ao acessar utilizadores: ${error.message}`);
+      throw error;
+    }
+    
+    if (data) {
+      console.log("Utilizadores encontrados:", data);
+      toast.success(`Conexão com tabela de utilizadores bem-sucedida! Total: ${data.length} utilizadores.`);
+      
+      // Exibir mais detalhes no console para diagnóstico
+      data.forEach((user, index) => {
+        console.log(`Utilizador ${index + 1}:`, {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          role: user.role,
+          status: user.status,
+          lastLogin: user.last_login
+        });
+      });
+      
+      return data.length;
+    }
+    
+    return 0;
+  } catch (error) {
+    console.error("Erro ao testar conexão com utilizadores:", error);
+    toast.error(`Erro ao testar conexão com utilizadores: ${error instanceof Error ? error.message : String(error)}`);
+    throw error;
+  }
+};
+
+/**
  * Imprime informações detalhadas do estado de conexão
  */
 export const printConnectionInfo = () => {
@@ -52,7 +95,6 @@ export const printConnectionInfo = () => {
   console.log("Estado de conexão à Internet:", isOnline ? "Online" : "Offline");
   
   // Verificar informações do projeto Supabase
-  // Não podemos acessar supabaseUrl diretamente pois é protegido
   console.log("Projeto Supabase:", "iqxesudkiapkhrursghh");
   
   // Executar teste de conexão
