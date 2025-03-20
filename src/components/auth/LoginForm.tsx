@@ -37,11 +37,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         const users = await UserService.getUsers();
         if (users.length === 1 && users[0].username === "admin") {
           setForm({
-            username: "admin",
-            password: "admin123",
+            username: "",
+            password: "",
           });
-          
-          toast.info("Utilizador administrador criado automaticamente. Username: admin / Senha: admin123");
         }
         
         setIsInitialized(true);
@@ -73,6 +71,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     try {
       if (!form.username || !form.password) {
         toast.error("Por favor, preencha todos os campos");
+        setIsLoading(false);
         return;
       }
 
@@ -80,6 +79,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       
       if (!user) {
         toast.error("Utilizador não encontrado");
+        setIsLoading(false);
         return;
       }
       
@@ -101,6 +101,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       if (form.password === "temp123") {
         setIsFirstLogin(true);
         toast.info("Por favor, altere a sua senha");
+        setIsLoading(false);
         return;
       }
 
@@ -352,8 +353,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 type="text"
                 value={form.username}
                 onChange={handleChange}
-                placeholder="username"
+                placeholder="admin"
                 className="pl-10"
+                autoComplete="username"
               />
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             </div>
@@ -367,14 +369,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 type={showPassword ? "text" : "password"}
                 value={form.password}
                 onChange={handleChange}
-                placeholder="Sua senha"
+                placeholder="admin123"
                 className="pr-10 pl-10"
+                autoComplete="current-password"
               />
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <button
                 type="button"
                 className="absolute right-3 top-1/2 -translate-y-1/2"
                 onClick={togglePasswordVisibility}
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4 text-gray-400" />

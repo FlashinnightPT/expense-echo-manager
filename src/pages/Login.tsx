@@ -28,14 +28,14 @@ const Login = () => {
 
   // If auth is not initialized yet, show loading
   if (!isInitialized) {
-    return <LoadingPage text="Carregando..." />;
+    return <LoadingPage text="A carregar..." />;
   }
 
   if (isRedirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-slate-100 dark:to-slate-900">
         <div className="text-center">
-          <p className="text-xl">Redirecionando...</p>
+          <p className="text-xl">A redirecionar...</p>
         </div>
       </div>
     );
@@ -46,10 +46,10 @@ const Login = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Gestão Financeira</h1>
-          <p className="text-muted-foreground mb-2">
+          <p className="text-muted-foreground mb-4">
             Aceda à sua conta para gerir as suas finanças
           </p>
-          <p className="text-sm text-blue-500">
+          <p className="text-sm text-blue-500 bg-blue-500/10 p-2 rounded-md inline-block">
             Utilizador padrão: <strong>admin</strong> / Senha: <strong>admin123</strong>
           </p>
         </div>
