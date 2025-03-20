@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { TransactionCategory } from "@/utils/mockData";
 import { defaultCategories } from "@/utils/defaultCategories";
@@ -175,12 +174,17 @@ export const useCategoryData = () => {
     toast.success("Categoria movida com sucesso");
     return true;
   };
-  
-  // Adiciona função para limpar todas as categorias exceto as de nível 1
-  const clearNonRootCategories = () => {
-    const rootCategories = categoryService.clearNonRootCategories(categoryList);
-    setCategoryList(rootCategories);
-    return true;
+
+  const clearNonRootCategories = async () => {
+    try {
+      const rootCategories = await categoryService.clearNonRootCategories(categoryList);
+      setCategoryList(rootCategories);
+      return true;
+    } catch (error) {
+      console.error("Erro ao limpar categorias:", error);
+      toast.error("Erro ao limpar categorias");
+      return false;
+    }
   };
 
   return {

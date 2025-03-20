@@ -39,8 +39,8 @@ export class CategoryService extends CategoryServiceBase {
     return this.deleteService.deleteCategory(categoryId);
   }
   
-  // Add the clear categories method
-  public clearNonRootCategories(categories: TransactionCategory[]): TransactionCategory[] {
+  // Add the clear categories method (now async)
+  public async clearNonRootCategories(categories: TransactionCategory[]): Promise<TransactionCategory[]> {
     return this.deleteService.clearNonRootCategories(categories);
   }
 }
