@@ -147,8 +147,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <AuthContext.Provider value={authContextValue}>
       {children}
+      <IdleWarningDialog />
     </AuthContext.Provider>
   );
-};
+}
 
 export default AuthProvider;

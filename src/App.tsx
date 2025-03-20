@@ -46,8 +46,11 @@ function App() {
     <>
       <Suspense fallback={<LoadingPage />}>
         <Routes>
+          {/* Public routes */}
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
+          
+          {/* Protected routes */}
           <Route 
             path="/dashboard" 
             element={
