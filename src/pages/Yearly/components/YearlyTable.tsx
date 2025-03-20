@@ -54,10 +54,10 @@ const YearlyTable = ({ tableData, showValues }: YearlyTableProps) => {
                 return (
                   <TableRow key={row.year}>
                     <TableCell className="font-medium">{row.year}</TableCell>
-                    <TableCell className="text-right text-finance-income">
+                    <TableCell className="text-right" style={{ color: "#4ade80" }}>
                       {showValues ? formatCurrency(row.income) : hiddenValue}
                     </TableCell>
-                    <TableCell className="text-right text-finance-expense">
+                    <TableCell className="text-right" style={{ color: "#ef4444" }}>
                       {showValues ? formatCurrency(row.expense) : hiddenValue}
                     </TableCell>
                     <TableCell className={`text-right ${row.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
@@ -66,10 +66,10 @@ const YearlyTable = ({ tableData, showValues }: YearlyTableProps) => {
                     <TableCell className={`text-right ${parseFloat(row.differenceRate) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                       {showValues ? `${row.differenceRate}%` : hiddenValue}
                     </TableCell>
-                    <TableCell className="text-right text-finance-income">
+                    <TableCell className="text-right" style={{ color: "#4ade80" }}>
                       {showValues ? formatCurrency(row.fixedIncome || 0) : hiddenValue}
                     </TableCell>
-                    <TableCell className="text-right text-finance-expense">
+                    <TableCell className="text-right" style={{ color: "#ef4444" }}>
                       {showValues ? formatCurrency(row.fixedExpense || 0) : hiddenValue}
                     </TableCell>
                     <TableCell className={`text-right ${fixedBalance >= 0 ? 'text-green-500' : 'text-red-500'}`}>

@@ -22,9 +22,9 @@ interface FixedExpensesYearlyChartProps {
 
 interface ChartDataPoint {
   year: string;
-  FixedIncome: number;
-  FixedExpenses: number;
-  Difference: number;
+  ReceitasFixas: number;
+  DespesasFixas: number;
+  Diferença: number;
 }
 
 const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpensesYearlyChartProps) => {
@@ -41,9 +41,9 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
       const currentYear = new Date().getFullYear();
       setChartData([{
         year: currentYear.toString(),
-        FixedIncome: 0,
-        FixedExpenses: 0,
-        Difference: 0
+        ReceitasFixas: 0,
+        DespesasFixas: 0,
+        Diferença: 0
       }]);
       return;
     }
@@ -53,9 +53,9 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
       const fixedExpenses = item.fixedExpense || 0;
       return {
         year: item.year ? item.year.toString() : "",
-        FixedIncome: fixedIncome,
-        FixedExpenses: fixedExpenses,
-        Difference: fixedIncome - fixedExpenses
+        ReceitasFixas: fixedIncome,
+        DespesasFixas: fixedExpenses,
+        Diferença: fixedIncome - fixedExpenses
       };
     });
     setChartData(transformedData);
@@ -63,9 +63,9 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      const fixedIncome = payload.find((p: any) => p.name === "FixedIncome")?.value || 0;
-      const fixedExpenses = payload.find((p: any) => p.name === "FixedExpenses")?.value || 0;
-      const difference = payload.find((p: any) => p.name === "Difference")?.value || 0;
+      const fixedIncome = payload.find((p: any) => p.name === "ReceitasFixas")?.value || 0;
+      const fixedExpenses = payload.find((p: any) => p.name === "DespesasFixas")?.value || 0;
+      const difference = payload.find((p: any) => p.name === "Diferença")?.value || 0;
       const percentage = fixedIncome > 0 ? ((difference / fixedIncome) * 100).toFixed(2) : "0.00";
       
       return (
@@ -78,7 +78,7 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
           ))}
           {payload.length >= 2 && (
             <>
-              <p className="text-sm mt-1 pt-1 border-t" style={{ color: "hsl(var(--primary))" }}>
+              <p className="text-sm mt-1 pt-1 border-t" style={{ color: "#facc15" }}>
                 {`Diferença: ${showValues ? formatCurrency(difference) : "•••••••"}`}
               </p>
               <p className="text-sm" style={{ color: difference >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>
@@ -120,22 +120,22 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ paddingTop: 10 }} />
               <Bar
-                dataKey="FixedIncome"
-                fill="hsl(var(--primary))"
+                dataKey="ReceitasFixas"
+                fill="#4ade80" // Green color for fixed income
                 radius={[4, 4, 0, 0]}
                 animationDuration={1500}
               />
               <Bar
-                dataKey="FixedExpenses"
-                fill="hsl(var(--destructive))"
+                dataKey="DespesasFixas"
+                fill="#ef4444" // Red color for fixed expenses
                 radius={[4, 4, 0, 0]}
                 animationDuration={1500}
                 animationBegin={300}
               />
               <Line
                 type="monotone"
-                dataKey="Difference"
-                stroke="hsl(var(--success))"
+                dataKey="Diferença"
+                stroke="#facc15" // Yellow color for difference
                 strokeWidth={2}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}

@@ -25,9 +25,9 @@ interface MonthlyChartProps {
 
 interface ChartDataPoint {
   month: string;
-  Income: number;
-  Expenses: number;
-  Difference: number;
+  Receitas: number;
+  Despesas: number;
+  Diferença: number;
 }
 
 const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChartProps) => {
@@ -45,9 +45,9 @@ const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChart
       for (let i = 1; i <= 12; i++) {
         emptyData.push({
           month: getMonthName(i),
-          Income: 0,
-          Expenses: 0,
-          Difference: 0
+          Receitas: 0,
+          Despesas: 0,
+          Diferença: 0
         });
       }
       setChartData(emptyData);
@@ -62,9 +62,9 @@ const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChart
         const expense = item.expense || 0;
         return {
           month: getMonthName(item.month),
-          Income: income,
-          Expenses: expense,
-          Difference: income - expense
+          Receitas: income,
+          Despesas: expense,
+          Diferença: income - expense
         };
       });
     
@@ -74,9 +74,9 @@ const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChart
       for (let i = 1; i <= 12; i++) {
         emptyData.push({
           month: getMonthName(i),
-          Income: 0,
-          Expenses: 0,
-          Difference: 0
+          Receitas: 0,
+          Despesas: 0,
+          Diferença: 0
         });
       }
       setChartData(emptyData);
@@ -97,7 +97,7 @@ const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChart
           ))}
           {payload.length >= 2 && (
             <p className="text-sm mt-1 pt-1 border-t">
-              {`Diferença: ${showValues ? formatCurrency(payload[0].payload.Difference) : "•••••••"}`}
+              {`Diferença: ${showValues ? formatCurrency(payload[0].payload.Diferença) : "•••••••"}`}
             </p>
           )}
         </div>
@@ -134,22 +134,22 @@ const MonthlyChart = ({ data, year, className, showValues = true }: MonthlyChart
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ paddingTop: 10 }} />
               <Bar
-                dataKey="Income"
-                fill="hsl(var(--finance-income))"
+                dataKey="Receitas"
+                fill="#4ade80" // Green color for income
                 radius={[4, 4, 0, 0]}
                 animationDuration={1500}
               />
               <Bar
-                dataKey="Expenses"
-                fill="hsl(var(--finance-expense))"
+                dataKey="Despesas"
+                fill="#ef4444" // Red color for expenses
                 radius={[4, 4, 0, 0]}
                 animationDuration={1500}
                 animationBegin={300}
               />
               <Line
                 type="monotone"
-                dataKey="Difference"
-                stroke="hsl(var(--primary))"
+                dataKey="Diferença"
+                stroke="#facc15" // Yellow color for difference
                 strokeWidth={2}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}

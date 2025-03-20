@@ -24,9 +24,9 @@ interface YearlyChartProps {
 
 interface ChartDataPoint {
   year: string;
-  Income: number;
-  Expenses: number;
-  Difference: number;
+  Receitas: number;
+  Despesas: number;
+  Diferença: number;
 }
 
 const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) => {
@@ -43,9 +43,9 @@ const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) =
       const currentYear = new Date().getFullYear();
       setChartData([{
         year: currentYear.toString(),
-        Income: 0,
-        Expenses: 0,
-        Difference: 0
+        Receitas: 0,
+        Despesas: 0,
+        Diferença: 0
       }]);
       return;
     }
@@ -55,9 +55,9 @@ const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) =
       const expense = item.expense || 0;
       return {
         year: item.year ? item.year.toString() : "",
-        Income: income,
-        Expenses: expense,
-        Difference: income - expense
+        Receitas: income,
+        Despesas: expense,
+        Diferença: income - expense
       };
     });
     setChartData(transformedData);
@@ -75,7 +75,7 @@ const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) =
           ))}
           {payload.length >= 2 && (
             <p className="text-sm mt-1 pt-1 border-t">
-              {`Diferença: ${showValues ? formatCurrency(payload[0].payload.Difference) : "•••••••"}`}
+              {`Diferença: ${showValues ? formatCurrency(payload[0].payload.Diferença) : "•••••••"}`}
             </p>
           )}
         </div>
@@ -113,8 +113,8 @@ const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) =
               <Legend wrapperStyle={{ paddingTop: 10 }} />
               <Line
                 type="monotone"
-                dataKey="Income"
-                stroke="hsl(var(--finance-income))"
+                dataKey="Receitas"
+                stroke="#4ade80" // Green color for income
                 strokeWidth={3}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}
@@ -122,8 +122,8 @@ const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) =
               />
               <Line
                 type="monotone"
-                dataKey="Expenses"
-                stroke="hsl(var(--finance-expense))"
+                dataKey="Despesas"
+                stroke="#ef4444" // Red color for expenses
                 strokeWidth={3}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}
@@ -131,8 +131,8 @@ const YearlyChart = ({ data, className, showValues = true }: YearlyChartProps) =
                 animationBegin={300}
               />
               <Bar
-                dataKey="Difference"
-                fill="hsl(var(--primary))"
+                dataKey="Diferença"
+                fill="#facc15" // Yellow color for difference
                 radius={[4, 4, 0, 0]}
                 animationDuration={1500}
                 animationBegin={600}
