@@ -120,6 +120,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(userToSave);
       setIsAuthenticated(true);
       sessionStorage.setItem("current_user", JSON.stringify(userToSave));
+      
+      // Set default financial values visibility to false after login
+      sessionStorage.setItem('showFinancialValues', 'false');
+      
       console.log("AuthProvider: Login successful for", username);
       
       return true;

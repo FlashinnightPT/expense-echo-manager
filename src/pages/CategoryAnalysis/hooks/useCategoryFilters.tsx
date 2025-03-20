@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 
 interface CategoryFiltersProps {
@@ -29,6 +28,26 @@ export const useCategoryFilters = ({
     setShowValues(newValue);
     sessionStorage.setItem("showFinancialValues", String(newValue));
   };
+
+  // Update state when session storage changes (to keep in sync across pages)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedPreference = sessionStorage.getItem("showFinancialValues");
+      if (savedPreference) {
+        setShowValues(savedPreference === "true");
+      }
+    };
+
+    // Check for updates when component mounts
+    handleStorageChange();
+
+    // Listen for storage events (this will catch changes from other tabs/windows)
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   return {
     // Filter states
