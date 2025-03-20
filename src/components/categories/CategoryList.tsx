@@ -11,9 +11,9 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 interface CategoryListProps {
   categoryList: TransactionCategory[];
   handleDeleteCategory: (categoryId: string) => void;
-  updateCategoryName: (categoryId: string, newName: string) => boolean;
-  moveCategory: (categoryId: string, newParentId: string | null) => boolean;
-  updateFixedExpense: (categoryId: string, isFixedExpense: boolean) => boolean;
+  updateCategoryName: (categoryId: string, newName: string) => Promise<boolean> | boolean;
+  moveCategory: (categoryId: string, newParentId: string | null) => Promise<boolean> | boolean;
+  updateFixedExpense: (categoryId: string, isFixedExpense: boolean) => Promise<boolean> | boolean;
   isLoading?: boolean;
 }
 

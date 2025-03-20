@@ -1,4 +1,3 @@
-
 // Mock data to represent financial data from spreadsheets
 
 export type TransactionCategory = {
@@ -9,6 +8,7 @@ export type TransactionCategory = {
   parentId?: string;
   parentName?: string; // Used for Excel import
   children?: TransactionCategory[]; // Add this property to fix the TypeScript errors
+  isFixedExpense?: boolean; // Add this property to fix the TypeScript errors
 };
 
 export type Transaction = {

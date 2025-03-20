@@ -4,18 +4,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 interface FixedExpenseCheckboxProps {
-  isChecked: boolean;
-  onChange: (checked: boolean) => void;
+  isFixedExpense: boolean;
+  onToggle: () => void;
   disabled?: boolean;
 }
 
-const FixedExpenseCheckbox = ({ isChecked, onChange, disabled = false }: FixedExpenseCheckboxProps) => {
+const FixedExpenseCheckbox = ({ isFixedExpense, onToggle, disabled = false }: FixedExpenseCheckboxProps) => {
   return (
     <div className="flex items-center space-x-2">
       <Checkbox 
         id="fixed-expense" 
-        checked={isChecked} 
-        onCheckedChange={onChange}
+        checked={isFixedExpense} 
+        onCheckedChange={onToggle}
         disabled={disabled}
       />
       <Label htmlFor="fixed-expense" className="text-sm font-normal cursor-pointer">

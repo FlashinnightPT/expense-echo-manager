@@ -26,3 +26,16 @@ export function LoadingSpinner({ size = "md", className }: LoadingSpinnerProps) 
     />
   );
 }
+
+interface LoadingPageProps {
+  text?: string;
+}
+
+export function LoadingPage({ text }: LoadingPageProps) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+      <LoadingSpinner size="xl" className="mb-4" />
+      {text && <p className="text-muted-foreground">{text}</p>}
+    </div>
+  );
+}
