@@ -20,6 +20,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { formatCurrency } from "@/utils/financialCalculations";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 // Define chart colors
 const CHART_COLORS = [
@@ -30,12 +32,14 @@ interface ComparisonChartProps {
   comparisonItems: ComparisonItem[];
   visualizationMode: "absolute" | "percentage";
   showValues: boolean;
+  onRemoveItem?: (itemId: string) => void;
 }
 
 const ComparisonChart: React.FC<ComparisonChartProps> = ({
   comparisonItems,
   visualizationMode,
-  showValues
+  showValues,
+  onRemoveItem
 }) => {
   // Calculate total amount
   const totalAmount = comparisonItems.reduce((sum, item) => sum + item.amount, 0);
@@ -50,7 +54,8 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({
         value: visualizationMode === "absolute" ? item.amount : percentage,
         color: CHART_COLORS[index % CHART_COLORS.length],
         percentage,
-        amount: item.amount
+        amount: item.amount,
+        id: item.id // Add id for removal
       };
     });
   }, [comparisonItems, visualizationMode, totalAmount]);
@@ -78,69 +83,99 @@ const ComparisonChart: React.FC<ComparisonChartProps> = ({
   }
   
   return (
-    <div className="h-[400px] w-full">
-      <ChartContainer config={chartConfig}>
-        {visualizationMode === "absolute" ? (
-          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="name" 
-              angle={-45} 
-              textAnchor="end" 
-              height={80} 
-              interval={0}
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis 
-              tickFormatter={(value) => showValues ? 
-                (value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value.toString()) : 
-                "•••"
-              }
-            />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  formatter={formatTooltip}
-                />
-              }
-            />
-            <Bar dataKey="value">
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        ) : (
-          <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              outerRadius={150}
-              innerRadius={80}
-              fill="#8884d8"
-              dataKey="value"
-              nameKey="name"
-              label={({ name, percent }) => showValues ? 
-                `${name}: ${(percent * 100).toFixed(0)}%` : 
-                name
-              }
+    <div className="space-y-4">
+      <div className="h-[400px] w-full">
+        <ChartContainer config={chartConfig}>
+          {visualizationMode === "absolute" ? (
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="name" 
+                angle={-45} 
+                textAnchor="end" 
+                height={80} 
+                interval={0}
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis 
+                tickFormatter={(value) => showValues ? 
+                  (value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value.toString()) : 
+                  "•••"
+                }
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={formatTooltip}
+                  />
+                }
+              />
+              <Bar dataKey="value">
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          ) : (
+            <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={150}
+                innerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+                label={({ name, percent }) => showValues ? 
+                  `${name}: ${(percent * 100).toFixed(0)}%` : 
+                  name
+                }
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={formatTooltip}
+                  />
+                }
+              />
+            </PieChart>
+          )}
+        </ChartContainer>
+      </div>
+      
+      {/* Categoria legend with remove buttons */}
+      {onRemoveItem && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mt-4">
+          {chartData.map(item => (
+            <div 
+              key={item.id} 
+              className="flex items-center justify-between p-2 rounded-md border"
             >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  formatter={formatTooltip}
-                />
-              }
-            />
-          </PieChart>
-        )}
-      </ChartContainer>
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                ></div>
+                <span className="text-sm font-medium truncate">{item.name}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onRemoveItem(item.id)}
+                title="Remover categoria"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

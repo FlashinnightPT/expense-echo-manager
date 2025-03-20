@@ -63,6 +63,7 @@ const ComparisonVisualization: React.FC<ComparisonVisualizationProps> = ({
               comparisonItems={comparisonItems}
               visualizationMode={visualizationMode}
               showValues={showValues}
+              onRemoveItem={onRemoveItem}
             />
           </TabsContent>
           

@@ -78,6 +78,7 @@ const CategoryComparison = ({
                     percentage: (item.amount / totalAmount) * 100
                   }))}
                   showValues={showValues}
+                  onRemoveCategory={removeCategoryFromComparison}
                 />
               </TabsContent>
             </Tabs>
