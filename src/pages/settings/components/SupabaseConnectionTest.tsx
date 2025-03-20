@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { testSupabaseConnection, printConnectionInfo, testUserConnection } from "@/utils/supabaseTestUtil";
-import { DatabaseIcon, RefreshCw, UsersIcon } from "lucide-react";
+import { DatabaseIcon, RefreshCw, UsersIcon, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SupabaseConnectionTestProps {
   className?: string;
@@ -16,9 +17,11 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
   const [isUserLoading, setIsUserLoading] = useState(false);
   const [lastTestTime, setLastTestTime] = useState<string | null>(null);
   const [userCount, setUserCount] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleTestConnection = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       // Testar conexão com o Supabase
       await testSupabaseConnection();
@@ -28,8 +31,9 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
       
       // Atualizar o horário do último teste
       setLastTestTime(new Date().toLocaleTimeString());
-    } catch (error) {
-      console.error("Erro ao testar conexão:", error);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro desconhecido ao testar conexão");
+      console.error("Erro ao testar conexão:", err);
     } finally {
       setIsLoading(false);
     }
@@ -37,13 +41,15 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
 
   const handleTestUserConnection = async () => {
     setIsUserLoading(true);
+    setError(null);
     try {
       // Testar conexão com a tabela de utilizadores
       const count = await testUserConnection();
       setUserCount(count);
       setLastTestTime(new Date().toLocaleTimeString());
-    } catch (error) {
-      console.error("Erro ao testar conexão com utilizadores:", error);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro desconhecido ao testar conexão com utilizadores");
+      console.error("Erro ao testar conexão com utilizadores:", err);
       setUserCount(null);
     } finally {
       setIsUserLoading(false);
@@ -68,6 +74,13 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
             <TabsTrigger value="general">Geral</TabsTrigger>
             <TabsTrigger value="users">Utilizadores</TabsTrigger>
           </TabsList>
+          
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           
           <TabsContent value="general">
             <p className="text-sm text-muted-foreground mb-4">
@@ -105,9 +118,13 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
               Os resultados mostrarão a contagem de utilizadores cadastrados.
             </p>
             {userCount !== null && (
-              <div className="p-3 bg-muted rounded-md mb-4">
+              <div className={`p-3 rounded-md mb-4 ${userCount > 0 ? "bg-green-100 dark:bg-green-900/20" : "bg-yellow-100 dark:bg-yellow-900/20"}`}>
                 <p className="font-medium">Informações de Utilizadores:</p>
-                <p className="text-sm mt-1">Total de utilizadores: {userCount}</p>
+                <p className="text-sm mt-1">
+                  {userCount > 0 
+                    ? `Total de utilizadores: ${userCount}`
+                    : "Nenhum utilizador encontrado na tabela. A tabela existe, mas não tem registros."}
+                </p>
               </div>
             )}
             {lastTestTime && (

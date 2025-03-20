@@ -50,6 +50,10 @@ export const testSupabaseConnection = async (): Promise<boolean> => {
  */
 export const testUserConnection = async (): Promise<number> => {
   try {
+    // Mostrar mensagem informativa
+    console.log("Tentando conectar com a tabela de utilizadores...");
+    toast.info("Verificando conexão com a tabela de utilizadores...");
+    
     const { data, error, count } = await supabase
       .from('users')
       .select('*', { count: 'exact' });
@@ -62,7 +66,12 @@ export const testUserConnection = async (): Promise<number> => {
     
     if (data) {
       console.log("Utilizadores encontrados:", data);
-      toast.success(`Conexão com tabela de utilizadores bem-sucedida! Total: ${data.length} utilizadores.`);
+      if (data.length === 0) {
+        toast.warning("Conexão bem-sucedida, mas nenhum utilizador encontrado na tabela.");
+        console.log("A tabela de utilizadores existe, mas não contém registros.");
+      } else {
+        toast.success(`Conexão com tabela de utilizadores bem-sucedida! Total: ${data.length} utilizadores.`);
+      }
       
       // Exibir mais detalhes no console para diagnóstico
       data.forEach((user, index) => {
@@ -79,6 +88,7 @@ export const testUserConnection = async (): Promise<number> => {
       return data.length;
     }
     
+    toast.warning("Nenhum dado retornado na consulta de utilizadores.");
     return 0;
   } catch (error) {
     console.error("Erro ao testar conexão com utilizadores:", error);
