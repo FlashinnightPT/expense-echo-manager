@@ -1,5 +1,8 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { UserData } from "./UserData";
+import { ApiServiceCore } from "../ApiServiceCore";
+import { dbToUserModel, userModelToDb } from "@/utils/supabaseAdapters";
 
 export class UserCrudOperations {
   private apiCore: ApiServiceCore;
@@ -19,7 +22,7 @@ export class UserCrudOperations {
           .select('*');
 
         if (error) throw error;
-        return data || [];
+        return data ? data.map(dbToUserModel) : [];
       } else {
         // Fallback para localStorage quando offline
         const savedUsers = localStorage.getItem('app_users');
@@ -46,7 +49,7 @@ export class UserCrudOperations {
           .single();
 
         if (error && error.code !== 'PGRST116') throw error;
-        return data || null;
+        return data ? dbToUserModel(data) : null;
       } else {
         // Fallback para localStorage quando offline
         const savedUsers = localStorage.getItem('app_users');
@@ -68,9 +71,10 @@ export class UserCrudOperations {
   async createUser(userData: UserData): Promise<UserData> {
     try {
       if (this.apiCore.isConnected()) {
+        const dbUser = userModelToDb(userData);
         const { data, error } = await supabase
           .from('users')
-          .insert(userData)
+          .insert(dbUser)
           .select()
           .single();
 
@@ -81,7 +85,7 @@ export class UserCrudOperations {
         const users = savedUsers ? JSON.parse(savedUsers) : [];
         localStorage.setItem('app_users', JSON.stringify([...users, userData]));
         
-        return data;
+        return dbToUserModel(data);
       } else {
         // Em modo offline, salvar apenas no localStorage
         const savedUsers = localStorage.getItem('app_users');
@@ -111,9 +115,10 @@ export class UserCrudOperations {
   async updateUser(userData: Partial<UserData> & { id: string }): Promise<UserData | null> {
     try {
       if (this.apiCore.isConnected()) {
+        const dbUser = userModelToDb(userData);
         const { data, error } = await supabase
           .from('users')
-          .update(userData)
+          .update(dbUser)
           .eq('id', userData.id)
           .select()
           .single();
@@ -128,7 +133,7 @@ export class UserCrudOperations {
         );
         localStorage.setItem('app_users', JSON.stringify(updatedUsers));
         
-        return data;
+        return dbToUserModel(data);
       } else {
         // Em modo offline, atualizar apenas no localStorage
         const savedUsers = localStorage.getItem('app_users');
