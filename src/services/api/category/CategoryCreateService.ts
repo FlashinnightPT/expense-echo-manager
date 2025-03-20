@@ -15,21 +15,27 @@ export class CategoryCreateService extends CategoryServiceBase {
       category.id = `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     }
     
+    // Garantir que os campos booleanos estão definidos
+    const isActive = category.isActive !== undefined ? Boolean(category.isActive) : true;
+    const isFixedExpense = category.isFixedExpense !== undefined ? Boolean(category.isFixedExpense) : false;
+    
     const newCategory: TransactionCategory = {
       id: category.id || "",
       name: category.name || "",
       type: category.type || "expense",
       level: category.level || 1,
       parentId: category.parentId,
-      isFixedExpense: category.isFixedExpense === true,
-      isActive: category.isActive !== false
+      isFixedExpense: isFixedExpense,
+      isActive: isActive
     };
+    
+    console.log("Categoria a salvar (após normalização):", newCategory);
     
     try {
       // Convert to database format
       const dbCategory = categoryModelToDb(newCategory);
       
-      console.log("Saving category to Supabase:", dbCategory);
+      console.log("Categoria formatada para BD antes de enviar:", dbCategory);
       
       let data;
       let error;
@@ -65,10 +71,12 @@ export class CategoryCreateService extends CategoryServiceBase {
       // Dispatch event for other components
       window.dispatchEvent(new Event('storage'));
       
-      console.log("Category saved in Supabase:", data);
+      console.log("Categoria salva no Supabase (resposta):", data);
       
       // Convert from database format back to application model
-      return dbToCategoryModel(data) || newCategory;
+      const convertedCategory = dbToCategoryModel(data);
+      console.log("Categoria após conversão de volta:", convertedCategory);
+      return convertedCategory || newCategory;
     } catch (error) {
       console.error("Erro ao salvar categoria no Supabase:", error);
       toast.error("Erro ao salvar categoria");

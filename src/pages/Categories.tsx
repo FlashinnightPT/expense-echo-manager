@@ -62,11 +62,18 @@ const Categories = () => {
   };
 
   const handleUpdateCategory = async (categoryId: string, newName: string, isActive?: boolean) => {
-    // Update both name and active status if provided
-    if (isActive !== undefined && isActive !== categoryList.find(c => c.id === categoryId)?.isActive) {
-      await updateCategoryActive(categoryId, isActive);
+    console.log("Atualizando categoria com novos valores:", { categoryId, newName, isActive });
+    
+    // Atualizar o estado ativo se fornecido
+    if (isActive !== undefined) {
+      console.log("Atualizando estado ativo para:", isActive);
+      const success = await updateCategoryActive(categoryId, isActive);
+      if (!success) {
+        return false;
+      }
     }
     
+    // Atualizar o nome sempre
     return updateCategoryName(categoryId, newName);
   };
 

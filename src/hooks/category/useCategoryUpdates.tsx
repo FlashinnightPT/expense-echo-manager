@@ -61,15 +61,27 @@ export const useCategoryUpdates = ({
       const categoryToUpdate = categoryList.find(cat => cat.id === categoryId);
       if (!categoryToUpdate) return false;
       
-      // Create updated object
-      const updatedCategory = { ...categoryToUpdate, isActive };
+      console.log("Atualizando estado ativo da categoria:", {
+        antes: categoryToUpdate,
+        novo_estado: isActive
+      });
+      
+      // Create updated object with the new isActive state
+      const updatedCategory = { 
+        ...categoryToUpdate, 
+        isActive: isActive // Garantir que o valor booleano é passado corretamente
+      };
+      
+      console.log("Categoria a enviar para Supabase:", updatedCategory);
       
       // Update in Supabase
       const savedCategory = await categoryService.saveCategory(updatedCategory);
       
-      // Update the local list
+      console.log("Resposta do Supabase após salvar:", savedCategory);
+      
+      // Update the local list with the response from Supabase
       setCategoryList(prevList => 
-        prevList.map(cat => cat.id === categoryId ? { ...savedCategory, isActive } : cat)
+        prevList.map(cat => cat.id === categoryId ? savedCategory : cat)
       );
       
       toast.success(`Categoria ${isActive ? 'ativada' : 'desativada'} com sucesso`);
@@ -91,15 +103,27 @@ export const useCategoryUpdates = ({
       const categoryToUpdate = categoryList.find(cat => cat.id === categoryId);
       if (!categoryToUpdate) return false;
       
-      // Create updated object
-      const updatedCategory = { ...categoryToUpdate, isFixedExpense };
+      console.log("Atualizando despesa fixa da categoria:", {
+        antes: categoryToUpdate,
+        novo_estado: isFixedExpense
+      });
+      
+      // Create updated object with explicit boolean value
+      const updatedCategory = { 
+        ...categoryToUpdate, 
+        isFixedExpense: isFixedExpense // Garantir que o valor booleano é passado corretamente
+      };
+      
+      console.log("Categoria com despesa fixa atualizada a enviar:", updatedCategory);
       
       // Update in Supabase
       const savedCategory = await categoryService.saveCategory(updatedCategory);
       
+      console.log("Resposta do Supabase após salvar despesa fixa:", savedCategory);
+      
       // Update the local list
       setCategoryList(prevList => 
-        prevList.map(cat => cat.id === categoryId ? { ...savedCategory, isFixedExpense } : cat)
+        prevList.map(cat => cat.id === categoryId ? savedCategory : cat)
       );
       
       toast.success(`Categoria ${isFixedExpense ? 'marcada' : 'desmarcada'} como despesa fixa`);
