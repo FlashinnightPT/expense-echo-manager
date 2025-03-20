@@ -36,7 +36,7 @@ export function dbToCategoryModel(dbCategory: any): TransactionCategory {
     level: dbCategory.level,
     parentId: dbCategory.parentid, // Map from db's parentid to model's parentId
     isFixedExpense: dbCategory.isfixedexpense,
-    isActive: dbCategory.isactive !== false, // Default to true if not specified
+    isActive: dbCategory.isactive !== false, // Map from db's isactive to model's isActive, default to true if not specified
   };
 }
 
@@ -49,7 +49,7 @@ export function categoryModelToDb(category: Partial<TransactionCategory>): any {
     level: category.level,
     parentid: category.parentId, // Map from model's parentId to db's parentid
     isfixedexpense: category.isFixedExpense,
-    isactive: category.isActive !== false, // Default to true if not specified
+    isactive: category.isActive !== false, // Map from model's isActive to db's isactive, default to true if not specified
   };
 }
 
