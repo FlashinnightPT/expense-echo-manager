@@ -29,6 +29,8 @@ export class CategoryCreateService extends CategoryServiceBase {
       // Convert to database format
       const dbCategory = categoryModelToDb(newCategory);
       
+      console.log("Saving category to Supabase:", dbCategory);
+      
       let data;
       let error;
       
@@ -62,6 +64,8 @@ export class CategoryCreateService extends CategoryServiceBase {
       
       // Dispatch event for other components
       window.dispatchEvent(new Event('storage'));
+      
+      console.log("Category saved in Supabase:", data);
       
       // Convert from database format back to application model
       return dbToCategoryModel(data) || newCategory;

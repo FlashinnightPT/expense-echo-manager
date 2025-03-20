@@ -42,14 +42,26 @@ export function dbToCategoryModel(dbCategory: any): TransactionCategory {
 
 // Transform application TransactionCategory model to database record
 export function categoryModelToDb(category: Partial<TransactionCategory>): any {
+  // Explicit boolean conversion for database fields
+  const isCategoryActive = category.isActive !== undefined ? Boolean(category.isActive) : true;
+  const isFixedExp = category.isFixedExpense !== undefined ? Boolean(category.isFixedExpense) : false;
+  
+  console.log("Converting to DB format:", {
+    original: category,
+    converted: {
+      isactive: isCategoryActive,
+      isfixedexpense: isFixedExp
+    }
+  });
+  
   return {
     id: category.id,
     name: category.name,
     type: category.type,
     level: category.level,
     parentid: category.parentId, // Map from model's parentId to db's parentid
-    isfixedexpense: category.isFixedExpense === true, // Make sure to convert to boolean
-    isactive: category.isActive !== false, // Map from model's isActive to db's isactive, default to true if not specified
+    isfixedexpense: isFixedExp, // Make sure to convert to boolean
+    isactive: isCategoryActive, // Map from model's isActive to db's isactive, default to true if not specified
   };
 }
 
