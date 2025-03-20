@@ -49,9 +49,6 @@ const Login = () => {
           <p className="text-muted-foreground mb-4">
             Aceda à sua conta para gerir as suas finanças
           </p>
-          <p className="text-sm text-blue-500 bg-blue-500/10 p-2 rounded-md inline-block">
-            Utilizador padrão: <strong>admin</strong> / Senha: <strong>admin123</strong>
-          </p>
         </div>
         
         <LoginForm onLoginSuccess={handleLoginSuccess} />
