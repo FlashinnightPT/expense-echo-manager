@@ -9,10 +9,12 @@ import { useDeleteDialogs } from "@/components/categories/hooks/useDeleteDialogs
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const Categories = () => {
   const { 
     categoryList, 
+    isLoading,
     handleSaveCategory, 
     handleDeleteCategory,
     confirmDeleteCategory,
@@ -72,15 +74,22 @@ const Categories = () => {
           variant="destructive" 
           onClick={handleClearCategories}
           className="flex items-center"
+          disabled={isLoading}
         >
-          <Trash2 className="h-4 w-4 mr-2" />
+          {isLoading ? <LoadingSpinner className="mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
           Limpar Categorias
         </Button>
       </div>
 
+      {isLoading && (
+        <div className="flex justify-center my-8">
+          <LoadingSpinner size="lg" />
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <CategoryForm onSave={handleSaveCategory} categoryList={categoryList} />
+          <CategoryForm onSave={handleSaveCategory} categoryList={categoryList} isLoading={isLoading} />
         </div>
         
         <div className="lg:col-span-2">
@@ -90,6 +99,7 @@ const Categories = () => {
             updateCategoryName={updateCategoryName}
             moveCategory={moveCategory}
             updateFixedExpense={updateFixedExpense}
+            isLoading={isLoading}
           />
         </div>
       </div>

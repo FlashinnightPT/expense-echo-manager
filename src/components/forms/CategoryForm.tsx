@@ -11,9 +11,10 @@ import NewCategoryInput from "./components/NewCategoryInput";
 interface CategoryFormProps {
   onSave: (category: Partial<TransactionCategory>) => void;
   categoryList: TransactionCategory[];
+  isLoading?: boolean;
 }
 
-const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
+const CategoryForm = ({ onSave, categoryList, isLoading = false }: CategoryFormProps) => {
   const {
     type,
     setType,
@@ -64,6 +65,7 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
                 setType(value);
               }}
               className="flex"
+              disabled={isLoading}
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="expense" id="expense" />
@@ -82,6 +84,7 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
             parentPath={parentPath}
             clearSelection={clearSelection}
             onSelectPathItem={onSelectPathItem}
+            disabled={isLoading}
           />
           
           {/* Category Selection */}
@@ -90,6 +93,7 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
               categories={getAvailableCategories()}
               selectedCategoryId={parentId}
               onSelectCategory={selectCategory}
+              disabled={isLoading}
             />
           </div>
           
@@ -101,6 +105,7 @@ const CategoryForm = ({ onSave, categoryList }: CategoryFormProps) => {
               levelName={getCategoryLevelName(level)}
               parentName={parentPath.length > 0 ? parentPath[parentPath.length-1]?.name : undefined}
               onSubmit={handleSubmit}
+              isLoading={isLoading}
             />
           </div>
         </form>

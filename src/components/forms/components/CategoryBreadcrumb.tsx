@@ -1,52 +1,49 @@
 
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Home } from "lucide-react";
 import { TransactionCategory } from "@/utils/mockData";
-import { cn } from "@/lib/utils";
 
 interface CategoryBreadcrumbProps {
-  type: "income" | "expense";
+  type: "expense" | "income";
   parentPath: TransactionCategory[];
   clearSelection: () => void;
   onSelectPathItem: (category: TransactionCategory, index: number) => void;
+  disabled?: boolean;
 }
 
-const CategoryBreadcrumb = ({ 
-  type, 
-  parentPath, 
-  clearSelection, 
-  onSelectPathItem 
-}: CategoryBreadcrumbProps) => {
-  if (parentPath.length === 0) {
-    return (
-      <div className="text-sm mb-4 flex items-center">
-        <span className="font-medium">{type === 'income' ? 'Receitas' : 'Despesas'}</span>
-      </div>
-    );
-  }
+const CategoryBreadcrumb = ({ type, parentPath, clearSelection, onSelectPathItem, disabled = false }: CategoryBreadcrumbProps) => {
+  const typeName = type === "expense" ? "Despesas" : "Receitas";
   
   return (
-    <div className="text-sm mb-4 flex items-center flex-wrap">
-      <span 
-        className="cursor-pointer text-primary hover:underline"
-        onClick={clearSelection}
-      >
-        {type === 'income' ? 'Receitas' : 'Despesas'}
-      </span>
+    <div className="text-sm">
+      <div className="text-muted-foreground mb-1">Localização:</div>
       
-      {parentPath.map((category, index) => (
-        <div key={category.id} className="flex items-center">
-          <ChevronRight className="h-4 w-4 mx-1 text-muted-foreground" />
-          <span 
-            className={cn(
-              "cursor-pointer hover:underline",
-              index === parentPath.length - 1 ? "font-medium" : "text-primary"
-            )}
-            onClick={() => onSelectPathItem(category, index)}
-          >
-            {category.name}
+      <nav className="flex items-center flex-wrap gap-1">
+        <button
+          type="button"
+          onClick={clearSelection}
+          className="flex items-center hover:text-primary transition-colors"
+          disabled={disabled}
+        >
+          <Home className="h-4 w-4 mr-1" />
+          <span>{typeName}</span>
+        </button>
+        
+        {parentPath.map((category, index) => (
+          <span key={category.id} className="flex items-center">
+            <ChevronRight className="h-4 w-4 mx-1 text-muted-foreground" />
+            <button
+              type="button"
+              onClick={() => onSelectPathItem(category, index)}
+              className={`hover:text-primary transition-colors ${
+                index === parentPath.length - 1 ? "font-medium" : ""
+              }`}
+              disabled={disabled}
+            >
+              {category.name}
+            </button>
           </span>
-        </div>
-      ))}
+        ))}
+      </nav>
     </div>
   );
 };

@@ -1,27 +1,29 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
+import { useEffect } from "react";
 import { TransactionCategory } from "@/utils/mockData";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { EditCategoryDialog } from "./EditCategoryDialog";
 import { useCategoryListState } from "./hooks/useCategoryListState";
+import { EditCategoryDialog } from "./EditCategoryDialog";
 import CategoryTypeSection from "./components/CategoryTypeSection";
 import CategoryItem from "./components/CategoryItem";
-import { ExtendedTransactionCategory } from "../dashboard/types/categoryTypes";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui-custom/Card";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface CategoryListProps {
   categoryList: TransactionCategory[];
   handleDeleteCategory: (categoryId: string) => void;
   updateCategoryName: (categoryId: string, newName: string) => boolean;
   moveCategory: (categoryId: string, newParentId: string | null) => boolean;
-  updateFixedExpense?: (categoryId: string, isFixedExpense: boolean) => void;
+  updateFixedExpense: (categoryId: string, isFixedExpense: boolean) => boolean;
+  isLoading?: boolean;
 }
 
-const CategoryList = ({ 
-  categoryList, 
+const CategoryList = ({
+  categoryList,
   handleDeleteCategory,
   updateCategoryName,
   moveCategory,
-  updateFixedExpense
+  updateFixedExpense,
+  isLoading = false
 }: CategoryListProps) => {
   const {
     expandedCategories,
@@ -32,40 +34,44 @@ const CategoryList = ({
     openEditDialog
   } = useCategoryListState();
 
-  const handleRename = (categoryId: string, newName: string) => {
-    updateCategoryName(categoryId, newName);
-  };
-
-  const handleMove = (categoryId: string, newParentId: string | null) => {
-    moveCategory(categoryId, newParentId);
-  };
-
-  const getChildrenForCategory = (categoryId: string): TransactionCategory[] => {
-    return categoryList.filter(cat => cat.parentId === categoryId);
+  const getChildrenForCategory = (parentId: string) => {
+    return categoryList.filter(cat => cat.parentId === parentId);
   };
 
   const renderCategory = (category: TransactionCategory): JSX.Element => {
     const children = getChildrenForCategory(category.id);
-    const isExpanded = expandedCategories[category.id] || false;
+    const isExpanded = expandedCategories[category.id];
 
     return (
-      <div key={category.id}>
-        <CategoryItem
-          category={category}
-          isExpanded={isExpanded}
-          subcategories={children}
-          onToggleExpansion={toggleCategoryExpansion}
-          onEditCategory={openEditDialog}
-          onDeleteCategory={handleDeleteCategory}
-          updateFixedExpense={updateFixedExpense}
-        />
+      <CategoryItem
+        key={category.id}
+        category={category}
+        expanded={isExpanded}
+        hasChildren={children.length > 0}
+        onToggleExpand={() => toggleCategoryExpansion(category.id)}
+        onEdit={() => openEditDialog(category)}
+        onDelete={() => handleDeleteCategory(category.id)}
+        onToggleFixedExpense={() => {
+          updateFixedExpense(
+            category.id,
+            !category.isFixedExpense
+          );
+        }}
+        disabled={isLoading}
+      >
         {isExpanded && children.length > 0 && (
-          <div className="mt-1 space-y-1">
-            {children.map(child => renderCategory(child))}
+          <div className="pl-6 border-l border-dashed border-border/50 ml-2 mt-2 space-y-2">
+            {children.map(childCategory => renderCategory(childCategory))}
           </div>
         )}
-      </div>
+      </CategoryItem>
     );
+  };
+
+  const handleSaveEdit = (newName: string) => {
+    if (editingCategory) {
+      updateCategoryName(editingCategory.id, newName);
+    }
   };
 
   return (
@@ -73,41 +79,47 @@ const CategoryList = ({
       <CardHeader>
         <CardTitle>Categorias Existentes</CardTitle>
       </CardHeader>
-      <CardContent>
-        {categoryList.length === 0 ? (
-          <Alert>
-            <AlertTitle>Sem Categorias</AlertTitle>
-            <AlertDescription>
-              Não existem categorias definidas. Adicione uma categoria utilizando o formulário.
-            </AlertDescription>
-          </Alert>
-        ) : (
-          <div className="space-y-6">
-            {["income", "expense"].map((type) => (
-              <CategoryTypeSection
-                key={type}
-                type={type}
-                categoryList={categoryList}
-                expandedCategories={expandedCategories}
-                onToggleExpansion={toggleCategoryExpansion}
-                onEditCategory={openEditDialog}
-                onDeleteCategory={handleDeleteCategory}
-                getChildrenForCategory={getChildrenForCategory}
-                renderCategory={renderCategory}
-                updateFixedExpense={updateFixedExpense}
-              />
-            ))}
+      <CardContent className="space-y-8">
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <LoadingSpinner size="lg" />
           </div>
+        ) : (
+          <>
+            <CategoryTypeSection
+              type="income"
+              categoryList={categoryList}
+              expandedCategories={expandedCategories}
+              onToggleExpansion={toggleCategoryExpansion}
+              onEditCategory={openEditDialog}
+              onDeleteCategory={handleDeleteCategory}
+              getChildrenForCategory={getChildrenForCategory}
+              renderCategory={renderCategory}
+              updateFixedExpense={updateFixedExpense}
+            />
+
+            <CategoryTypeSection
+              type="expense"
+              categoryList={categoryList}
+              expandedCategories={expandedCategories}
+              onToggleExpansion={toggleCategoryExpansion}
+              onEditCategory={openEditDialog}
+              onDeleteCategory={handleDeleteCategory}
+              getChildrenForCategory={getChildrenForCategory}
+              renderCategory={renderCategory}
+              updateFixedExpense={updateFixedExpense}
+            />
+          </>
         )}
 
-        <EditCategoryDialog
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          category={editingCategory}
-          categories={categoryList}
-          onRename={handleRename}
-          onMove={handleMove}
-        />
+        {editingCategory && (
+          <EditCategoryDialog
+            category={editingCategory}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            onSave={handleSaveEdit}
+          />
+        )}
       </CardContent>
     </Card>
   );

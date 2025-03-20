@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface NewCategoryInputProps {
   categoryName: string;
@@ -10,6 +11,7 @@ interface NewCategoryInputProps {
   levelName: string;
   parentName?: string;
   onSubmit: () => void;
+  isLoading?: boolean;
 }
 
 const NewCategoryInput = ({
@@ -17,7 +19,8 @@ const NewCategoryInput = ({
   onCategoryNameChange,
   levelName,
   parentName,
-  onSubmit
+  onSubmit,
+  isLoading = false
 }: NewCategoryInputProps) => {
   return (
     <div className="space-y-2">
@@ -33,22 +36,28 @@ const NewCategoryInput = ({
           placeholder={`Nome do ${levelName.toLowerCase()}`}
           className="flex-1"
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && categoryName.trim()) {
+            if (e.key === 'Enter' && categoryName.trim() && !isLoading) {
               e.preventDefault();
               onSubmit();
             }
           }}
+          disabled={isLoading}
         />
         <Button 
           type="button"
-          disabled={!categoryName.trim()}
+          disabled={!categoryName.trim() || isLoading}
           className="whitespace-nowrap"
           onClick={(e) => {
             e.preventDefault();
             onSubmit();
           }}
         >
-          <Plus className="mr-2 h-4 w-4" /> Adicionar
+          {isLoading ? (
+            <LoadingSpinner className="mr-2" size="sm" />
+          ) : (
+            <Plus className="mr-2 h-4 w-4" />
+          )}
+          Adicionar
         </Button>
       </div>
     </div>

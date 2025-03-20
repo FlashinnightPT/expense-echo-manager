@@ -1,60 +1,46 @@
 
-import { FolderPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { TransactionCategory } from "@/utils/mockData";
-import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
 
 interface CategorySelectionListProps {
   categories: TransactionCategory[];
   selectedCategoryId: string;
   onSelectCategory: (category: TransactionCategory) => void;
+  disabled?: boolean;
 }
 
 const CategorySelectionList = ({ 
   categories, 
   selectedCategoryId, 
-  onSelectCategory 
+  onSelectCategory,
+  disabled = false
 }: CategorySelectionListProps) => {
-  if (categories.length === 0) {
-    return (
-      <div className="text-sm text-muted-foreground italic">
-        Não existem categorias neste nível. Adicione uma nova.
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-      {categories.map(category => (
-        <div 
-          key={category.id} 
-          className={cn(
-            "p-2 border rounded-md cursor-pointer transition-colors",
-            "hover:bg-accent hover:border-accent-foreground/20",
-            selectedCategoryId === category.id ? "bg-accent border-accent-foreground/20" : "bg-card"
-          )}
-          onClick={() => onSelectCategory(category)}
-        >
-          <div className="flex justify-between items-center">
-            <span className="font-medium">{category.name}</span>
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="icon"
-              className="h-6 w-6"
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelectCategory(category);
-              }}
-            >
-              <FolderPlus className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Nível {category.level}
-          </div>
-        </div>
-      ))}
+    <div>
+      <div className="text-sm text-muted-foreground mb-2">
+        {categories.length === 0 
+          ? "Nenhuma categoria disponível neste nível" 
+          : "Selecione uma categoria:"}
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {categories.map(category => (
+          <button
+            key={category.id}
+            type="button"
+            className={`flex items-center justify-between p-2 text-left border rounded-md transition-colors ${
+              selectedCategoryId === category.id
+                ? 'bg-primary/10 border-primary/30'
+                : 'hover:bg-accent'
+            }`}
+            onClick={() => onSelectCategory(category)}
+            disabled={disabled}
+          >
+            <span className="truncate">{category.name}</span>
+            <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

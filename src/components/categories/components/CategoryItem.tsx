@@ -1,110 +1,122 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { ReactNode } from "react";
 import { TransactionCategory } from "@/utils/mockData";
-import { Edit, Folder, FolderOpen, Trash2 } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Edit, Trash2, ChevronRight, ChevronDown, FolderIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import FixedExpenseCheckbox from "../FixedExpenseCheckbox";
-import { ExtendedTransactionCategory } from "@/components/dashboard/types/categoryTypes";
 
 interface CategoryItemProps {
   category: TransactionCategory;
-  isExpanded: boolean;
-  subcategories: TransactionCategory[];
-  onToggleExpansion: (categoryId: string) => void;
-  onEditCategory: (category: TransactionCategory) => void;
-  onDeleteCategory: (categoryId: string) => void;
-  updateFixedExpense?: (categoryId: string, isFixedExpense: boolean) => void;
+  expanded: boolean;
+  hasChildren: boolean;
+  onToggleExpand: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggleFixedExpense: () => void;
+  children?: ReactNode;
+  disabled?: boolean;
 }
 
 const CategoryItem = ({
   category,
-  isExpanded,
-  subcategories,
-  onToggleExpansion,
-  onEditCategory,
-  onDeleteCategory,
-  updateFixedExpense
+  expanded,
+  hasChildren,
+  onToggleExpand,
+  onEdit,
+  onDelete,
+  onToggleFixedExpense,
+  children,
+  disabled = false
 }: CategoryItemProps) => {
-  const indentLevel = category.level - 2; // Level 2 has no indent
-  const extendedCategory = category as ExtendedTransactionCategory;
-  const isExpense = category.type === 'expense';
-
-  const handleFixedExpenseChange = (checked: boolean) => {
-    if (updateFixedExpense) {
-      updateFixedExpense(category.id, checked);
+  const handleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (hasChildren) {
+      onToggleExpand();
     }
   };
 
+  const getIconForLevel = () => {
+    if (category.level === 1) {
+      return null;
+    }
+    
+    return (
+      <FolderIcon className={cn("h-4 w-4 mr-2", 
+        category.level === 2 ? "text-blue-500" : 
+        category.level === 3 ? "text-green-500" : "text-amber-500"
+      )} />
+    );
+  };
+
   return (
-    <div className="mb-1" style={{ marginLeft: `${indentLevel * 16}px` }}>
-      <Collapsible open={isExpanded} onOpenChange={() => onToggleExpansion(category.id)}>
-        <div className={`flex flex-col p-2 border rounded-md bg-background hover:bg-accent/20 transition-colors`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              {subcategories.length > 0 ? (
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 p-0">
-                    {isExpanded ? (
-                      <FolderOpen className="h-4 w-4 text-amber-500" />
-                    ) : (
-                      <Folder className="h-4 w-4 text-amber-500" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-              ) : (
-                <div className="w-7 flex justify-center">
-                  <div className="h-2 w-2 rounded-full bg-primary/60 mt-1" />
-                </div>
+    <div className="space-y-1">
+      <div className="flex items-center justify-between group p-2 rounded-md border border-border hover:bg-accent transition-colors">
+        <div className="flex-1">
+          <div 
+            className="flex items-center cursor-pointer"
+            onClick={handleExpand}
+          >
+            <button
+              type="button"
+              onClick={handleExpand}
+              className="mr-2 flex-shrink-0 h-5 w-5 flex items-center justify-center"
+              disabled={!hasChildren || disabled}
+            >
+              {hasChildren && (
+                expanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )
               )}
-              <div>
-                <span className="font-medium">{category.name}</span>
-                <p className="text-xs text-muted-foreground">Nível {category.level}</p>
+            </button>
+            
+            <div className="flex items-center">
+              {getIconForLevel()}
+              <span>{category.name}</span>
+              
+              <div className="ml-2 text-xs text-muted-foreground bg-background/50 border px-1 rounded">
+                Nível {category.level}
               </div>
             </div>
-            <div className="flex">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-primary hover:bg-primary/10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditCategory(category);
-                }}
-              >
-                <Edit className="h-4 w-4" />
-                <span className="sr-only">Editar categoria</span>
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteCategory(category.id);
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Apagar categoria</span>
-              </Button>
-            </div>
           </div>
-          
-          {/* Fixed Expense Checkbox - Only shown for expense categories */}
-          {isExpense && updateFixedExpense && (
-            <div className="mt-2 pt-2 border-t border-muted">
-              <FixedExpenseCheckbox 
-                isChecked={!!extendedCategory.isFixedExpense}
-                onChange={handleFixedExpenseChange}
-              />
-            </div>
-          )}
         </div>
         
-        <CollapsibleContent>
-          {/* Child categories will be rendered by the parent component */}
-        </CollapsibleContent>
-      </Collapsible>
+        <div className="flex items-center gap-2">
+          {category.type === "expense" && (
+            <FixedExpenseCheckbox
+              isFixedExpense={category.isFixedExpense}
+              onToggle={onToggleFixedExpense}
+              disabled={disabled}
+            />
+          )}
+          
+          <div className="flex">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={onEdit}
+              disabled={disabled}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive"
+              onClick={onDelete}
+              disabled={disabled}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      {children}
     </div>
   );
 };
