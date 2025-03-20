@@ -12,130 +12,156 @@ interface UseCategoryUpdatesProps {
 /**
  * Hook containing methods for updating existing categories
  */
-export const useCategoryUpdates = ({
-  categoryList,
-  setCategoryList,
-  setIsLoading
+export const useCategoryUpdates = ({ 
+  categoryList, 
+  setCategoryList, 
+  setIsLoading 
 }: UseCategoryUpdatesProps) => {
-
-  const updateCategoryName = async (categoryId: string, newName: string) => {
-    if (!newName.trim()) {
-      toast.error("O nome da categoria não pode estar vazio");
-      return false;
-    }
-
+  
+  // Update category name
+  const updateCategoryName = async (categoryId: string, newName: string): Promise<boolean> => {
     try {
       setIsLoading(true);
       
-      // Find the category to update
-      const categoryToUpdate = categoryList.find(cat => cat.id === categoryId);
-      if (!categoryToUpdate) return false;
+      // Find the category
+      const category = categoryList.find(cat => cat.id === categoryId);
+      if (!category) {
+        toast.error("Categoria não encontrada");
+        return false;
+      }
       
-      // Create updated object
-      const updatedCategory = { ...categoryToUpdate, name: newName };
+      // Create updated category
+      const updatedCategory: TransactionCategory = {
+        ...category,
+        name: newName
+      };
       
-      // Update in Supabase
+      // Save to Supabase first
       const savedCategory = await categoryService.saveCategory(updatedCategory);
       
-      // Update the local list
-      setCategoryList(prevList => 
-        prevList.map(cat => cat.id === categoryId ? savedCategory : cat)
-      );
+      // Update local list
+      setCategoryList(prevList => {
+        return prevList.map(cat => {
+          if (cat.id === categoryId) {
+            return savedCategory;
+          }
+          return cat;
+        });
+      });
       
-      toast.success("Nome de categoria atualizado com sucesso");
+      toast.success("Nome da categoria atualizado");
       return true;
     } catch (error) {
-      console.error("Erro ao atualizar categoria:", error);
-      toast.error("Erro ao atualizar categoria");
+      console.error("Erro ao atualizar nome de categoria:", error);
+      toast.error("Erro ao atualizar nome da categoria");
       return false;
     } finally {
       setIsLoading(false);
     }
   };
-
-  const updateCategoryActive = async (categoryId: string, isActive: boolean) => {
+  
+  // Toggle category active state
+  const updateCategoryActive = async (categoryId: string, isActive: boolean): Promise<boolean> => {
     try {
       setIsLoading(true);
       
-      // Find the category to update
-      const categoryToUpdate = categoryList.find(cat => cat.id === categoryId);
-      if (!categoryToUpdate) {
+      // Find the category
+      const category = categoryList.find(cat => cat.id === categoryId);
+      if (!category) {
         toast.error("Categoria não encontrada");
         return false;
       }
       
-      console.log("Atualizando estado ativo da categoria:", {
-        antes: categoryToUpdate,
-        novoEstado: isActive,
-        tipo: typeof isActive
+      console.log("Updating category active state:", {
+        categoryId, 
+        currentIsActive: category.isActive,
+        newIsActive: isActive,
+        newIsActive_type: typeof isActive
       });
       
-      // Create updated object with the new isActive state - sempre definir explicitamente o valor booleano
-      const updatedCategory = { 
-        ...categoryToUpdate, 
-        isActive: isActive === true 
+      // Create updated category with explicit boolean
+      const updatedCategory: TransactionCategory = {
+        ...category,
+        isActive: Boolean(isActive) // Ensure it's a boolean
       };
       
-      console.log("Enviando para API:", updatedCategory);
+      console.log("Updated category object:", updatedCategory);
       
-      // Update in Supabase
+      // Save to Supabase first
       const savedCategory = await categoryService.saveCategory(updatedCategory);
       
-      console.log("Resultado retornado:", savedCategory);
+      console.log("Saved category from server:", savedCategory);
       
-      // Update the local list
-      setCategoryList(prevList => 
-        prevList.map(cat => cat.id === categoryId ? savedCategory : cat)
-      );
+      // Update local list
+      setCategoryList(prevList => {
+        return prevList.map(cat => {
+          if (cat.id === categoryId) {
+            return savedCategory;
+          }
+          return cat;
+        });
+      });
       
-      toast.success(`Categoria ${isActive ? 'ativada' : 'desativada'} com sucesso`);
+      toast.success(isActive 
+        ? "Categoria ativada com sucesso" 
+        : "Categoria desativada com sucesso");
+      
       return true;
     } catch (error) {
-      console.error("Erro ao atualizar estado da categoria:", error);
+      console.error("Erro ao atualizar estado ativo de categoria:", error);
       toast.error("Erro ao atualizar estado da categoria");
       return false;
     } finally {
       setIsLoading(false);
     }
   };
-
-  const updateFixedExpense = async (categoryId: string, isFixedExpense: boolean) => {
+  
+  // Update fixed expense state
+  const updateFixedExpense = async (categoryId: string, isFixedExpense: boolean): Promise<boolean> => {
     try {
       setIsLoading(true);
       
-      // Find the category to update
-      const categoryToUpdate = categoryList.find(cat => cat.id === categoryId);
-      if (!categoryToUpdate) return false;
+      // Find the category
+      const category = categoryList.find(cat => cat.id === categoryId);
+      if (!category) {
+        toast.error("Categoria não encontrada");
+        return false;
+      }
       
-      console.log("Atualizando despesa fixa da categoria:", {
-        antes: categoryToUpdate,
-        novo_estado: isFixedExpense,
-        tipo_novo_estado: typeof isFixedExpense
+      console.log("Updating fixed expense state:", {
+        categoryId, 
+        currentIsFixedExpense: category.isFixedExpense,
+        newIsFixedExpense: isFixedExpense,
+        newIsFixedExpense_type: typeof isFixedExpense
       });
       
-      // Create updated object with explicit boolean value
-      const updatedCategory = { 
-        ...categoryToUpdate, 
-        isFixedExpense: isFixedExpense === true // Garantir que é um booleano explícito
+      // Create updated category with explicit boolean
+      const updatedCategory: TransactionCategory = {
+        ...category,
+        isFixedExpense: Boolean(isFixedExpense) // Ensure it's a boolean
       };
       
-      console.log("Categoria com despesa fixa atualizada a enviar:", updatedCategory);
-      
-      // Update in Supabase
+      // Save to Supabase first
       const savedCategory = await categoryService.saveCategory(updatedCategory);
       
-      console.log("Resposta do Supabase após salvar despesa fixa:", savedCategory);
+      // Update local list
+      setCategoryList(prevList => {
+        return prevList.map(cat => {
+          if (cat.id === categoryId) {
+            return savedCategory;
+          }
+          return cat;
+        });
+      });
       
-      // Update the local list
-      setCategoryList(prevList => 
-        prevList.map(cat => cat.id === categoryId ? savedCategory : cat)
-      );
+      toast.success(isFixedExpense 
+        ? "Despesa fixa marcada com sucesso" 
+        : "Despesa fixa desmarcada com sucesso");
       
-      toast.success(`Categoria ${isFixedExpense ? 'marcada' : 'desmarcada'} como despesa fixa`);
       return true;
     } catch (error) {
-      console.error("Erro ao atualizar categoria:", error);
-      toast.error("Erro ao atualizar categoria");
+      console.error("Erro ao atualizar estado de despesa fixa:", error);
+      toast.error("Erro ao atualizar estado de despesa fixa");
       return false;
     } finally {
       setIsLoading(false);

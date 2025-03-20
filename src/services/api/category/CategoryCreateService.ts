@@ -15,27 +15,27 @@ export class CategoryCreateService extends CategoryServiceBase {
       category.id = `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     }
     
-    // Garantir explicitamente que os valores booleanos estão definidos corretamente
+    // Ensure all boolean values are explicitly defined
     const normalizedCategory: TransactionCategory = {
       id: category.id || "",
       name: category.name || "",
       type: category.type || "expense",
       level: category.level || 1,
       parentId: category.parentId,
-      // Usar valores booleanos explícitos
-      isFixedExpense: category.isFixedExpense === true,
-      isActive: category.isActive !== false // default to true if undefined
+      // Force boolean values to be strictly boolean type
+      isFixedExpense: Boolean(category.isFixedExpense),
+      isActive: category.isActive !== false // default to true if undefined/null
     };
     
-    console.log("Categoria a salvar (normalizada):", normalizedCategory);
-    console.log("isActive valor:", normalizedCategory.isActive, "tipo:", typeof normalizedCategory.isActive);
+    console.log("Category to save (normalized):", normalizedCategory);
+    console.log("isActive value:", normalizedCategory.isActive, "type:", typeof normalizedCategory.isActive);
     
     try {
       // Convert to database format
       const dbCategory = categoryModelToDb(normalizedCategory);
       
-      console.log("Categoria formatada para BD:", dbCategory);
-      console.log("isactive valor após conversão:", dbCategory.isactive, "tipo:", typeof dbCategory.isactive);
+      console.log("Category formatted for DB:", dbCategory);
+      console.log("isactive value after conversion:", dbCategory.isactive, "type:", typeof dbCategory.isactive);
       
       let data;
       let error;
@@ -52,9 +52,13 @@ export class CategoryCreateService extends CategoryServiceBase {
         error = result.error;
       } else {
         // If it's an existing category, use upsert with onConflict('id')
+        console.log("UPDATING EXISTING CATEGORY:", dbCategory);
         const result = await supabase
           .from('categories')
-          .upsert(dbCategory, { onConflict: 'id' })
+          .upsert(dbCategory, { 
+            onConflict: 'id',
+            ignoreDuplicates: false
+          })
           .select()
           .single();
           
@@ -63,23 +67,23 @@ export class CategoryCreateService extends CategoryServiceBase {
       }
       
       if (error) {
-        console.error("Erro ao salvar categoria no Supabase:", error);
-        toast.error("Erro ao salvar categoria no Supabase");
+        console.error("Error saving category to Supabase:", error);
+        toast.error("Error saving category to Supabase");
         return normalizedCategory;
       }
       
       // Dispatch event for other components
       window.dispatchEvent(new Event('storage'));
       
-      console.log("Categoria salva no Supabase (resposta):", data);
+      console.log("Category saved to Supabase (response):", data);
       
       // Convert from database format back to application model
       const convertedCategory = dbToCategoryModel(data);
-      console.log("Categoria após conversão de volta:", convertedCategory);
+      console.log("Category after conversion back:", convertedCategory);
       return convertedCategory || normalizedCategory;
     } catch (error) {
-      console.error("Erro ao salvar categoria no Supabase:", error);
-      toast.error("Erro ao salvar categoria");
+      console.error("Error saving category to Supabase:", error);
+      toast.error("Error saving category");
       return normalizedCategory;
     }
   }
@@ -96,7 +100,7 @@ export class CategoryCreateService extends CategoryServiceBase {
       // Transform database records to application model
       return (data || []).map(dbToCategoryModel);
     } catch (error) {
-      console.error("Erro ao buscar categorias:", error);
+      console.error("Error fetching categories:", error);
       return [];
     }
   }
