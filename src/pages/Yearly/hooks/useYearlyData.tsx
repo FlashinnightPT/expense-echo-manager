@@ -58,7 +58,7 @@ export const useYearlyData = () => {
             type: item.type as 'income' | 'expense',
             level: item.level,
             parentId: item.parentid,
-            isFixedExpense: item.isfixedexpense
+            isFixedExpense: item.isfixedexpense || false
           }));
           
           setCategories(formattedCategories);

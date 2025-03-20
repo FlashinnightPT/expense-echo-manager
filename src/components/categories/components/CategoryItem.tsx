@@ -86,7 +86,7 @@ const CategoryItem = ({
         <div className="flex items-center gap-2">
           {category.type === "expense" && (
             <FixedExpenseCheckbox
-              isFixedExpense={category.isFixedExpense}
+              checked={!!category.isFixedExpense}
               onToggle={onToggleFixedExpense}
               disabled={disabled}
             />
