@@ -31,16 +31,17 @@ export function transactionModelToDb(transaction: Partial<Transaction>): any {
 export function dbToCategoryModel(dbCategory: any): TransactionCategory {
   console.log("Converting DB category to model:", dbCategory);
   
-  // Explicitly convert to booleans using Boolean() for clarity
-  // Default to true for isActive and false for isFixedExpense if they're null/undefined
-  const isActive = dbCategory.isactive !== false;
-  const isFixedExpense = Boolean(dbCategory.isfixedexpense);
+  // Explicitly handle boolean conversion
+  const isActive = dbCategory.isactive !== false; // true if not explicitly false
+  const isFixedExpense = dbCategory.isfixedexpense === true; // false if not explicitly true
   
   console.log("Values after conversion:", {
-    isActive: isActive,
+    isActive,
     isActive_type: typeof isActive,
-    isFixedExpense: isFixedExpense,
-    isFixedExpense_type: typeof isFixedExpense
+    isFixedExpense,
+    isFixedExpense_type: typeof isFixedExpense,
+    original_isactive: dbCategory.isactive,
+    original_isactive_type: typeof dbCategory.isactive
   });
   
   return {
@@ -58,16 +59,17 @@ export function dbToCategoryModel(dbCategory: any): TransactionCategory {
 export function categoryModelToDb(category: Partial<TransactionCategory>): any {
   console.log("Converting category to DB format:", category);
   
-  // Explicitly convert to boolean values
-  // Using Boolean(x) might convert "false" string to true, so we use specific checks
+  // Explicitly convert to boolean values using triple equals for strict comparison
   const isActive = category.isActive !== false; // true by default
   const isFixedExpense = category.isFixedExpense === true; // false by default
   
-  console.log("Values after processing:", {
+  console.log("Values for DB:", {
     isactive: isActive,
     isactive_type: typeof isActive,
     isfixedexpense: isFixedExpense,
-    isfixedexpense_type: typeof isFixedExpense
+    isfixedexpense_type: typeof isFixedExpense,
+    original_isActive: category.isActive,
+    original_isActive_type: typeof category.isActive
   });
   
   return {

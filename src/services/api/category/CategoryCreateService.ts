@@ -23,7 +23,7 @@ export class CategoryCreateService extends CategoryServiceBase {
       level: category.level || 1,
       parentId: category.parentId,
       // Force boolean values to be strictly boolean type
-      isFixedExpense: Boolean(category.isFixedExpense),
+      isFixedExpense: category.isFixedExpense === true,
       isActive: category.isActive !== false // default to true if undefined/null
     };
     
@@ -51,19 +51,23 @@ export class CategoryCreateService extends CategoryServiceBase {
         data = result.data;
         error = result.error;
       } else {
+        // Log exactly what will be updated
+        console.log("UPDATING EXISTING CATEGORY (FULL OBJECT):", dbCategory);
+        console.log("ID to update:", dbCategory.id);
+        console.log("isactive to set:", dbCategory.isactive);
+        
         // If it's an existing category, use upsert with onConflict('id')
-        console.log("UPDATING EXISTING CATEGORY:", dbCategory);
         const result = await supabase
           .from('categories')
-          .upsert(dbCategory, { 
-            onConflict: 'id',
-            ignoreDuplicates: false
-          })
+          .update(dbCategory)
+          .eq('id', dbCategory.id)
           .select()
           .single();
           
         data = result.data;
         error = result.error;
+        
+        console.log("Update result:", result);
       }
       
       if (error) {

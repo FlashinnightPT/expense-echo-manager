@@ -72,17 +72,20 @@ export const useCategoryUpdates = ({
         return false;
       }
       
+      // Convert to explicit boolean to ensure consistent type
+      const activeState = isActive === true;
+      
       console.log("Updating category active state:", {
         categoryId, 
         currentIsActive: category.isActive,
-        newIsActive: isActive,
-        newIsActive_type: typeof isActive
+        newIsActive: activeState,
+        newIsActive_type: typeof activeState
       });
       
       // Create updated category with explicit boolean
       const updatedCategory: TransactionCategory = {
         ...category,
-        isActive: Boolean(isActive) // Ensure it's a boolean
+        isActive: activeState // Ensure it's a boolean
       };
       
       console.log("Updated category object:", updatedCategory);
@@ -102,7 +105,7 @@ export const useCategoryUpdates = ({
         });
       });
       
-      toast.success(isActive 
+      toast.success(activeState 
         ? "Categoria ativada com sucesso" 
         : "Categoria desativada com sucesso");
       
@@ -128,17 +131,20 @@ export const useCategoryUpdates = ({
         return false;
       }
       
+      // Convert to explicit boolean to ensure consistent type
+      const fixedExpenseState = isFixedExpense === true;
+      
       console.log("Updating fixed expense state:", {
         categoryId, 
         currentIsFixedExpense: category.isFixedExpense,
-        newIsFixedExpense: isFixedExpense,
-        newIsFixedExpense_type: typeof isFixedExpense
+        newIsFixedExpense: fixedExpenseState,
+        newIsFixedExpense_type: typeof fixedExpenseState
       });
       
       // Create updated category with explicit boolean
       const updatedCategory: TransactionCategory = {
         ...category,
-        isFixedExpense: Boolean(isFixedExpense) // Ensure it's a boolean
+        isFixedExpense: fixedExpenseState // Ensure it's a boolean
       };
       
       // Save to Supabase first
@@ -154,7 +160,7 @@ export const useCategoryUpdates = ({
         });
       });
       
-      toast.success(isFixedExpense 
+      toast.success(fixedExpenseState 
         ? "Despesa fixa marcada com sucesso" 
         : "Despesa fixa desmarcada com sucesso");
       
