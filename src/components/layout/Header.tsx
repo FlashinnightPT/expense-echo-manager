@@ -11,14 +11,14 @@ const mainNavigation = [
   { name: "Dashboard", href: "/dashboard" },
   { name: "Mensal", href: "/monthly" },
   { name: "Anual", href: "/yearly" },
+  { name: "Análise por Categoria", href: "/category-analysis" },
+  { name: "Comparação Avançada", href: "/category-comparison" },
+  { name: "Relatório de Categorias", href: "/category-report" },
 ];
 
 // Define submenu items for settings dropdown
 const settingsSubMenu = [
   { name: "Categorias", href: "/categories" },
-  { name: "Análise por Categoria", href: "/category-analysis" },
-  { name: "Comparação Avançada", href: "/category-comparison" },
-  { name: "Relatório de Categorias", href: "/category-report" },
   { name: "Configurações", href: "/settings" },
   { name: "Usuários", href: "/users" },
 ];
