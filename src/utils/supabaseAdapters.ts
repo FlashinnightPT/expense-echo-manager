@@ -31,9 +31,10 @@ export function transactionModelToDb(transaction: Partial<Transaction>): any {
 export function dbToCategoryModel(dbCategory: any): TransactionCategory {
   console.log("Converting DB category to model:", dbCategory);
   
-  // Force boolean values to be actual booleans using double negation
-  const isActive = !!dbCategory.isactive; // Convert to true boolean
-  const isFixedExpense = !!dbCategory.isfixedexpense; // Convert to true boolean
+  // FIXED: Ensure we handle boolean values correctly
+  // Using explicit comparison to convert values - this is more reliable than double negation
+  const isActive = dbCategory.isactive === true;
+  const isFixedExpense = dbCategory.isfixedexpense === true;
   
   console.log("Boolean conversion results:", {
     isactive_original: dbCategory.isactive,
@@ -61,9 +62,10 @@ export function dbToCategoryModel(dbCategory: any): TransactionCategory {
 export function categoryModelToDb(category: Partial<TransactionCategory>): any {
   console.log("Converting category to DB format:", category);
   
-  // Force boolean conversion using double negation
-  const isActive = !!category.isActive; // Convert to true boolean
-  const isFixedExpense = !!category.isFixedExpense; // Convert to true boolean
+  // FIXED: Use explicit boolean conversion for database
+  // These are explicitly set to true/false to avoid any type issues
+  const isActive = category.isActive === true ? true : false;
+  const isFixedExpense = category.isFixedExpense === true ? true : false;
   
   console.log("Boolean conversion for DB:", {
     isActive_original: category.isActive,
@@ -82,8 +84,8 @@ export function categoryModelToDb(category: Partial<TransactionCategory>): any {
     type: category.type,
     level: category.level,
     parentid: category.parentId, // Map from model's parentId to db's parentid
-    isfixedexpense: isFixedExpense, // Force boolean
-    isactive: isActive, // Force boolean
+    isfixedexpense: isFixedExpense, // Explicit boolean for database
+    isactive: isActive, // Explicit boolean for database
   };
 }
 

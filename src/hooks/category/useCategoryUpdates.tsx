@@ -72,8 +72,9 @@ export const useCategoryUpdates = ({
         return false;
       }
       
-      // Force to be a true boolean using double negation
-      const activeState = !!isActive;
+      // FIX: Explicitly set boolean value using strict comparison
+      // This ensures it's truly a boolean true/false, not just truthy/falsy
+      const activeState = isActive === true ? true : false;
       
       console.log("UPDATING CATEGORY ACTIVE STATE - BEFORE:", {
         categoryId, 
@@ -136,8 +137,8 @@ export const useCategoryUpdates = ({
         return false;
       }
       
-      // Force to be a true boolean using double negation
-      const fixedExpenseState = !!isFixedExpense;
+      // FIX: Explicitly set boolean value using strict comparison
+      const fixedExpenseState = isFixedExpense === true ? true : false;
       
       console.log("UPDATING FIXED EXPENSE STATE - BEFORE:", {
         categoryId, 

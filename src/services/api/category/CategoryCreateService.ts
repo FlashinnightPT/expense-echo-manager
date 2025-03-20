@@ -15,16 +15,16 @@ export class CategoryCreateService extends CategoryServiceBase {
       category.id = `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     }
     
-    // Force boolean values using double negation to ensure they're actual booleans
+    // Fix: Explicitly set boolean values
     const normalizedCategory: TransactionCategory = {
       id: category.id || "",
       name: category.name || "",
       type: category.type || "expense",
       level: category.level || 1,
       parentId: category.parentId,
-      // Force boolean values with double negation
-      isFixedExpense: !!category.isFixedExpense,
-      isActive: category.isActive !== false // default to true if undefined, but ensure boolean
+      // Fix: Explicitly convert to boolean values using strict comparison
+      isFixedExpense: category.isFixedExpense === true ? true : false,
+      isActive: category.isActive === false ? false : true // default to true if undefined
     };
     
     console.log("Category to save (normalized):", normalizedCategory);
@@ -62,14 +62,20 @@ export class CategoryCreateService extends CategoryServiceBase {
           parentid: dbCategory.parentid
         });
         
-        // Strip out null or undefined values to avoid overwriting with null
-        const updateData = Object.fromEntries(
-          Object.entries(dbCategory).filter(([_, v]) => v !== null && v !== undefined)
-        );
+        // FIX: Create an explicit update object with only the fields that should be updated
+        // This ensures we're not sending null values and that booleans are properly handled
+        const updateData = {
+          name: dbCategory.name,
+          isactive: dbCategory.isactive,
+          isfixedexpense: dbCategory.isfixedexpense,
+          type: dbCategory.type,
+          level: dbCategory.level,
+          parentid: dbCategory.parentid
+        };
         
         console.log("Final update data:", updateData);
         
-        // If it's an existing category, use update
+        // If it's an existing category, use update with the explicit update object
         const result = await supabase
           .from('categories')
           .update(updateData)
