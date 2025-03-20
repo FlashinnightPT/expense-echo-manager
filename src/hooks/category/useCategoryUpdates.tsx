@@ -59,27 +59,31 @@ export const useCategoryUpdates = ({
       
       // Find the category to update
       const categoryToUpdate = categoryList.find(cat => cat.id === categoryId);
-      if (!categoryToUpdate) return false;
+      if (!categoryToUpdate) {
+        toast.error("Categoria não encontrada");
+        return false;
+      }
       
-      console.log("Estado atual da categoria:", categoryToUpdate);
-      console.log("Novo estado ativo:", isActive, "tipo:", typeof isActive);
+      console.log("Atualizando estado ativo da categoria:", {
+        antes: categoryToUpdate,
+        novoEstado: isActive,
+        tipo: typeof isActive
+      });
       
-      // Create updated object with the new isActive state
-      // Use proper boolean value, not string or number conversion
+      // Create updated object with the new isActive state - sempre definir explicitamente o valor booleano
       const updatedCategory = { 
         ...categoryToUpdate, 
-        isActive: isActive === true // Garantir que é um booleano explícito
+        isActive: isActive === true 
       };
       
-      console.log("Objeto completo a enviar para API:", updatedCategory);
+      console.log("Enviando para API:", updatedCategory);
       
       // Update in Supabase
       const savedCategory = await categoryService.saveCategory(updatedCategory);
       
-      console.log("Categoria retornada após salvamento:", savedCategory);
-      console.log("Valor de isActive retornado:", savedCategory.isActive, "tipo:", typeof savedCategory.isActive);
+      console.log("Resultado retornado:", savedCategory);
       
-      // Update the local list with the explicit response from Supabase
+      // Update the local list
       setCategoryList(prevList => 
         prevList.map(cat => cat.id === categoryId ? savedCategory : cat)
       );
@@ -87,8 +91,8 @@ export const useCategoryUpdates = ({
       toast.success(`Categoria ${isActive ? 'ativada' : 'desativada'} com sucesso`);
       return true;
     } catch (error) {
-      console.error("Erro ao atualizar status da categoria:", error);
-      toast.error("Erro ao atualizar status da categoria");
+      console.error("Erro ao atualizar estado da categoria:", error);
+      toast.error("Erro ao atualizar estado da categoria");
       return false;
     } finally {
       setIsLoading(false);
@@ -121,7 +125,6 @@ export const useCategoryUpdates = ({
       const savedCategory = await categoryService.saveCategory(updatedCategory);
       
       console.log("Resposta do Supabase após salvar despesa fixa:", savedCategory);
-      console.log("Valor de isFixedExpense retornado:", savedCategory.isFixedExpense, "tipo:", typeof savedCategory.isFixedExpense);
       
       // Update the local list
       setCategoryList(prevList => 

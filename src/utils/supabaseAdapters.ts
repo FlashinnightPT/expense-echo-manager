@@ -29,20 +29,13 @@ export function transactionModelToDb(transaction: Partial<Transaction>): any {
 
 // Transform database category record to application TransactionCategory model
 export function dbToCategoryModel(dbCategory: any): TransactionCategory {
-  // Garantir que os valores booleanos são convertidos explicitamente
-  // Verificar os tipos exatos que vêm da base de dados
-  console.log("Convertendo de BD para modelo - Valores originais:", {
-    isactive: dbCategory.isactive,
-    isactive_type: typeof dbCategory.isactive,
-    isfixedexpense: dbCategory.isfixedexpense,
-    isfixedexpense_type: typeof dbCategory.isfixedexpense
-  });
+  console.log("Convertendo categoria do BD:", dbCategory);
   
-  // Converter explicitamente para booleanos usando comparação estrita
-  const isActive = dbCategory.isactive === true;
-  const isFixedExpense = dbCategory.isfixedexpense === true;
+  // Converter explicitamente para booleanos usando dupla negação para garantir valores booleanos
+  const isActive = dbCategory.isactive !== false; // true por defeito se for null/undefined
+  const isFixedExpense = dbCategory.isfixedexpense === true; // false por defeito se for null/undefined
   
-  console.log("Valores após conversão explícita:", {
+  console.log("Valores após conversão:", {
     isActive: isActive,
     isActive_type: typeof isActive,
     isFixedExpense: isFixedExpense,
@@ -62,20 +55,13 @@ export function dbToCategoryModel(dbCategory: any): TransactionCategory {
 
 // Transform application TransactionCategory model to database record
 export function categoryModelToDb(category: Partial<TransactionCategory>): any {
-  // Verificar os valores exatos passados pelo modelo
-  console.log("Convertendo para DB - Valores originais:", {
-    isActive: category.isActive,
-    isActive_type: typeof category.isActive,
-    isFixedExpense: category.isFixedExpense,
-    isFixedExpense_type: typeof category.isFixedExpense
-  });
+  console.log("Convertendo categoria para BD:", category);
   
-  // Usar === undefined para verificação específica de valor indefinido
-  // Certificar que passamos os valores como booleanos explícitos
-  const isActive = category.isActive === undefined ? true : category.isActive === true;
-  const isFixedExpense = category.isFixedExpense === undefined ? false : category.isFixedExpense === true;
+  // Valores booleanos explícitos para isActive e isFixedExpense
+  const isActive = category.isActive !== false; // true por defeito 
+  const isFixedExpense = category.isFixedExpense === true; // false por defeito
   
-  console.log("Valores após processamento explícito:", {
+  console.log("Valores após processamento:", {
     isactive: isActive,
     isactive_type: typeof isActive,
     isfixedexpense: isFixedExpense,

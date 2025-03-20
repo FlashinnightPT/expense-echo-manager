@@ -36,18 +36,20 @@ export function EditCategoryDialog({
   useEffect(() => {
     if (category) {
       setNewName(category.name);
-      // Garantir que os valores são explicitamente convertidos para booleanos
+      
+      // Garantir valores booleanos explícitos
       setIsFixed(category.isFixedExpense === true);
       
-      // Garantir que isActive seja explicitamente booleano, com valor padrão true
+      // Garantir valor booleano explícito para isActive, com valor padrão true
       // se for undefined ou null
       setIsActive(category.isActive !== false);
       
-      console.log("Valores carregados no diálogo:", {
+      console.log("Estado inicial do diálogo de edição:", {
         categoria: category,
         nome: category.name,
         isFixed: category.isFixedExpense,
         isActive: category.isActive,
+        "isFixed após conversão": category.isFixedExpense === true,
         "isActive após conversão": category.isActive !== false
       });
     }
@@ -55,13 +57,13 @@ export function EditCategoryDialog({
 
   const handleSave = () => {
     if (newName.trim()) {
-      console.log("Enviando dados do diálogo:", {
+      console.log("Enviando dados da edição:", {
         nome: newName,
         isFixed: isFixed,
         isActive: isActive
       });
       
-      // Passar explicitamente valores booleanos, não apenas se foram alterados
+      // Passar explicitamente valores booleanos
       onSave(newName, isFixed, isActive);
       onOpenChange(false);
     }
