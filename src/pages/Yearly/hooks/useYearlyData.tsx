@@ -52,14 +52,19 @@ export const useYearlyData = () => {
 
         if (categoriesData) {
           // Convert database records to application model
-          const formattedCategories = categoriesData.map(item => ({
-            id: item.id,
-            name: item.name,
-            type: item.type as 'income' | 'expense',
-            level: item.level,
-            parentId: item.parentid,
-            isFixedExpense: item.isfixedexpense || false
-          }));
+          const formattedCategories = categoriesData.map(item => {
+            // Check if the category has a fixed expense property
+            const isFixedExpense = 'isfixedexpense' in item ? !!item.isfixedexpense : false;
+            
+            return {
+              id: item.id,
+              name: item.name,
+              type: item.type as 'income' | 'expense',
+              level: item.level,
+              parentId: item.parentid,
+              isFixedExpense: isFixedExpense
+            };
+          });
           
           setCategories(formattedCategories);
         }
