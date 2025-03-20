@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
@@ -20,6 +21,12 @@ const Login = () => {
       navigate("/dashboard", { replace: true });
     }
   }, [navigate, isAuthenticated, isInitialized, isRedirecting]);
+
+  const handleLoginSuccess = () => {
+    console.log("Login: Login success, redirecting to dashboard");
+    setIsRedirecting(true);
+    navigate("/dashboard", { replace: true });
+  };
 
   // If auth is not initialized yet, show loading
   if (!isInitialized) {
