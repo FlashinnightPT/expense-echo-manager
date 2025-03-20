@@ -40,7 +40,6 @@ function App() {
     console.log("App: Current location", location.pathname);
   }, [location]);
   
-  console.log("App component rendering");
   return (
     <>
       <Suspense fallback={<LoadingPage />}>

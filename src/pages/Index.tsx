@@ -29,12 +29,8 @@ const Index = () => {
     }
   }, [isAuthenticated, isInitialized, navigate, redirected]);
 
-  if (!isInitialized) {
-    return <LoadingPage text="Inicializando aplicação..." />;
-  }
-
-  // This ensures we show loading until redirection completes
-  return <LoadingPage text="Carregando aplicação..." />;
+  // Show loading until redirect happens
+  return <LoadingPage text="Inicializando aplicação..." />;
 };
 
 export default Index;
