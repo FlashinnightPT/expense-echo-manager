@@ -12,7 +12,7 @@ import {
   Line,
   ComposedChart,
 } from "recharts";
-import { Card, CardHeader, CardTitle } from "@/components/ui-custom/Card";
+import { CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { formatCurrency } from "@/utils/financialCalculations";
 
 interface FixedExpensesYearlyChartProps {
@@ -93,7 +93,7 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
   };
 
   return (
-    <Card>
+    <>
       <CardHeader>
         <CardTitle className="text-lg">Despesas e Receitas Fixas por Ano</CardTitle>
       </CardHeader>
@@ -146,7 +146,7 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
           </ResponsiveContainer>
         )}
       </div>
-    </Card>
+    </>
   );
 };
 

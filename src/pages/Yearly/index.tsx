@@ -2,8 +2,10 @@
 import React from "react";
 import { useYearlyData } from "./hooks/useYearlyData";
 import YearlyHeader from "./components/YearlyHeader";
-import YearlyChartTable from "./components/YearlyChartTable";
+import { Card } from "@/components/ui-custom/Card";
+import YearlyChart from "@/components/charts/YearlyChart";
 import FixedExpensesYearlyChart from "./components/FixedExpensesYearlyChart";
+import YearlyTable from "./components/YearlyTable";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 const Yearly = () => {
@@ -37,21 +39,26 @@ const Yearly = () => {
         totalFixedIncome={totalFixedIncome}
         totalFixedExpenses={totalFixedExpenses}
         showValues={showValues}
+        tableData={tableData}
       />
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <YearlyChartTable
-          filteredData={filteredData}
-          tableData={tableData}
-          columns={columns}
-          showValues={showValues}
-        />
+        <Card>
+          <YearlyChart data={filteredData} className="w-full" showValues={showValues} />
+        </Card>
         
-        <FixedExpensesYearlyChart
-          filteredData={filteredData}
-          showValues={showValues}
-        />
+        <Card>
+          <FixedExpensesYearlyChart
+            filteredData={filteredData}
+            showValues={showValues}
+          />
+        </Card>
       </div>
+      
+      <YearlyTable 
+        tableData={tableData}
+        showValues={showValues}
+      />
     </div>
   );
 };
