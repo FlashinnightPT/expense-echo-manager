@@ -1,7 +1,7 @@
 
 import { TransactionCategory } from "@/utils/mockData";
 import { CategoryServiceBase } from "./CategoryServiceBase";
-import { supabase } from "../../supabaseClient";
+import { mariadbClient } from "../../mariadbClient";
 import { toast } from "sonner";
 
 // Class specifically for category creation operations
@@ -17,25 +17,22 @@ export class CategoryCreateService extends CategoryServiceBase {
     
     if (this.isConnected()) {
       try {
-        const { data, error } = await supabase
-          .from('categories')
-          .insert([newCategory])
-          .select()
-          .single();
-        
-        if (error) throw error;
+        await mariadbClient.executeQuery(
+          'INSERT INTO categories (id, name, type, level, parent_id) VALUES (?, ?, ?, ?, ?)',
+          [newCategory.id, newCategory.name, newCategory.type, newCategory.level, newCategory.parentId || null]
+        );
         
         // Update local cache
         const categories = await this.getCategories();
-        const updatedCategories = [...categories, data || newCategory];
+        const updatedCategories = [...categories, newCategory];
         localStorage.setItem('categories', JSON.stringify(updatedCategories));
         
         // Dispatch event for other components
         window.dispatchEvent(new Event('storage'));
         
-        return data || newCategory;
+        return newCategory;
       } catch (error) {
-        console.error("Erro ao salvar categoria no Supabase:", error);
+        console.error("Erro ao salvar categoria no MariaDB:", error);
         toast.error("Erro ao salvar categoria online. Salvando localmente.");
         
         // Add operation to queue for later sync

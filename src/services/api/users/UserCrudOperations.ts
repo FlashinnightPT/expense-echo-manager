@@ -1,5 +1,5 @@
 
-import { supabase } from '../../supabaseClient';
+import { mariadbClient } from '../../mariadbClient';
 import { UserData } from './UserData';
 import { ApiServiceCore } from '../ApiServiceCore';
 
@@ -16,11 +16,7 @@ export class UserCrudOperations {
   async getUsers(): Promise<UserData[]> {
     try {
       if (this.apiCore.isConnected()) {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*');
-
-        if (error) throw error;
+        const data = await mariadbClient.executeQuery<UserData>('SELECT * FROM users');
         return data || [];
       } else {
         // Fallback para localStorage quando offline
@@ -41,14 +37,12 @@ export class UserCrudOperations {
   async getUserByUsername(username: string): Promise<UserData | null> {
     try {
       if (this.apiCore.isConnected()) {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('username', username)
-          .single();
+        const data = await mariadbClient.executeQuery<UserData>(
+          'SELECT * FROM users WHERE username = ?',
+          [username]
+        );
 
-        if (error && error.code !== 'PGRST116') throw error;
-        return data || null;
+        return data && data.length > 0 ? data[0] : null;
       } else {
         // Fallback para localStorage quando offline
         const savedUsers = localStorage.getItem('app_users');
@@ -70,20 +64,25 @@ export class UserCrudOperations {
   async createUser(userData: UserData): Promise<UserData> {
     try {
       if (this.apiCore.isConnected()) {
-        const { data, error } = await supabase
-          .from('users')
-          .insert(userData)
-          .select()
-          .single();
-
-        if (error) throw error;
+        await mariadbClient.executeQuery(
+          'INSERT INTO users (id, name, username, password, role, status, last_login) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [
+            userData.id,
+            userData.name,
+            userData.username,
+            userData.password,
+            userData.role,
+            userData.status,
+            userData.lastLogin
+          ]
+        );
         
         // Atualizar também o localStorage para manter sincronizado
         const savedUsers = localStorage.getItem('app_users');
         const users = savedUsers ? JSON.parse(savedUsers) : [];
         localStorage.setItem('app_users', JSON.stringify([...users, userData]));
         
-        return data;
+        return userData;
       } else {
         // Em modo offline, salvar apenas no localStorage
         const savedUsers = localStorage.getItem('app_users');
@@ -113,14 +112,55 @@ export class UserCrudOperations {
   async updateUser(userData: Partial<UserData> & { id: string }): Promise<UserData | null> {
     try {
       if (this.apiCore.isConnected()) {
-        const { data, error } = await supabase
-          .from('users')
-          .update(userData)
-          .eq('id', userData.id)
-          .select()
-          .single();
-
-        if (error) throw error;
+        // Construir a query de update dinamicamente
+        const fields: string[] = [];
+        const values: any[] = [];
+        
+        if (userData.name) {
+          fields.push('name = ?');
+          values.push(userData.name);
+        }
+        
+        if (userData.username) {
+          fields.push('username = ?');
+          values.push(userData.username);
+        }
+        
+        if (userData.password) {
+          fields.push('password = ?');
+          values.push(userData.password);
+        }
+        
+        if (userData.role) {
+          fields.push('role = ?');
+          values.push(userData.role);
+        }
+        
+        if (userData.status) {
+          fields.push('status = ?');
+          values.push(userData.status);
+        }
+        
+        if (userData.lastLogin) {
+          fields.push('last_login = ?');
+          values.push(userData.lastLogin);
+        }
+        
+        // Adicionar o ID para a cláusula WHERE
+        values.push(userData.id);
+        
+        if (fields.length > 0) {
+          await mariadbClient.executeQuery(
+            `UPDATE users SET ${fields.join(', ')} WHERE id = ?`,
+            values
+          );
+        }
+        
+        // Obter o usuário atualizado
+        const data = await mariadbClient.executeQuery<UserData>(
+          'SELECT * FROM users WHERE id = ?',
+          [userData.id]
+        );
         
         // Atualizar também o localStorage
         const savedUsers = localStorage.getItem('app_users');
@@ -130,7 +170,7 @@ export class UserCrudOperations {
         );
         localStorage.setItem('app_users', JSON.stringify(updatedUsers));
         
-        return data;
+        return data && data.length > 0 ? data[0] : null;
       } else {
         // Em modo offline, atualizar apenas no localStorage
         const savedUsers = localStorage.getItem('app_users');
@@ -160,12 +200,10 @@ export class UserCrudOperations {
   async deleteUser(userId: string): Promise<boolean> {
     try {
       if (this.apiCore.isConnected()) {
-        const { error } = await supabase
-          .from('users')
-          .delete()
-          .eq('id', userId);
-
-        if (error) throw error;
+        await mariadbClient.executeQuery(
+          'DELETE FROM users WHERE id = ?',
+          [userId]
+        );
         
         // Atualizar também o localStorage
         const savedUsers = localStorage.getItem('app_users');

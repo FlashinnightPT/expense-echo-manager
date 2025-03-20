@@ -1,6 +1,6 @@
 
 import { ApiServiceCore } from "../ApiServiceCore";
-import { supabase } from "../../supabaseClient";
+import { mariadbClient } from "../../mariadbClient";
 import { toast } from "sonner";
 
 // Base class for category operations containing shared functionality
@@ -10,18 +10,14 @@ export class CategoryServiceBase extends ApiServiceCore {
     this.ensureTableExists();
   }
 
-  // Ensure the categories table exists in Supabase
+  // Ensure the categories table exists in MariaDB
   protected async ensureTableExists(): Promise<void> {
     try {
       // This method only checks if we can access the table
-      // The actual table creation should be done in the Supabase console
-      const { error } = await supabase
-        .from('categories')
-        .select('id')
-        .limit(1);
+      const result = await mariadbClient.executeQuery('SHOW TABLES LIKE "categories"');
       
-      if (error) {
-        console.warn('Tabela de categorias pode não existir:', error.message);
+      if (Array.isArray(result) && result.length === 0) {
+        console.warn('Tabela de categorias pode não existir');
       }
     } catch (error) {
       console.error('Erro ao verificar tabela de categorias:', error);

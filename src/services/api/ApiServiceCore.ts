@@ -1,8 +1,8 @@
 
 import { toast } from "sonner";
-import { supabase, checkSupabaseConnection } from "../supabaseClient";
+import { checkDatabaseConnection } from "../mariadbClient";
 
-// Core API Service class com funcionalidade para Supabase e fallback para localStorage
+// Core API Service class com funcionalidade para MariaDB e fallback para localStorage
 export class ApiServiceCore {
   // Using protected instead of private to allow proper inheritance
   protected static instances: Record<string, any> = {};
@@ -37,10 +37,10 @@ export class ApiServiceCore {
     return ApiServiceCore.instances[className] as T;
   }
 
-  // Verificar conexão com o Supabase
+  // Verificar conexão com o MariaDB
   protected async checkConnection(): Promise<void> {
-    this.connected = await checkSupabaseConnection();
-    console.log(`Supabase connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
+    this.connected = await checkDatabaseConnection();
+    console.log(`MariaDB connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
   }
 
   // Método para sincronizar dados pendentes quando voltar online
