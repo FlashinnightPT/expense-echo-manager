@@ -31,17 +31,19 @@ export function transactionModelToDb(transaction: Partial<Transaction>): any {
 export function dbToCategoryModel(dbCategory: any): TransactionCategory {
   console.log("Converting DB category to model:", dbCategory);
   
-  // Explicitly handle boolean conversion
-  const isActive = dbCategory.isactive !== false; // true if not explicitly false
-  const isFixedExpense = dbCategory.isfixedexpense === true; // false if not explicitly true
+  // Force boolean values to be actual booleans using double negation
+  const isActive = !!dbCategory.isactive; // Convert to true boolean
+  const isFixedExpense = !!dbCategory.isfixedexpense; // Convert to true boolean
   
-  console.log("Values after conversion:", {
-    isActive,
-    isActive_type: typeof isActive,
-    isFixedExpense,
-    isFixedExpense_type: typeof isFixedExpense,
-    original_isactive: dbCategory.isactive,
-    original_isactive_type: typeof dbCategory.isactive
+  console.log("Boolean conversion results:", {
+    isactive_original: dbCategory.isactive,
+    isactive_original_type: typeof dbCategory.isactive,
+    isActive_converted: isActive,
+    isActive_converted_type: typeof isActive,
+    isfixedexpense_original: dbCategory.isfixedexpense,
+    isfixedexpense_original_type: typeof dbCategory.isfixedexpense,
+    isFixedExpense_converted: isFixedExpense,
+    isFixedExpense_converted_type: typeof isFixedExpense
   });
   
   return {
@@ -51,7 +53,7 @@ export function dbToCategoryModel(dbCategory: any): TransactionCategory {
     level: dbCategory.level,
     parentId: dbCategory.parentid, // Map from db's parentid to model's parentId
     isFixedExpense: isFixedExpense, // Ensure this is a boolean
-    isActive: isActive, // Map from db's isactive to model's isActive, default to true if not specified
+    isActive: isActive, // Map from db's isactive to model's isActive
   };
 }
 
@@ -59,17 +61,19 @@ export function dbToCategoryModel(dbCategory: any): TransactionCategory {
 export function categoryModelToDb(category: Partial<TransactionCategory>): any {
   console.log("Converting category to DB format:", category);
   
-  // Explicitly convert to boolean values using triple equals for strict comparison
-  const isActive = category.isActive !== false; // true by default
-  const isFixedExpense = category.isFixedExpense === true; // false by default
+  // Force boolean conversion using double negation
+  const isActive = !!category.isActive; // Convert to true boolean
+  const isFixedExpense = !!category.isFixedExpense; // Convert to true boolean
   
-  console.log("Values for DB:", {
-    isactive: isActive,
-    isactive_type: typeof isActive,
-    isfixedexpense: isFixedExpense,
-    isfixedexpense_type: typeof isFixedExpense,
-    original_isActive: category.isActive,
-    original_isActive_type: typeof category.isActive
+  console.log("Boolean conversion for DB:", {
+    isActive_original: category.isActive,
+    isActive_original_type: typeof category.isActive,
+    isactive_converted: isActive,
+    isactive_converted_type: typeof isActive,
+    isFixedExpense_original: category.isFixedExpense,
+    isFixedExpense_original_type: typeof category.isFixedExpense,
+    isfixedexpense_converted: isFixedExpense,
+    isfixedexpense_converted_type: typeof isFixedExpense
   });
   
   return {
@@ -78,8 +82,8 @@ export function categoryModelToDb(category: Partial<TransactionCategory>): any {
     type: category.type,
     level: category.level,
     parentid: category.parentId, // Map from model's parentId to db's parentid
-    isfixedexpense: isFixedExpense, // Explicitly boolean
-    isactive: isActive, // Explicitly boolean
+    isfixedexpense: isFixedExpense, // Force boolean
+    isactive: isActive, // Force boolean
   };
 }
 

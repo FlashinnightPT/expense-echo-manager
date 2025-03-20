@@ -72,28 +72,33 @@ export const useCategoryUpdates = ({
         return false;
       }
       
-      // Convert to explicit boolean to ensure consistent type
-      const activeState = isActive === true;
+      // Force to be a true boolean using double negation
+      const activeState = !!isActive;
       
-      console.log("Updating category active state:", {
+      console.log("UPDATING CATEGORY ACTIVE STATE - BEFORE:", {
         categoryId, 
         currentIsActive: category.isActive,
+        currentIsActive_type: typeof category.isActive,
         newIsActive: activeState,
         newIsActive_type: typeof activeState
       });
       
-      // Create updated category with explicit boolean
+      // Create updated category with an explicit boolean
       const updatedCategory: TransactionCategory = {
         ...category,
-        isActive: activeState // Ensure it's a boolean
+        isActive: activeState // Force boolean
       };
       
-      console.log("Updated category object:", updatedCategory);
+      console.log("UPDATED CATEGORY OBJECT - SENDING TO SERVER:", updatedCategory);
       
       // Save to Supabase first
       const savedCategory = await categoryService.saveCategory(updatedCategory);
       
-      console.log("Saved category from server:", savedCategory);
+      console.log("SAVED CATEGORY FROM SERVER - AFTER UPDATE:", {
+        savedCategory,
+        isActive: savedCategory.isActive,
+        isActive_type: typeof savedCategory.isActive
+      });
       
       // Update local list
       setCategoryList(prevList => {
@@ -131,24 +136,33 @@ export const useCategoryUpdates = ({
         return false;
       }
       
-      // Convert to explicit boolean to ensure consistent type
-      const fixedExpenseState = isFixedExpense === true;
+      // Force to be a true boolean using double negation
+      const fixedExpenseState = !!isFixedExpense;
       
-      console.log("Updating fixed expense state:", {
+      console.log("UPDATING FIXED EXPENSE STATE - BEFORE:", {
         categoryId, 
         currentIsFixedExpense: category.isFixedExpense,
+        currentIsFixedExpense_type: typeof category.isFixedExpense,
         newIsFixedExpense: fixedExpenseState,
         newIsFixedExpense_type: typeof fixedExpenseState
       });
       
-      // Create updated category with explicit boolean
+      // Create updated category with an explicit boolean
       const updatedCategory: TransactionCategory = {
         ...category,
-        isFixedExpense: fixedExpenseState // Ensure it's a boolean
+        isFixedExpense: fixedExpenseState // Force boolean
       };
+      
+      console.log("UPDATED CATEGORY OBJECT - SENDING TO SERVER:", updatedCategory);
       
       // Save to Supabase first
       const savedCategory = await categoryService.saveCategory(updatedCategory);
+      
+      console.log("SAVED CATEGORY FROM SERVER - AFTER UPDATE:", {
+        savedCategory,
+        isFixedExpense: savedCategory.isFixedExpense,
+        isFixedExpense_type: typeof savedCategory.isFixedExpense
+      });
       
       // Update local list
       setCategoryList(prevList => {

@@ -15,16 +15,16 @@ export class CategoryCreateService extends CategoryServiceBase {
       category.id = `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     }
     
-    // Ensure all boolean values are explicitly defined
+    // Force boolean values using double negation to ensure they're actual booleans
     const normalizedCategory: TransactionCategory = {
       id: category.id || "",
       name: category.name || "",
       type: category.type || "expense",
       level: category.level || 1,
       parentId: category.parentId,
-      // Force boolean values to be strictly boolean type
-      isFixedExpense: category.isFixedExpense === true,
-      isActive: category.isActive !== false // default to true if undefined/null
+      // Force boolean values with double negation
+      isFixedExpense: !!category.isFixedExpense,
+      isActive: category.isActive !== false // default to true if undefined, but ensure boolean
     };
     
     console.log("Category to save (normalized):", normalizedCategory);
@@ -52,14 +52,27 @@ export class CategoryCreateService extends CategoryServiceBase {
         error = result.error;
       } else {
         // Log exactly what will be updated
-        console.log("UPDATING EXISTING CATEGORY (FULL OBJECT):", dbCategory);
-        console.log("ID to update:", dbCategory.id);
-        console.log("isactive to set:", dbCategory.isactive);
+        console.log("UPDATING EXISTING CATEGORY:", {
+          id: dbCategory.id,
+          isactive: dbCategory.isactive,
+          isfixedexpense: dbCategory.isfixedexpense,
+          name: dbCategory.name,
+          type: dbCategory.type,
+          level: dbCategory.level,
+          parentid: dbCategory.parentid
+        });
         
-        // If it's an existing category, use upsert with onConflict('id')
+        // Strip out null or undefined values to avoid overwriting with null
+        const updateData = Object.fromEntries(
+          Object.entries(dbCategory).filter(([_, v]) => v !== null && v !== undefined)
+        );
+        
+        console.log("Final update data:", updateData);
+        
+        // If it's an existing category, use update
         const result = await supabase
           .from('categories')
-          .update(dbCategory)
+          .update(updateData)
           .eq('id', dbCategory.id)
           .select()
           .single();
