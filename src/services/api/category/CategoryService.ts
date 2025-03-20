@@ -38,6 +38,11 @@ export class CategoryService extends CategoryServiceBase {
   public async deleteCategory(categoryId: string): Promise<boolean> {
     return this.deleteService.deleteCategory(categoryId);
   }
+  
+  // Add the clear categories method
+  public clearNonRootCategories(categories: TransactionCategory[]): TransactionCategory[] {
+    return this.deleteService.clearNonRootCategories(categories);
+  }
 }
 
 // Export the singleton instance

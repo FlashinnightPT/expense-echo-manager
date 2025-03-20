@@ -4,6 +4,7 @@ import { TransactionCategory } from "@/utils/mockData";
 import { defaultCategories } from "@/utils/defaultCategories";
 import { toast } from "sonner";
 import { ExtendedTransactionCategory } from "@/components/dashboard/types/categoryTypes";
+import { categoryService } from "@/services/api/category/CategoryService";
 
 export const useCategoryData = () => {
   const initCategories = () => {
@@ -134,7 +135,7 @@ export const useCategoryData = () => {
 
     // Get new parent to calculate new level
     const newParent = newParentId ? categoryList.find(cat => cat.id === newParentId) : null;
-    const newLevel = newParent ? newParent.level + 1 : 2; // Level 2 if no parent
+    const newLevel = newParent ? newParent.level + 1 : 1; // Level 1 if no parent
 
     // Update the category and all its descendants
     const updateCategoryAndDescendants = (cat: TransactionCategory, levelDiff: number): TransactionCategory => {
@@ -174,6 +175,13 @@ export const useCategoryData = () => {
     toast.success("Categoria movida com sucesso");
     return true;
   };
+  
+  // Adiciona função para limpar todas as categorias exceto as de nível 1
+  const clearNonRootCategories = () => {
+    const rootCategories = categoryService.clearNonRootCategories(categoryList);
+    setCategoryList(rootCategories);
+    return true;
+  };
 
   return {
     categoryList,
@@ -182,6 +190,7 @@ export const useCategoryData = () => {
     confirmDeleteCategory,
     updateCategoryName,
     moveCategory,
-    updateFixedExpense
+    updateFixedExpense,
+    clearNonRootCategories
   };
 };

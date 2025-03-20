@@ -7,6 +7,8 @@ import { useCategoryData } from "@/hooks/useCategoryData";
 import { useTransactionData } from "@/hooks/useTransactionData";
 import { useDeleteDialogs } from "@/components/categories/hooks/useDeleteDialogs";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 const Categories = () => {
   const { 
@@ -16,7 +18,8 @@ const Categories = () => {
     confirmDeleteCategory,
     updateCategoryName,
     moveCategory,
-    updateFixedExpense
+    updateFixedExpense,
+    clearNonRootCategories
   } = useCategoryData();
 
   const { 
@@ -48,6 +51,12 @@ const Categories = () => {
       closeDeleteDialog();
     }
   };
+  
+  const handleClearCategories = () => {
+    if (window.confirm("Tem certeza que deseja apagar todas as categorias, exceto as de nível 1? Esta ação não pode ser desfeita.")) {
+      clearNonRootCategories();
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -58,6 +67,15 @@ const Categories = () => {
             Adicione, edite ou elimine categorias
           </p>
         </div>
+        
+        <Button 
+          variant="destructive" 
+          onClick={handleClearCategories}
+          className="flex items-center"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Limpar Categorias
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
