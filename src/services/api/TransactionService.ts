@@ -3,6 +3,7 @@ import { Transaction } from "@/utils/mockData";
 import { ApiServiceCore } from "./ApiServiceCore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { dbToTransactionModel, transactionModelToDb } from "@/utils/supabaseAdapters";
 
 // Service specifically for transaction operations
 export class TransactionService extends ApiServiceCore {
@@ -45,7 +46,8 @@ export class TransactionService extends ApiServiceCore {
         return [];
       }
       
-      return data || [];
+      // Transform database records to application model
+      return (data || []).map(dbToTransactionModel);
     } catch (error) {
       console.error("Erro ao buscar transações do Supabase:", error);
       toast.error("Erro ao buscar transações");
@@ -64,9 +66,12 @@ export class TransactionService extends ApiServiceCore {
     };
     
     try {
+      // Convert to database format
+      const dbTransaction = transactionModelToDb(newTransaction);
+      
       const { data, error } = await supabase
         .from('transactions')
-        .insert([newTransaction])
+        .insert([dbTransaction])
         .select()
         .single();
       
@@ -79,7 +84,8 @@ export class TransactionService extends ApiServiceCore {
       // Simula evento para outros componentes
       window.dispatchEvent(new Event('storage'));
       
-      return data || newTransaction;
+      // Convert from database format back to application model
+      return dbToTransactionModel(data) || newTransaction;
     } catch (error) {
       console.error("Erro ao salvar transação no Supabase:", error);
       toast.error("Erro ao salvar transação");

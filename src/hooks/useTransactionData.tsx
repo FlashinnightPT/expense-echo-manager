@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Transaction } from "@/utils/mockData";
 import { supabase } from "@/integrations/supabase/client";
+import { dbToTransactionModel, transactionModelToDb } from "@/utils/supabaseAdapters";
 
 export const useTransactionData = () => {
   const [transactionList, setTransactionList] = useState<Transaction[]>([]);
@@ -19,7 +20,8 @@ export const useTransactionData = () => {
         throw error;
       }
       
-      setTransactionList(data || []);
+      // Transform database records to application model
+      setTransactionList((data || []).map(dbToTransactionModel));
     } catch (error) {
       console.error("Error fetching transactions from Supabase:", error);
       toast.error("Erro ao carregar transações");
@@ -163,10 +165,13 @@ export const useTransactionData = () => {
         }
       });
 
+      // Convert all transactions to database format
+      const dbTransactions = newTransactions.map(transactionModelToDb);
+
       // Save transactions to Supabase
       const { error } = await supabase
         .from('transactions')
-        .insert(newTransactions);
+        .insert(dbTransactions);
         
       if (error) {
         throw error;

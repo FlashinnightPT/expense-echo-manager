@@ -3,6 +3,7 @@ import { TransactionCategory } from "@/utils/mockData";
 import { CategoryServiceBase } from "./CategoryServiceBase";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { categoryModelToDb, dbToCategoryModel } from "@/utils/supabaseAdapters";
 
 // Class specifically for category creation operations
 export class CategoryCreateService extends CategoryServiceBase {
@@ -16,9 +17,12 @@ export class CategoryCreateService extends CategoryServiceBase {
     };
     
     try {
+      // Convert to database format
+      const dbCategory = categoryModelToDb(newCategory);
+      
       const { data, error } = await supabase
         .from('categories')
-        .insert([newCategory])
+        .insert([dbCategory])
         .select()
         .single();
       
@@ -31,7 +35,8 @@ export class CategoryCreateService extends CategoryServiceBase {
       // Dispatch event for other components
       window.dispatchEvent(new Event('storage'));
       
-      return data || newCategory;
+      // Convert from database format back to application model
+      return dbToCategoryModel(data) || newCategory;
     } catch (error) {
       console.error("Erro ao salvar categoria no Supabase:", error);
       toast.error("Erro ao salvar categoria");
@@ -48,7 +53,8 @@ export class CategoryCreateService extends CategoryServiceBase {
       
       if (error) throw error;
       
-      return data || [];
+      // Transform database records to application model
+      return (data || []).map(dbToCategoryModel);
     } catch (error) {
       console.error("Erro ao buscar categorias:", error);
       return [];

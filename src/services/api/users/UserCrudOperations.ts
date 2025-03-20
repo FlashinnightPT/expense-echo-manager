@@ -1,7 +1,5 @@
-
-import { supabase } from '../../supabaseClient';
-import { UserData } from './UserData';
-import { ApiServiceCore } from '../ApiServiceCore';
+import { supabase } from "@/integrations/supabase/client";
+import { UserData } from "./UserData";
 
 export class UserCrudOperations {
   private apiCore: ApiServiceCore;

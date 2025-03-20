@@ -2,6 +2,7 @@
 import { toast } from "sonner";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { supabase } from "@/integrations/supabase/client";
+import { dbToCategoryModel, dbToTransactionModel, categoryModelToDb, transactionModelToDb } from "./supabaseAdapters";
 
 type DatabaseBackup = {
   transactions: Transaction[];
@@ -17,11 +18,11 @@ type DatabaseBackup = {
 export const exportDatabase = async () => {
   try {
     // Obter dados do Supabase
-    const { data: transactions, error: transError } = await supabase
+    const { data: transactionsData, error: transError } = await supabase
       .from('transactions')
       .select('*');
     
-    const { data: categories, error: catError } = await supabase
+    const { data: categoriesData, error: catError } = await supabase
       .from('categories')
       .select('*');
     
@@ -39,10 +40,14 @@ export const exportDatabase = async () => {
       return false;
     }
     
+    // Transform database records to application models
+    const transactions = (transactionsData || []).map(dbToTransactionModel);
+    const categories = (categoriesData || []).map(dbToCategoryModel);
+    
     // Criar o objeto de backup
     const backup: DatabaseBackup = {
-      transactions: transactions || [],
-      categories: categories || [],
+      transactions: transactions,
+      categories: categories,
       users: users ? JSON.parse(users) : [],
       timestamp: Date.now(),
       version: "1.0"
@@ -112,11 +117,14 @@ export const importDatabase = async (file: File): Promise<boolean> => {
           await supabase.from('transactions').delete().neq('id', 'dummy');
           await supabase.from('categories').delete().neq('id', 'dummy');
           
+          // Convert application models to database format
+          const dbCategories = backup.categories.map(categoryModelToDb);
+          
           // Importar categorias
-          if (backup.categories && backup.categories.length > 0) {
+          if (dbCategories.length > 0) {
             const { error: catError } = await supabase
               .from('categories')
-              .insert(backup.categories);
+              .insert(dbCategories);
             
             if (catError) {
               console.error("Erro ao importar categorias:", catError);
@@ -124,11 +132,14 @@ export const importDatabase = async (file: File): Promise<boolean> => {
             }
           }
           
+          // Convert application models to database format
+          const dbTransactions = backup.transactions.map(transactionModelToDb);
+          
           // Importar transações
-          if (backup.transactions && backup.transactions.length > 0) {
+          if (dbTransactions.length > 0) {
             const { error: transError } = await supabase
               .from('transactions')
-              .insert(backup.transactions);
+              .insert(dbTransactions);
             
             if (transError) {
               console.error("Erro ao importar transações:", transError);
