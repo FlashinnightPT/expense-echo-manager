@@ -2,7 +2,7 @@
 import { toast } from "sonner";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { supabase } from "@/integrations/supabase/client";
-import { dbToCategoryModel, dbToTransactionModel, categoryModelToDb, transactionModelToDb } from "./supabaseAdapters";
+import { dbToCategoryModel, dbToTransactionModel, categoryModelToDb, transactionModelToDb, dbToUserModel, userModelToDb } from "./supabaseAdapters";
 
 type DatabaseBackup = {
   transactions: Transaction[];
@@ -26,7 +26,9 @@ export const exportDatabase = async () => {
       .from('categories')
       .select('*');
     
-    const users = localStorage.getItem('app_users');
+    const { data: usersData, error: usersError } = await supabase
+      .from('users')
+      .select('*');
     
     if (transError) {
       console.error("Erro ao buscar transações:", transError);
@@ -40,15 +42,22 @@ export const exportDatabase = async () => {
       return false;
     }
     
+    if (usersError) {
+      console.error("Erro ao buscar usuários:", usersError);
+      toast.error("Erro ao buscar usuários do Supabase");
+      return false;
+    }
+    
     // Transform database records to application models
     const transactions = (transactionsData || []).map(dbToTransactionModel);
     const categories = (categoriesData || []).map(dbToCategoryModel);
+    const users = (usersData || []).map(dbToUserModel);
     
     // Criar o objeto de backup
     const backup: DatabaseBackup = {
       transactions: transactions,
       categories: categories,
-      users: users ? JSON.parse(users) : [],
+      users: users,
       timestamp: Date.now(),
       version: "1.0"
     };
@@ -116,6 +125,7 @@ export const importDatabase = async (file: File): Promise<boolean> => {
           // Limpar tabelas existentes
           await supabase.from('transactions').delete().neq('id', 'dummy');
           await supabase.from('categories').delete().neq('id', 'dummy');
+          await supabase.from('users').delete().neq('id', 'dummy');
           
           // Convert application models to database format
           const dbCategories = backup.categories.map(categoryModelToDb);
@@ -147,8 +157,22 @@ export const importDatabase = async (file: File): Promise<boolean> => {
             }
           }
           
-          // Importar dados de usuários se existirem
+          // Importar dados de usuários
           if (backup.users && Array.isArray(backup.users)) {
+            const dbUsers = backup.users.map(userModelToDb);
+            
+            if (dbUsers.length > 0) {
+              const { error: usersError } = await supabase
+                .from('users')
+                .insert(dbUsers);
+              
+              if (usersError) {
+                console.error("Erro ao importar usuários:", usersError);
+                toast.error("Erro ao importar usuários para o Supabase");
+              }
+            }
+            
+            // Armazenar também no localStorage para acesso offline
             localStorage.setItem('app_users', JSON.stringify(backup.users));
           }
           
@@ -210,6 +234,21 @@ export const clearAllData = async (): Promise<boolean> => {
       toast.error("Erro ao limpar categorias do Supabase");
       return false;
     }
+    
+    // Limpar todos os usuários (exceto o administrador, se necessário)
+    const { error: usersDeleteError } = await supabase
+      .from('users')
+      .delete()
+      .neq('username', 'admin');
+    
+    if (usersDeleteError) {
+      console.error("Erro ao limpar usuários:", usersDeleteError);
+      toast.error("Erro ao limpar usuários do Supabase");
+      return false;
+    }
+    
+    // Limpar o localStorage
+    localStorage.removeItem('app_users');
     
     // Disparar evento para outros componentes atualizarem
     window.dispatchEvent(new Event('storage'));
