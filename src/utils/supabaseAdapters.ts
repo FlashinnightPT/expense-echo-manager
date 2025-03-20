@@ -35,7 +35,7 @@ export function dbToCategoryModel(dbCategory: any): TransactionCategory {
     type: dbCategory.type as "income" | "expense",
     level: dbCategory.level,
     parentId: dbCategory.parentid, // Map from db's parentid to model's parentId
-    isFixedExpense: dbCategory.isfixedexpense,
+    isFixedExpense: dbCategory.isfixedexpense === true, // Ensure this is a boolean
     isActive: dbCategory.isactive !== false, // Map from db's isactive to model's isActive, default to true if not specified
   };
 }
@@ -48,7 +48,7 @@ export function categoryModelToDb(category: Partial<TransactionCategory>): any {
     type: category.type,
     level: category.level,
     parentid: category.parentId, // Map from model's parentId to db's parentid
-    isfixedexpense: category.isFixedExpense,
+    isfixedexpense: category.isFixedExpense === true, // Make sure to convert to boolean
     isactive: category.isActive !== false, // Map from model's isActive to db's isactive, default to true if not specified
   };
 }

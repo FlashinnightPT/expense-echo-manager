@@ -14,6 +14,7 @@ export type Database = {
           createdat: string | null
           id: string
           isactive: boolean | null
+          isfixedexpense: boolean | null
           level: number
           name: string
           parentid: string | null
@@ -23,6 +24,7 @@ export type Database = {
           createdat?: string | null
           id: string
           isactive?: boolean | null
+          isfixedexpense?: boolean | null
           level?: number
           name: string
           parentid?: string | null
@@ -32,6 +34,7 @@ export type Database = {
           createdat?: string | null
           id?: string
           isactive?: boolean | null
+          isfixedexpense?: boolean | null
           level?: number
           name?: string
           parentid?: string | null
