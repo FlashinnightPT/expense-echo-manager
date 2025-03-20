@@ -29,8 +29,15 @@ const CategoryItem = ({
   children,
   disabled = false
 }: CategoryItemProps) => {
-  // Determine if the category is inactive
+  // Determinar explicitamente se a categoria está inativa verificando se isActive é false
   const isInactive = category.isActive === false;
+  
+  console.log("Renderizando categoria:", {
+    nome: category.name,
+    isActive: category.isActive,
+    isInactive: isInactive,
+    tipoIsActive: typeof category.isActive
+  });
   
   return (
     <div className="category-item">

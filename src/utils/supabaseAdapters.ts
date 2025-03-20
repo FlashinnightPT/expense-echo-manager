@@ -29,16 +29,24 @@ export function transactionModelToDb(transaction: Partial<Transaction>): any {
 
 // Transform database category record to application TransactionCategory model
 export function dbToCategoryModel(dbCategory: any): TransactionCategory {
-  // Garantir que os valores booleanos são convertidos corretamente
-  const isActive = dbCategory.isactive !== undefined ? Boolean(dbCategory.isactive) : true;
-  const isFixedExpense = dbCategory.isfixedexpense !== undefined ? Boolean(dbCategory.isfixedexpense) : false;
+  // Garantir que os valores booleanos são convertidos explicitamente
+  // Verificar os tipos exatos que vêm da base de dados
+  console.log("Convertendo de BD para modelo - Valores originais:", {
+    isactive: dbCategory.isactive,
+    isactive_type: typeof dbCategory.isactive,
+    isfixedexpense: dbCategory.isfixedexpense,
+    isfixedexpense_type: typeof dbCategory.isfixedexpense
+  });
   
-  console.log("Convertendo categoria da BD para modelo:", {
-    original: dbCategory,
-    convertido: {
-      isActive: isActive,
-      isFixedExpense: isFixedExpense
-    }
+  // Converter explicitamente para booleanos usando comparação estrita
+  const isActive = dbCategory.isactive === true;
+  const isFixedExpense = dbCategory.isfixedexpense === true;
+  
+  console.log("Valores após conversão explícita:", {
+    isActive: isActive,
+    isActive_type: typeof isActive,
+    isFixedExpense: isFixedExpense,
+    isFixedExpense_type: typeof isFixedExpense
   });
   
   return {
@@ -54,17 +62,24 @@ export function dbToCategoryModel(dbCategory: any): TransactionCategory {
 
 // Transform application TransactionCategory model to database record
 export function categoryModelToDb(category: Partial<TransactionCategory>): any {
-  // Primeiro, garantir que temos valores booleanos explícitos
-  // Verificar se os valores estão definidos e convertê-los explicitamente para boolean
-  const isCategoryActive = category.isActive !== undefined ? Boolean(category.isActive) : true;
-  const isFixedExp = category.isFixedExpense !== undefined ? Boolean(category.isFixedExpense) : false;
+  // Verificar os valores exatos passados pelo modelo
+  console.log("Convertendo para DB - Valores originais:", {
+    isActive: category.isActive,
+    isActive_type: typeof category.isActive,
+    isFixedExpense: category.isFixedExpense,
+    isFixedExpense_type: typeof category.isFixedExpense
+  });
   
-  console.log("Convertendo para formato da BD:", {
-    original: category,
-    convertido: {
-      isactive: isCategoryActive,
-      isfixedexpense: isFixedExp
-    }
+  // Usar === undefined para verificação específica de valor indefinido
+  // Certificar que passamos os valores como booleanos explícitos
+  const isActive = category.isActive === undefined ? true : category.isActive === true;
+  const isFixedExpense = category.isFixedExpense === undefined ? false : category.isFixedExpense === true;
+  
+  console.log("Valores após processamento explícito:", {
+    isactive: isActive,
+    isactive_type: typeof isActive,
+    isfixedexpense: isFixedExpense,
+    isfixedexpense_type: typeof isFixedExpense
   });
   
   return {
@@ -73,8 +88,8 @@ export function categoryModelToDb(category: Partial<TransactionCategory>): any {
     type: category.type,
     level: category.level,
     parentid: category.parentId, // Map from model's parentId to db's parentid
-    isfixedexpense: isFixedExp, // Make sure to convert to boolean
-    isactive: isCategoryActive, // Map from model's isActive to db's isactive, ensure it's a boolean
+    isfixedexpense: isFixedExpense, // Explicitamente booleano
+    isactive: isActive, // Explicitamente booleano
   };
 }
 

@@ -61,14 +61,32 @@ const Categories = () => {
     }
   };
 
-  const handleUpdateCategory = async (categoryId: string, newName: string, isActive?: boolean) => {
-    console.log("Atualizando categoria com novos valores:", { categoryId, newName, isActive });
+  const handleUpdateCategory = async (categoryId: string, newName: string, isFixedExpense?: boolean, isActive?: boolean) => {
+    console.log("Atualizando categoria com novos valores:", { 
+      categoryId, 
+      newName, 
+      isFixedExpense, 
+      isActive,
+      "isActive tipo": typeof isActive 
+    });
     
-    // Atualizar o estado ativo se fornecido
+    // Verificar explicitamente se o isActive foi fornecido
     if (isActive !== undefined) {
-      console.log("Atualizando estado ativo para:", isActive);
-      const success = await updateCategoryActive(categoryId, isActive);
-      if (!success) {
+      console.log("Atualizando estado ativo para:", isActive, "tipo:", typeof isActive);
+      
+      // Converter explicitamente para booleano para garantir
+      const activeSuccess = await updateCategoryActive(categoryId, isActive === true);
+      if (!activeSuccess) {
+        return false;
+      }
+    }
+    
+    // Se isFixedExpense foi fornecido, atualizá-lo também
+    if (isFixedExpense !== undefined) {
+      console.log("Atualizando despesa fixa para:", isFixedExpense, "tipo:", typeof isFixedExpense);
+      
+      const fixedSuccess = await updateFixedExpense(categoryId, isFixedExpense === true);
+      if (!fixedSuccess) {
         return false;
       }
     }

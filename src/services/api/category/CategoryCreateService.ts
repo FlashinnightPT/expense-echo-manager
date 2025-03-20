@@ -15,9 +15,10 @@ export class CategoryCreateService extends CategoryServiceBase {
       category.id = `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     }
     
-    // Garantir que os campos booleanos estão definidos
-    const isActive = category.isActive !== undefined ? Boolean(category.isActive) : true;
-    const isFixedExpense = category.isFixedExpense !== undefined ? Boolean(category.isFixedExpense) : false;
+    // Garantir explicitamente que os valores booleanos estão definidos corretamente
+    // Usar explicitamente true/false em vez de conversões implícitas
+    const isActive = category.isActive === undefined ? true : Boolean(category.isActive);
+    const isFixedExpense = category.isFixedExpense === undefined ? false : Boolean(category.isFixedExpense);
     
     const newCategory: TransactionCategory = {
       id: category.id || "",
@@ -30,12 +31,14 @@ export class CategoryCreateService extends CategoryServiceBase {
     };
     
     console.log("Categoria a salvar (após normalização):", newCategory);
+    console.log("isActive antes da conversão:", isActive, "tipo:", typeof isActive);
     
     try {
       // Convert to database format
       const dbCategory = categoryModelToDb(newCategory);
       
       console.log("Categoria formatada para BD antes de enviar:", dbCategory);
+      console.log("isactive após conversão:", dbCategory.isactive, "tipo:", typeof dbCategory.isactive);
       
       let data;
       let error;

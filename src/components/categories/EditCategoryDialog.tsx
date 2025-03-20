@@ -36,13 +36,32 @@ export function EditCategoryDialog({
   useEffect(() => {
     if (category) {
       setNewName(category.name);
-      setIsFixed(category.isFixedExpense || false);
-      setIsActive(category.isActive !== false); // Default to true if undefined
+      // Garantir que os valores são explicitamente convertidos para booleanos
+      setIsFixed(category.isFixedExpense === true);
+      
+      // Garantir que isActive seja explicitamente booleano, com valor padrão true
+      // se for undefined ou null
+      setIsActive(category.isActive !== false);
+      
+      console.log("Valores carregados no diálogo:", {
+        categoria: category,
+        nome: category.name,
+        isFixed: category.isFixedExpense,
+        isActive: category.isActive,
+        "isActive após conversão": category.isActive !== false
+      });
     }
   }, [category]);
 
   const handleSave = () => {
     if (newName.trim()) {
+      console.log("Enviando dados do diálogo:", {
+        nome: newName,
+        isFixed: isFixed,
+        isActive: isActive
+      });
+      
+      // Passar explicitamente valores booleanos, não apenas se foram alterados
       onSave(newName, isFixed, isActive);
       onOpenChange(false);
     }
