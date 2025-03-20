@@ -48,29 +48,42 @@ const CategoryYearTable = ({
   const renderCategoryRows = (
     categoryData: any, 
     level: number = 0,
-    isLastChild: boolean = false
+    isLast: boolean = false
   ) => {
     const { category, children } = categoryData;
     const expanded = isExpanded(category.id);
     const hasChildren = children && children.length > 0;
     
-    return (
-      <>
-        <CategoryRow 
-          key={category.id}
-          categoryData={categoryData}
-          level={level}
-          isExpanded={expanded}
-          showValues={showValues}
-          hasChildren={hasChildren}
-          onToggle={() => toggleCategory(category.id)}
-        />
-        
-        {expanded && hasChildren && children.map((child: any, index: number) => (
-          renderCategoryRows(child, level + 1, index === children.length - 1)
-        ))}
-      </>
+    const rows = [];
+    
+    // Add the current category row
+    rows.push(
+      <CategoryRow 
+        key={category.id}
+        categoryData={categoryData}
+        level={level}
+        isExpanded={expanded}
+        showValues={showValues}
+        hasChildren={hasChildren}
+        onToggle={() => toggleCategory(category.id)}
+        isLastInGroup={isLast && !expanded}
+      />
     );
+    
+    // Add child rows if expanded
+    if (expanded && hasChildren) {
+      children.forEach((child: any, index: number) => {
+        const isLastChild = index === children.length - 1;
+        const childRows = renderCategoryRows(
+          child, 
+          level + 1, 
+          isLastChild
+        );
+        rows.push(...childRows);
+      });
+    }
+    
+    return rows;
   };
   
   if (!hasCategories) {
@@ -101,12 +114,16 @@ const CategoryYearTable = ({
           
           {/* Category Rows with hierarchical structure */}
           {categoryHierarchy.length > 0 ? (
-            categoryHierarchy.map((categoryData, index) => (
-              renderCategoryRows(categoryData, 0, index === categoryHierarchy.length - 1)
-            ))
+            categoryHierarchy.flatMap((categoryData, index) => 
+              renderCategoryRows(
+                categoryData, 
+                0, 
+                index === categoryHierarchy.length - 1
+              )
+            )
           ) : (
             <TableRow>
-              <TableCell colSpan={14} className="text-center text-muted-foreground py-4">
+              <TableCell colSpan={15} className="text-center text-muted-foreground py-4">
                 Não existem categorias de {type === 'income' ? 'receitas' : 'despesas'} cadastradas
               </TableCell>
             </TableRow>

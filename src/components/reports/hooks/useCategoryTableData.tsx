@@ -41,6 +41,10 @@ export function useCategoryTableData(
     // Find root categories (level 1)
     const rootCategories = findRootCategories(categories, type);
     
+    // Build category lookup map for efficient parent-child relationships
+    const categoryMap = new Map<string, TransactionCategory>();
+    categories.forEach(cat => categoryMap.set(cat.id, cat));
+    
     // Create a hierarchy of categories with their monthly data
     const buildHierarchy = (parentCategories: TransactionCategory[]) => {
       return parentCategories.map(parent => {

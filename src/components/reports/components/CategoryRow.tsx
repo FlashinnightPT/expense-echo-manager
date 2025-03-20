@@ -12,6 +12,7 @@ interface CategoryRowProps {
   showValues: boolean;
   hasChildren: boolean;
   onToggle: () => void;
+  isLastInGroup?: boolean;
 }
 
 const CategoryRow = ({
@@ -20,16 +21,23 @@ const CategoryRow = ({
   isExpanded,
   showValues,
   hasChildren,
-  onToggle
+  onToggle,
+  isLastInGroup = false
 }: CategoryRowProps) => {
   const { category, monthlyAmounts, yearlyTotal, monthlyAverage } = categoryData;
   const indentPadding = `${level * 1.5}rem`;
   
+  // For root categories, use a different background
+  const bgColor = level === 0 
+    ? category.type === 'income' ? "bg-green-50/30" : "bg-orange-50/30" 
+    : "";
+  
   return (
     <TableRow className={cn(
       "transition-colors hover:bg-accent/50",
-      level === 0 ? "bg-muted/20" : "",
-      isExpanded && hasChildren ? "border-b-0" : ""
+      bgColor,
+      isExpanded && hasChildren ? "border-b-0" : "",
+      isLastInGroup && level > 0 ? "border-b-2 border-muted" : ""
     )}>
       <TableCell className="sticky left-0 bg-background font-medium">
         <div 
@@ -52,16 +60,19 @@ const CategoryRow = ({
         </div>
       </TableCell>
       
+      {/* Monthly amounts */}
       {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
         <TableCell key={month} className="text-right tabular-nums">
           {showValues ? formatCurrency(monthlyAmounts[month] || 0) : "•••••••"}
         </TableCell>
       ))}
       
+      {/* Yearly total */}
       <TableCell className="text-right tabular-nums font-medium">
         {showValues ? formatCurrency(yearlyTotal) : "•••••••"}
       </TableCell>
       
+      {/* Monthly average */}
       <TableCell className="text-right tabular-nums">
         {showValues ? formatCurrency(monthlyAverage) : "•••••••"}
       </TableCell>

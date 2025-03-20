@@ -80,7 +80,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
               </TableRow>
             );
           })}
-          <TableRow className="font-bold">
+          <TableRow className="font-bold bg-muted/20">
             <TableCell>TOTAL</TableCell>
             <TableCell className="text-center tabular-nums">
               {showValues ? formatCurrency(totalAmount) : hiddenValue}

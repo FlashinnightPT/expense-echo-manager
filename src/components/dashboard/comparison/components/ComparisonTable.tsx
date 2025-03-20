@@ -51,7 +51,8 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
         <TableHeader>
           <TableRow>
             <TableHead className="text-left">Categoria</TableHead>
-            <TableHead className="text-center">Valor / Percentagem</TableHead>
+            <TableHead className="text-center">Valor</TableHead>
+            <TableHead className="text-center">Percentagem</TableHead>
             <TableHead className="text-center">Período</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
@@ -66,14 +67,10 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
                   {item.path.split(" (")[0]} {/* Remove date range suffix if present */}
                 </TableCell>
                 <TableCell className="text-center tabular-nums">
-                  {showValues ? (
-                    <>
-                      {formatCurrency(item.amount)}
-                      <span className="text-muted-foreground ml-2">
-                        ({percentage}%)
-                      </span>
-                    </>
-                  ) : hiddenValue}
+                  {showValues ? formatCurrency(item.amount) : hiddenValue}
+                </TableCell>
+                <TableCell className="text-center">
+                  {showValues ? `${percentage}%` : hiddenValue}
                 </TableCell>
                 <TableCell className="text-sm text-center">
                   <span className="inline-flex items-center">
@@ -94,10 +91,13 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
               </TableRow>
             );
           })}
-          <TableRow className="font-bold">
+          <TableRow className="font-bold bg-muted/20">
             <TableCell className="text-left">TOTAL</TableCell>
             <TableCell className="text-center tabular-nums">
               {showValues ? formatCurrency(totalAmount) : hiddenValue}
+            </TableCell>
+            <TableCell className="text-center">
+              {showValues ? "100%" : hiddenValue}
             </TableCell>
             <TableCell></TableCell>
             <TableCell></TableCell>
