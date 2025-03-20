@@ -41,32 +41,48 @@ const MonthlyTable = ({ tableData, showValues, selectedYear }: MonthlyTableProps
                 <TableHead className="text-right">Diferença</TableHead>
                 <TableHead className="text-right">Receitas Fixas</TableHead>
                 <TableHead className="text-right">Despesas Fixas</TableHead>
+                <TableHead className="text-right">Saldo Fixo</TableHead>
+                <TableHead className="text-right">Diferença Fixa</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tableData.map((row) => (
-                <TableRow key={row.month}>
-                  <TableCell className="font-medium">{row.monthName}</TableCell>
-                  <TableCell className="text-right text-finance-income">
-                    {showValues ? formatCurrency(row.income) : hiddenValue}
-                  </TableCell>
-                  <TableCell className="text-right text-finance-expense">
-                    {showValues ? formatCurrency(row.expense) : hiddenValue}
-                  </TableCell>
-                  <TableCell className={`text-right ${row.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {showValues ? formatCurrency(row.balance) : hiddenValue}
-                  </TableCell>
-                  <TableCell className={`text-right ${parseFloat(row.differenceRate) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {showValues ? `${row.differenceRate}%` : hiddenValue}
-                  </TableCell>
-                  <TableCell className="text-right text-finance-income">
-                    {showValues ? formatCurrency(row.fixedIncome || 0) : hiddenValue}
-                  </TableCell>
-                  <TableCell className="text-right text-finance-expense">
-                    {showValues ? formatCurrency(row.fixedExpense || 0) : hiddenValue}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {tableData.map((row) => {
+                // Calculate fixed balance and fixed difference
+                const fixedBalance = (row.fixedIncome || 0) - (row.fixedExpense || 0);
+                const fixedDifferenceRate = row.fixedIncome && row.fixedIncome > 0 
+                  ? ((fixedBalance / row.fixedIncome) * 100).toFixed(2) 
+                  : "0.00";
+                
+                return (
+                  <TableRow key={row.month}>
+                    <TableCell className="font-medium">{row.monthName}</TableCell>
+                    <TableCell className="text-right text-finance-income">
+                      {showValues ? formatCurrency(row.income) : hiddenValue}
+                    </TableCell>
+                    <TableCell className="text-right text-finance-expense">
+                      {showValues ? formatCurrency(row.expense) : hiddenValue}
+                    </TableCell>
+                    <TableCell className={`text-right ${row.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {showValues ? formatCurrency(row.balance) : hiddenValue}
+                    </TableCell>
+                    <TableCell className={`text-right ${parseFloat(row.differenceRate) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {showValues ? `${row.differenceRate}%` : hiddenValue}
+                    </TableCell>
+                    <TableCell className="text-right text-finance-income">
+                      {showValues ? formatCurrency(row.fixedIncome || 0) : hiddenValue}
+                    </TableCell>
+                    <TableCell className="text-right text-finance-expense">
+                      {showValues ? formatCurrency(row.fixedExpense || 0) : hiddenValue}
+                    </TableCell>
+                    <TableCell className={`text-right ${fixedBalance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {showValues ? formatCurrency(fixedBalance) : hiddenValue}
+                    </TableCell>
+                    <TableCell className={`text-right ${parseFloat(fixedDifferenceRate) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {showValues ? `${fixedDifferenceRate}%` : hiddenValue}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

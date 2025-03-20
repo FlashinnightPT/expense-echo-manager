@@ -63,6 +63,11 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      const fixedIncome = payload.find((p: any) => p.name === "FixedIncome")?.value || 0;
+      const fixedExpenses = payload.find((p: any) => p.name === "FixedExpenses")?.value || 0;
+      const difference = payload.find((p: any) => p.name === "Difference")?.value || 0;
+      const percentage = fixedIncome > 0 ? ((difference / fixedIncome) * 100).toFixed(2) : "0.00";
+      
       return (
         <div className="glass p-4 rounded-md border shadow-sm">
           <p className="font-medium">{label}</p>
@@ -71,10 +76,15 @@ const FixedExpensesYearlyChart = ({ filteredData, showValues = true }: FixedExpe
               {`${entry.name}: ${showValues ? formatCurrency(entry.value) : "•••••••"}`}
             </p>
           ))}
-          {payload.length >= 2 && payload[0].payload.Difference !== undefined && (
-            <p className="text-sm mt-1 pt-1 border-t" style={{ color: "hsl(var(--primary))" }}>
-              {`Diferença: ${showValues ? formatCurrency(payload[0].payload.Difference) : "•••••••"}`}
-            </p>
+          {payload.length >= 2 && (
+            <>
+              <p className="text-sm mt-1 pt-1 border-t" style={{ color: "hsl(var(--primary))" }}>
+                {`Diferença: ${showValues ? formatCurrency(difference) : "•••••••"}`}
+              </p>
+              <p className="text-sm" style={{ color: difference >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>
+                {`Percentagem: ${showValues ? `${percentage}%` : "•••••••"}`}
+              </p>
+            </>
           )}
         </div>
       );
