@@ -1,53 +1,92 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Transaction } from "@/utils/mockData";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useTransactionData = () => {
-  const initTransactions = () => {
-    const storedTransactions = localStorage.getItem('transactions');
+  const [transactionList, setTransactionList] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchTransactions = async () => {
     try {
-      return storedTransactions ? JSON.parse(storedTransactions) : [];
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*');
+        
+      if (error) {
+        throw error;
+      }
+      
+      setTransactionList(data || []);
     } catch (error) {
-      console.error("Error parsing transactions from localStorage:", error);
-      return [];
+      console.error("Error fetching transactions from Supabase:", error);
+      toast.error("Erro ao carregar transações");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const [transactionList, setTransactionList] = useState(initTransactions());
-
   useEffect(() => {
+    fetchTransactions();
+    
     const handleStorageChange = () => {
       console.log("Storage changed, updating transaction list");
-      setTransactionList(initTransactions());
+      fetchTransactions();
     };
     
     window.addEventListener('storage', handleStorageChange);
     
+    // Subscribe to Supabase real-time changes
+    const subscription = supabase
+      .channel('table-db-changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'transactions' 
+      }, () => {
+        fetchTransactions();
+      })
+      .subscribe();
+    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      subscription.unsubscribe();
     };
   }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('transactions', JSON.stringify(transactionList));
-    } catch (error) {
-      console.error("Error saving transactions to localStorage:", error);
-    }
-  }, [transactionList]);
 
   const isCategoryUsedInTransactions = (categoryId: string) => {
     return transactionList.some(transaction => transaction.categoryId === categoryId);
   };
 
-  const confirmClearTransactions = () => {
-    if (window.confirm("Tem certeza que deseja apagar todas as transações? Esta ação não pode ser desfeita.")) {
-      setTransactionList([]);
-      localStorage.setItem('transactions', JSON.stringify([]));
-      toast.success("Todas as transações foram apagadas com sucesso");
-      return true;
+  const confirmClearTransactions = async () => {
+    try {
+      if (window.confirm("Tem certeza que deseja apagar todas as transações? Esta ação não pode ser desfeita.")) {
+        const { error } = await supabase
+          .from('transactions')
+          .delete()
+          .neq('id', 'dummy');
+          
+        if (error) {
+          throw error;
+        }
+        
+        // Update local state
+        setTransactionList([]);
+        toast.success("Todas as transações foram apagadas com sucesso");
+        
+        // Dispatch event for other components
+        window.dispatchEvent(new Event('storage'));
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Erro ao limpar transações:", error);
+      toast.error("Erro ao apagar transações");
+      return false;
     }
-    return false;
   };
 
   const getFilteredTransactions = (year?: number, month?: number, type?: 'income' | 'expense') => {
@@ -66,7 +105,7 @@ export const useTransactionData = () => {
     });
   };
 
-  const generateTestTransactions = (categoryList: any[]) => {
+  const generateTestTransactions = async (categoryList: any[]) => {
     try {
       if (!categoryList || categoryList.length === 0) {
         toast.error("Não existem categorias para gerar transações");
@@ -124,9 +163,23 @@ export const useTransactionData = () => {
         }
       });
 
+      // Save transactions to Supabase
+      const { error } = await supabase
+        .from('transactions')
+        .insert(newTransactions);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
       setTransactionList(prev => [...prev, ...newTransactions]);
       
       toast.success(`${transactionsCreated} transações de teste foram criadas com sucesso`);
+      
+      // Dispatch event for other components
+      window.dispatchEvent(new Event('storage'));
+      
       return true;
     } catch (error) {
       console.error("Erro ao gerar transações de teste:", error);
@@ -140,6 +193,7 @@ export const useTransactionData = () => {
     isCategoryUsedInTransactions,
     confirmClearTransactions,
     getFilteredTransactions,
-    generateTestTransactions
+    generateTestTransactions,
+    isLoading
   };
 };

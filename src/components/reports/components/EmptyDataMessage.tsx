@@ -13,7 +13,7 @@ const EmptyDataMessage = ({ type, year, hasCategories }: EmptyDataMessageProps) 
       <Alert className="my-4">
         <AlertTitle>Nenhuma categoria encontrada</AlertTitle>
         <AlertDescription>
-          Não existem categorias de {type === 'income' ? 'receitas' : 'despesas'} definidas.
+          Não existem categorias de {type === 'income' ? 'receitas' : 'despesas'} definidas no Supabase.
           Por favor, adicione categorias na página de Categorias.
         </AlertDescription>
       </Alert>
@@ -24,7 +24,7 @@ const EmptyDataMessage = ({ type, year, hasCategories }: EmptyDataMessageProps) 
     <Alert className="my-4" variant="default">
       <AlertTitle>Sem transações para este período</AlertTitle>
       <AlertDescription>
-        Não existem transações de {type === 'income' ? 'receitas' : 'despesas'} para o ano {year}
+        Não existem transações de {type === 'income' ? 'receitas' : 'despesas'} para o ano {year} no Supabase.
       </AlertDescription>
     </Alert>
   );

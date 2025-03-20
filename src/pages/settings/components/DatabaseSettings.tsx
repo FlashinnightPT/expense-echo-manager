@@ -1,9 +1,11 @@
 
 import { useRef } from "react";
-import { FileJson, Import, Upload } from "lucide-react";
+import { FileJson, Import, Upload, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
-import { exportDatabase, importDatabase } from "@/utils/databaseUtils";
+import { exportDatabase, importDatabase, clearAllData } from "@/utils/databaseUtils";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
 
 interface DatabaseSettingsProps {
   className?: string;
@@ -11,6 +13,7 @@ interface DatabaseSettingsProps {
 
 const DatabaseSettings = ({ className }: DatabaseSettingsProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [openClearDialog, setOpenClearDialog] = useState(false);
   
   const handleExportDatabase = () => {
     exportDatabase();
@@ -45,12 +48,19 @@ const DatabaseSettings = ({ className }: DatabaseSettingsProps) => {
     }
   };
 
+  const handleClearAllData = async () => {
+    if (await clearAllData()) {
+      setOpenClearDialog(false);
+      window.location.reload();
+    }
+  };
+
   return (
     <Card className={className}>
       <CardHeader>
         <CardTitle>Base de Dados</CardTitle>
         <CardDescription>
-          Exporte ou importe todos os dados da aplicação
+          Exporte, importe ou limpe todos os dados da aplicação
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -96,6 +106,42 @@ const DatabaseSettings = ({ className }: DatabaseSettingsProps) => {
             </Button>
           </div>
         </div>
+
+        <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+          <h3 className="text-lg font-medium mb-2 flex items-center gap-2 text-red-700 dark:text-red-400">
+            <Trash2 className="h-5 w-5" />
+            Limpar Todos os Dados
+          </h3>
+          <p className="text-sm text-red-600 dark:text-red-400 mb-4">
+            Remova permanentemente todas as categorias e transações do sistema. Esta ação não pode ser desfeita.
+          </p>
+          <Button 
+            variant="destructive"
+            className="w-full"
+            onClick={() => setOpenClearDialog(true)}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Limpar Todos os Dados
+          </Button>
+        </div>
+
+        <Dialog open={openClearDialog} onOpenChange={setOpenClearDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Limpar Todos os Dados</DialogTitle>
+              <DialogDescription>
+                Esta ação irá apagar permanentemente todas as categorias e transações do sistema. 
+                Os dados não poderão ser recuperados após esta operação.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpenClearDialog(false)}>Cancelar</Button>
+              <Button variant="destructive" onClick={handleClearAllData}>
+                Confirmar Exclusão
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

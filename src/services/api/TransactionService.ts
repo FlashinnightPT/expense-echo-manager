@@ -34,35 +34,22 @@ export class TransactionService extends ApiServiceCore {
   }
 
   public async getTransactions(): Promise<Transaction[]> {
-    if (this.isConnected()) {
-      try {
-        const { data, error } = await supabase
-          .from('transactions')
-          .select('*');
-        
-        if (error) throw error;
-        
-        // Atualizar o localStorage como cache
-        localStorage.setItem('transactions', JSON.stringify(data || []));
-        
-        return data || [];
-      } catch (error) {
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*');
+      
+      if (error) {
         console.error("Erro ao buscar transações do Supabase:", error);
-        toast.error("Erro ao buscar transações. Usando dados em cache.");
-        
-        // Fallback para localStorage
-        const storedTransactions = localStorage.getItem('transactions');
-        return storedTransactions ? JSON.parse(storedTransactions) : [];
+        toast.error("Erro ao buscar transações");
+        return [];
       }
-    } else {
-      // Modo offline - usar localStorage
-      const storedTransactions = localStorage.getItem('transactions');
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const transactions = storedTransactions ? JSON.parse(storedTransactions) : [];
-          resolve(transactions);
-        }, 300);
-      });
+      
+      return data || [];
+    } catch (error) {
+      console.error("Erro ao buscar transações do Supabase:", error);
+      toast.error("Erro ao buscar transações");
+      return [];
     }
   }
 
@@ -76,131 +63,51 @@ export class TransactionService extends ApiServiceCore {
       type: transaction.type || "expense"
     };
     
-    if (this.isConnected()) {
-      try {
-        const { data, error } = await supabase
-          .from('transactions')
-          .insert([newTransaction])
-          .select()
-          .single();
-        
-        if (error) throw error;
-        
-        // Atualizar cache local
-        const transactions = await this.getTransactions();
-        const updatedTransactions = [...transactions, data || newTransaction];
-        localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-        
-        // Simula evento para outros componentes
-        window.dispatchEvent(new Event('storage'));
-        
-        return data || newTransaction;
-      } catch (error) {
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert([newTransaction])
+        .select()
+        .single();
+      
+      if (error) {
         console.error("Erro ao salvar transação no Supabase:", error);
-        toast.error("Erro ao salvar transação online. Salvando localmente.");
-        
-        // Adicionar operação à fila para sincronizar depois
-        this.addPendingOperation(async () => {
-          await this.saveTransaction(newTransaction);
-        });
-        
-        // Salvar localmente como fallback
-        const storedTransactions = localStorage.getItem('transactions');
-        const transactions = storedTransactions ? JSON.parse(storedTransactions) : [];
-        const updatedTransactions = [...transactions, newTransaction];
-        localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-        
-        window.dispatchEvent(new Event('storage'));
-        
+        toast.error("Erro ao salvar transação");
         return newTransaction;
       }
-    } else {
-      // Modo offline - salvar no localStorage e adicionar à fila
-      return new Promise((resolve) => {
-        setTimeout(async () => {
-          const transactions = await this.getTransactions();
-          const updatedTransactions = [...transactions, newTransaction];
-          localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-          
-          // Adicionar à fila para sincronizar quando online
-          this.addPendingOperation(async () => {
-            await this.saveTransaction(newTransaction);
-          });
-          
-          // Simula evento para outros componentes
-          window.dispatchEvent(new Event('storage'));
-          
-          resolve(newTransaction);
-        }, 500);
-      });
+      
+      // Simula evento para outros componentes
+      window.dispatchEvent(new Event('storage'));
+      
+      return data || newTransaction;
+    } catch (error) {
+      console.error("Erro ao salvar transação no Supabase:", error);
+      toast.error("Erro ao salvar transação");
+      return newTransaction;
     }
   }
 
   public async deleteTransaction(transactionId: string): Promise<boolean> {
-    if (this.isConnected()) {
-      try {
-        const { error } = await supabase
-          .from('transactions')
-          .delete()
-          .eq('id', transactionId);
-        
-        if (error) throw error;
-        
-        // Atualizar cache local
-        const storedTransactions = localStorage.getItem('transactions');
-        if (storedTransactions) {
-          const transactions = JSON.parse(storedTransactions);
-          const updatedTransactions = transactions.filter((t: Transaction) => t.id !== transactionId);
-          localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-        }
-        
-        // Simula evento para outros componentes
-        window.dispatchEvent(new Event('storage'));
-        
-        return true;
-      } catch (error) {
+    try {
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', transactionId);
+      
+      if (error) {
         console.error("Erro ao excluir transação do Supabase:", error);
-        toast.error("Erro ao excluir transação online. Excluindo localmente.");
-        
-        // Adicionar operação à fila para sincronizar depois
-        this.addPendingOperation(async () => {
-          await this.deleteTransaction(transactionId);
-        });
-        
-        // Excluir localmente como fallback
-        const storedTransactions = localStorage.getItem('transactions');
-        if (storedTransactions) {
-          const transactions = JSON.parse(storedTransactions);
-          const updatedTransactions = transactions.filter((t: Transaction) => t.id !== transactionId);
-          localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-        }
-        
-        window.dispatchEvent(new Event('storage'));
-        
-        return true;
+        toast.error("Erro ao excluir transação");
+        return false;
       }
-    } else {
-      // Modo offline - excluir do localStorage e adicionar à fila
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const storedTransactions = localStorage.getItem('transactions');
-          if (storedTransactions) {
-            const transactions = JSON.parse(storedTransactions);
-            const updatedTransactions = transactions.filter((t: Transaction) => t.id !== transactionId);
-            localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-          }
-          
-          // Adicionar à fila para sincronizar quando online
-          this.addPendingOperation(async () => {
-            await this.deleteTransaction(transactionId);
-          });
-          
-          // Simula evento para outros componentes
-          window.dispatchEvent(new Event('storage'));
-          
-          resolve(true);
-        }, 500);
-      });
+      
+      // Simula evento para outros componentes
+      window.dispatchEvent(new Event('storage'));
+      
+      return true;
+    } catch (error) {
+      console.error("Erro ao excluir transação do Supabase:", error);
+      toast.error("Erro ao excluir transação");
+      return false;
     }
   }
 }
