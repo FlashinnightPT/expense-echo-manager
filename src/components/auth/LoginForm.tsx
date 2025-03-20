@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from "react";
-import { Eye, EyeOff, LogIn, User, Lock, Check, X, InfoIcon } from "lucide-react";
+import { Eye, EyeOff, LogIn, User, Lock, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui-custom/Card";
@@ -400,46 +399,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
                 </button>
               </div>
             </div>
-            
-            <Dialog open={showCredentialsDialog} onOpenChange={setShowCredentialsDialog}>
-              <DialogTrigger asChild>
-                <Button 
-                  type="button" 
-                  variant="link" 
-                  size="sm" 
-                  className="w-full mt-1 text-muted-foreground hover:text-primary"
-                >
-                  <InfoIcon className="h-4 w-4 mr-1" /> Precisa de ajuda para aceder?
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Informações de Acesso</DialogTitle>
-                  <DialogDescription>
-                    Utilize as seguintes credenciais padrão para aceder à aplicação pela primeira vez.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="p-4 bg-blue-500/10 rounded-md border border-blue-200 dark:border-blue-900">
-                  <p className="font-medium">Credenciais de acesso padrão:</p>
-                  <p className="mb-2">
-                    <strong>Utilizador:</strong> admin<br />
-                    <strong>Senha:</strong> admin123
-                  </p>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Estas são credenciais iniciais. Por razões de segurança, altere a senha após o primeiro acesso.
-                  </p>
-                  <Button 
-                    type="button" 
-                    variant="secondary" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={applyDefaultCredentials}
-                  >
-                    Aplicar credenciais padrão
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
           </CardContent>
           <CardFooter>
             <Button 
@@ -457,6 +416,36 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           </CardFooter>
         </form>
       </Card>
+      
+      <Dialog open={showCredentialsDialog} onOpenChange={setShowCredentialsDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Informações de Acesso</DialogTitle>
+            <DialogDescription>
+              Utilize as seguintes credenciais padrão para aceder à aplicação pela primeira vez.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-4 bg-blue-500/10 rounded-md border border-blue-200 dark:border-blue-900">
+            <p className="font-medium">Credenciais de acesso padrão:</p>
+            <p className="mb-2">
+              <strong>Utilizador:</strong> admin<br />
+              <strong>Senha:</strong> admin123
+            </p>
+            <p className="text-xs text-muted-foreground mb-3">
+              Estas são credenciais iniciais. Por razões de segurança, altere a senha após o primeiro acesso.
+            </p>
+            <Button 
+              type="button" 
+              variant="secondary" 
+              size="sm" 
+              className="w-full"
+              onClick={applyDefaultCredentials}
+            >
+              Aplicar credenciais padrão
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
