@@ -7,6 +7,7 @@ export type TransactionCategory = {
   level: number;
   parentId?: string | null;
   isFixedExpense?: boolean;
+  isActive?: boolean;
 };
 
 export type Transaction = {
