@@ -8,23 +8,51 @@ import { categoryModelToDb, dbToCategoryModel } from "@/utils/supabaseAdapters";
 // Class specifically for category creation operations
 export class CategoryCreateService extends CategoryServiceBase {
   public async saveCategory(category: Partial<TransactionCategory>): Promise<TransactionCategory> {
+    const isNewCategory = !category.id;
+    
+    // For new categories, generate an ID
+    if (isNewCategory) {
+      category.id = `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    }
+    
     const newCategory: TransactionCategory = {
-      id: category.id || `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: category.id || "",
       name: category.name || "",
       type: category.type || "expense",
       level: category.level || 1,
       parentId: category.parentId,
+      isFixedExpense: category.isFixedExpense === true,
+      isActive: category.isActive !== false
     };
     
     try {
       // Convert to database format
       const dbCategory = categoryModelToDb(newCategory);
       
-      const { data, error } = await supabase
-        .from('categories')
-        .insert([dbCategory])
-        .select()
-        .single();
+      let data;
+      let error;
+      
+      if (isNewCategory) {
+        // If it's a new category, use insert
+        const result = await supabase
+          .from('categories')
+          .insert([dbCategory])
+          .select()
+          .single();
+          
+        data = result.data;
+        error = result.error;
+      } else {
+        // If it's an existing category, use upsert with onConflict('id')
+        const result = await supabase
+          .from('categories')
+          .upsert(dbCategory, { onConflict: 'id' })
+          .select()
+          .single();
+          
+        data = result.data;
+        error = result.error;
+      }
       
       if (error) {
         console.error("Erro ao salvar categoria no Supabase:", error);
