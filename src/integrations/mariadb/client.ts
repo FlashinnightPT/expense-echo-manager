@@ -1,13 +1,12 @@
-
 // This is a browser-compatible version of the MariaDB client
 // In a real application, you would need a backend API to connect to MariaDB
 
 // Configuration for MariaDB connection (for reference only in browser)
-const DB_HOST = process.env.DB_HOST || 'localhost';
-const DB_USER = process.env.DB_USER || 'root';
-const DB_PASSWORD = process.env.DB_PASSWORD || '';
-const DB_NAME = process.env.DB_NAME || 'financialapp';
-const DB_PORT = parseInt(process.env.DB_PORT || '3306');
+const DB_HOST = import.meta.env.VITE_DB_HOST || 'localhost';
+const DB_USER = import.meta.env.VITE_DB_USER || 'root';
+const DB_PASSWORD = import.meta.env.VITE_DB_PASSWORD || '';
+const DB_NAME = import.meta.env.VITE_DB_NAME || 'financialapp';
+const DB_PORT = parseInt(import.meta.env.VITE_DB_PORT || '3306');
 
 // Mock storage for browser environment
 type StorageRecord = Record<string, any[]>;
