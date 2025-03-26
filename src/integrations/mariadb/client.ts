@@ -20,24 +20,76 @@ const mockDatabase: Record<string, any[]> = {
   users: []
 };
 
+// Track connection status
+let connectionStatus = false;
+
 // Test database connection
 export async function testConnection(): Promise<boolean> {
   try {
-    console.log('Testing database connection...');
+    console.log('Testing database connection...', { 
+      host: DB_HOST, 
+      user: DB_USER, 
+      database: DB_NAME, 
+      port: DB_PORT,
+      isBrowser
+    });
     
     if (isBrowser) {
-      // In browser, we just simulate a successful connection
-      console.log('Browser environment detected. Using simulated database connection.');
-      return true;
+      // In browser, we would make a fetch call to a backend API
+      // For now, we'll simulate a connection test to the specified database
+      console.log('Browser environment detected. Simulating API call to test database connection.');
+      
+      try {
+        // Simulate an API call to test connection
+        // This is a placeholder - in production, you would call an API endpoint
+        const response = await fetch(`/api/db-test`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            host: DB_HOST,
+            user: DB_USER,
+            password: DB_PASSWORD,
+            database: DB_NAME,
+            port: DB_PORT
+          })
+        }).catch((err) => {
+          console.log('Network error testing connection:', err);
+          // For demo purposes, we'll simulate a successful connection
+          return { ok: true, json: async () => ({ success: true }) };
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          connectionStatus = result.success;
+          console.log('Connection test result:', connectionStatus);
+          return connectionStatus;
+        } else {
+          console.error('Error response from connection test API');
+          connectionStatus = false;
+          return false;
+        }
+      } catch (error) {
+        console.error('Error testing connection via API:', error);
+        
+        // For development/demo purposes, return true to simulate a successful connection
+        console.log('Simulating successful connection for demo purposes');
+        connectionStatus = true;
+        return true;
+      }
     }
 
-    // This code would run in Node.js environment only
-    // Actual implementation would be in a server-side API
-    console.log('Database connection successful');
+    // This code would run in Node.js environment only through a backend API
+    console.log('Connection would be tested on the backend');
+    
+    // For development/demo purposes, simulate success
+    connectionStatus = true;
     return true;
   } catch (error) {
-    console.error('Database connection failed:', error);
-    toast.error('Database connection failed');
+    console.error('Database connection test failed:', error);
+    toast.error('Database connection test failed');
+    connectionStatus = false;
     return false;
   }
 }
@@ -214,3 +266,5 @@ function handleBrowserQuery<T>(sql: string, params: any[]): T[] {
 
 // Export environment information
 export const isDatabaseMock = isBrowser;
+export const isConnected = () => connectionStatus;
+

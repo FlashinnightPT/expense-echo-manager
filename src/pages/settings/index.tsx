@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/auth";
 import AppearanceSettings from "./components/AppearanceSettings";
 import CurrencySettings from "./components/CurrencySettings";
 import DatabaseSettings from "./components/DatabaseSettings";
+import DatabaseConnectionTest from "./components/DatabaseConnectionTest";
 import BackupSettings from "./components/BackupSettings";
 import PreferencesSettings from "./components/PreferencesSettings";
 import SupabaseConnectionTest from "./components/SupabaseConnectionTest";
@@ -37,15 +38,17 @@ const Settings = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {canEdit && <DatabaseSettings className="animate-fade-in-up animation-delay-200 md:col-span-2" />}
         
-        {canEdit && <SupabaseConnectionTest className="animate-fade-in-up animation-delay-250" />}
+        {canEdit && <DatabaseConnectionTest className="animate-fade-in-up animation-delay-250" />}
         
-        <AppearanceSettings className="animate-fade-in-up animation-delay-300" />
+        {canEdit && <SupabaseConnectionTest className="animate-fade-in-up animation-delay-300" />}
         
-        <CurrencySettings className="animate-fade-in-up animation-delay-400" />
+        <AppearanceSettings className="animate-fade-in-up animation-delay-400" />
         
-        {canEdit && <BackupSettings className="animate-fade-in-up animation-delay-500" />}
+        <CurrencySettings className="animate-fade-in-up animation-delay-500" />
         
-        {canEdit && <PreferencesSettings className="animate-fade-in-up animation-delay-600" />}
+        {canEdit && <BackupSettings className="animate-fade-in-up animation-delay-600" />}
+        
+        {canEdit && <PreferencesSettings className="animate-fade-in-up animation-delay-700" />}
       </div>
     </div>
   );
