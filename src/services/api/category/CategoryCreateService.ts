@@ -1,9 +1,9 @@
 
 import { TransactionCategory } from "@/utils/mockData";
 import { CategoryServiceBase } from "./CategoryServiceBase";
-import { supabase } from "@/integrations/supabase/client";
+import { query, insert, update } from "@/integrations/mariadb/client";
 import { toast } from "sonner";
-import { categoryModelToDb, dbToCategoryModel } from "@/utils/supabaseAdapters";
+import { categoryModelToDb, dbToCategoryModel } from "@/utils/mariadbAdapters";
 
 // Class specifically for category creation operations
 export class CategoryCreateService extends CategoryServiceBase {
@@ -38,30 +38,18 @@ export class CategoryCreateService extends CategoryServiceBase {
       console.log("isactive value after conversion:", dbCategory.isactive, "type:", typeof dbCategory.isactive);
       
       let data;
-      let error;
       
       if (isNewCategory) {
         // If it's a new category, use insert
-        const result = await supabase
-          .from('categories')
-          .insert([dbCategory])
-          .select()
-          .single();
-          
-        data = result.data;
-        error = result.error;
-      } else {
-        // Log exactly what will be updated
-        console.log("UPDATING EXISTING CATEGORY:", {
-          id: dbCategory.id,
-          isactive: dbCategory.isactive,
-          isfixedexpense: dbCategory.isfixedexpense,
-          name: dbCategory.name,
-          type: dbCategory.type,
-          level: dbCategory.level,
-          parentid: dbCategory.parentid
-        });
+        await insert('categories', dbCategory);
         
+        // Retrieve the inserted category
+        const [insertedCategory] = await query(`
+          SELECT * FROM categories WHERE id = ?
+        `, [dbCategory.id]);
+        
+        data = insertedCategory;
+      } else {
         // FIX: Create an explicit update object with only the fields that should be updated
         // This ensures we're not sending null values and that booleans are properly handled
         const updateData = {
@@ -75,37 +63,36 @@ export class CategoryCreateService extends CategoryServiceBase {
         
         console.log("Final update data:", updateData);
         
-        // If it's an existing category, use update with the explicit update object
-        const result = await supabase
-          .from('categories')
-          .update(updateData)
-          .eq('id', dbCategory.id)
-          .select()
-          .single();
-          
-        data = result.data;
-        error = result.error;
+        // If it's an existing category, use update
+        await update('categories', updateData, 'id = ?', [dbCategory.id]);
         
-        console.log("Update result:", result);
+        // Retrieve the updated category
+        const [updatedCategory] = await query(`
+          SELECT * FROM categories WHERE id = ?
+        `, [dbCategory.id]);
+        
+        data = updatedCategory;
+        
+        console.log("Update result:", data);
       }
       
-      if (error) {
-        console.error("Error saving category to Supabase:", error);
-        toast.error("Error saving category to Supabase");
+      if (!data) {
+        console.error("Error saving category to MariaDB: No data returned");
+        toast.error("Error saving category to MariaDB");
         return normalizedCategory;
       }
       
       // Dispatch event for other components
       window.dispatchEvent(new Event('storage'));
       
-      console.log("Category saved to Supabase (response):", data);
+      console.log("Category saved to MariaDB (response):", data);
       
       // Convert from database format back to application model
       const convertedCategory = dbToCategoryModel(data);
       console.log("Category after conversion back:", convertedCategory);
       return convertedCategory || normalizedCategory;
     } catch (error) {
-      console.error("Error saving category to Supabase:", error);
+      console.error("Error saving category to MariaDB:", error);
       toast.error("Error saving category");
       return normalizedCategory;
     }
@@ -114,11 +101,9 @@ export class CategoryCreateService extends CategoryServiceBase {
   // This method is needed by saveCategory but is defined in another service
   private async getCategories(): Promise<TransactionCategory[]> {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*');
+      const data = await query(`SELECT * FROM categories`);
       
-      if (error) throw error;
+      if (!data) throw new Error("No data returned");
       
       // Transform database records to application model
       return (data || []).map(dbToCategoryModel);

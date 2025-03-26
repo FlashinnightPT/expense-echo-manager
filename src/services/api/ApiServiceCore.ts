@@ -1,8 +1,8 @@
 
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { testConnection } from "@/integrations/mariadb/client";
 
-// Core API Service class com funcionalidade para Supabase e fallback para localStorage
+// Core API Service class with functionality for MariaDB and fallback for localStorage
 export class ApiServiceCore {
   // Using protected instead of private to allow proper inheritance
   protected static instances: Record<string, any> = {};
@@ -10,19 +10,19 @@ export class ApiServiceCore {
   protected pendingOperations: Array<() => Promise<void>> = [];
 
   protected constructor() {
-    // Inicializar verificação de conexão
+    // Initialize connection check
     this.checkConnection();
     
-    // Monitorar o estado da conexão
+    // Monitor connection state
     window.addEventListener('online', () => {
-      toast.success("Conexão com o servidor restaurada");
+      toast.success("Connection restored");
       this.checkConnection();
       this.syncData();
     });
     
     window.addEventListener('offline', () => {
       this.connected = false;
-      toast.warning("Sem conexão com o servidor. Modo offline ativado.");
+      toast.warning("No connection. Offline mode activated.");
     });
   }
 
@@ -37,25 +37,24 @@ export class ApiServiceCore {
     return ApiServiceCore.instances[className] as T;
   }
 
-  // Verificar conexão com o Supabase
+  // Check connection with MariaDB
   protected async checkConnection(): Promise<void> {
     try {
-      const { data, error } = await supabase.from('transactions').select('count');
-      this.connected = !error;
-      console.log(`Supabase connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
+      this.connected = await testConnection();
+      console.log(`MariaDB connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
     } catch (error) {
       this.connected = false;
-      console.error("Error checking Supabase connection:", error);
+      console.error("Error checking MariaDB connection:", error);
     }
   }
 
-  // Método para sincronizar dados pendentes quando voltar online
+  // Method to synchronize pending data when back online
   protected async syncData(): Promise<void> {
     if (!this.connected) return;
     
-    console.log("Sincronizando dados pendentes com o servidor...");
+    console.log("Synchronizing pending data with the server...");
     
-    // Executar operações pendentes
+    // Execute pending operations
     const operations = [...this.pendingOperations];
     this.pendingOperations = [];
     
@@ -63,27 +62,27 @@ export class ApiServiceCore {
       try {
         await operation();
       } catch (error) {
-        console.error("Erro ao sincronizar operação:", error);
-        // Readicionar operação à fila se falhar
+        console.error("Error synchronizing operation:", error);
+        // Re-add operation to queue if it fails
         this.pendingOperations.push(operation);
       }
     }
     
     if (this.pendingOperations.length > 0) {
-      toast.warning(`${this.pendingOperations.length} operações não puderam ser sincronizadas.`);
+      toast.warning(`${this.pendingOperations.length} operations could not be synchronized.`);
     } else if (operations.length > 0) {
-      toast.success("Dados sincronizados com sucesso!");
+      toast.success("Data synchronized successfully!");
     }
   }
 
-  // Método para verificar a conexão atual
+  // Method to check current connection
   public isConnected(): boolean {
     return this.connected && navigator.onLine;
   }
   
-  // Método para adicionar operação à fila quando offline - now public
+  // Method to add operation to queue when offline - now public
   public addPendingOperation(operation: () => Promise<void>): void {
     this.pendingOperations.push(operation);
-    toast.info("Operação guardada para sincronização posterior");
+    toast.info("Operation stored for later synchronization");
   }
 }

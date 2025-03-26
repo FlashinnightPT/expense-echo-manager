@@ -1,29 +1,27 @@
 
 import { TransactionCategory } from "@/utils/mockData";
 import { CategoryServiceBase } from "./CategoryServiceBase";
-import { supabase } from "@/integrations/supabase/client";
+import { query } from "@/integrations/mariadb/client";
 import { toast } from "sonner";
-import { dbToCategoryModel } from "@/utils/supabaseAdapters";
+import { dbToCategoryModel } from "@/utils/mariadbAdapters";
 
 // Class specifically for category fetch operations
 export class CategoryFetchService extends CategoryServiceBase {
   public async getCategories(): Promise<TransactionCategory[]> {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*');
+      const data = await query(`SELECT * FROM categories`);
       
-      if (error) {
-        console.error("Erro ao buscar categorias do Supabase:", error);
-        toast.error("Erro ao buscar categorias do Supabase");
+      if (!data) {
+        console.error("Error fetching categories from MariaDB: No data returned");
+        toast.error("Error fetching categories from MariaDB");
         return [];
       }
       
       // Transform database records to application model
       return (data || []).map(dbToCategoryModel);
     } catch (error) {
-      console.error("Erro ao buscar categorias do Supabase:", error);
-      toast.error("Erro ao buscar categorias.");
+      console.error("Error fetching categories from MariaDB:", error);
+      toast.error("Error fetching categories.");
       return [];
     }
   }

@@ -1,21 +1,19 @@
 
 import { CategoryServiceBase } from "./CategoryServiceBase";
-import { supabase } from "@/integrations/supabase/client";
+import { query, remove } from "@/integrations/mariadb/client";
 import { toast } from "sonner";
 import { TransactionCategory } from "@/utils/mockData";
+import { dbToCategoryModel } from "@/utils/mariadbAdapters";
 
 // Class specifically for category deletion operations
 export class CategoryDeleteService extends CategoryServiceBase {
   public async deleteCategory(categoryId: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', categoryId);
+      const affectedRows = await remove('categories', 'id = ?', [categoryId]);
       
-      if (error) {
-        console.error("Erro ao excluir categoria do Supabase:", error);
-        toast.error("Erro ao excluir categoria");
+      if (affectedRows === 0) {
+        console.error("Error deleting category from MariaDB: No rows affected");
+        toast.error("Error deleting category");
         return false;
       }
       
@@ -24,61 +22,40 @@ export class CategoryDeleteService extends CategoryServiceBase {
       
       return true;
     } catch (error) {
-      console.error("Erro ao excluir categoria do Supabase:", error);
-      toast.error("Erro ao excluir categoria");
+      console.error("Error deleting category from MariaDB:", error);
+      toast.error("Error deleting category");
       return false;
     }
   }
 
-  // Adiciona função para limpar todas as categorias exceto as de nível 1
+  // Add function to clear all categories except level 1
   public async clearNonRootCategories(categories: TransactionCategory[]): Promise<TransactionCategory[]> {
-    // Filtra apenas as categorias de nível 1 (raiz)
+    // Filter only the categories of level 1 (root)
     const rootCategories = categories.filter(cat => cat.level === 1);
     
-    // Identifica as categorias a serem removidas
+    // Identify the categories to be removed
     const categoriesToRemove = categories.filter(cat => cat.level > 1);
     
-    console.log("Limpando categorias. Mantendo apenas", rootCategories.length, "categorias raiz.");
-    console.log("Categorias a remover:", categoriesToRemove.length);
+    console.log("Cleaning categories. Keeping only", rootCategories.length, "root categories.");
+    console.log("Categories to remove:", categoriesToRemove.length);
     
-    // Também limpa as categorias no Supabase
+    // Also clean the categories in MariaDB
     if (categoriesToRemove.length > 0) {
       try {
-        // Busca todas as categorias que não são de nível 1
-        const { data, error } = await supabase
-          .from('categories')
-          .select('*')
-          .gt('level', 1);
+        // Delete all categories that are not level 1
+        const affectedRows = await query(`
+          DELETE FROM categories WHERE level > 1
+        `);
         
-        if (error) {
-          console.error("Erro ao buscar categorias para limpar:", error);
-          toast.error("Erro ao limpar categorias no Supabase");
-        } else if (data && data.length > 0) {
-          console.log("Categorias encontradas no Supabase para limpeza:", data.length);
-          
-          // Exclui todas as categorias que não são de nível 1
-          const { error: deleteError } = await supabase
-            .from('categories')
-            .delete()
-            .gt('level', 1);
-          
-          if (deleteError) {
-            console.error("Erro ao excluir categorias do Supabase:", deleteError);
-            toast.error("Erro ao limpar categorias no Supabase");
-          } else {
-            console.log("Categorias removidas do Supabase:", data.length);
-          }
-        } else {
-          console.log("Nenhuma categoria encontrada no Supabase para limpeza");
-        }
+        console.log("Categories removed from MariaDB:", affectedRows);
+        
+        toast.success(`${categoriesToRemove.length} categories were removed successfully.`);
       } catch (error) {
-        console.error("Erro ao limpar categorias no Supabase:", error);
-        toast.error("Erro ao limpar categorias no Supabase");
+        console.error("Error cleaning categories in MariaDB:", error);
+        toast.error("Error cleaning categories in MariaDB");
       }
-      
-      toast.success(`${categoriesToRemove.length} categorias foram removidas com sucesso.`);
     } else {
-      toast.info("Não há categorias para remover.");
+      toast.info("No categories to remove.");
     }
     
     return rootCategories;
