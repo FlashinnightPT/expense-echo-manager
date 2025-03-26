@@ -1,48 +1,51 @@
 
-// This is a browser-compatible version of the MariaDB client
-// In a real application, you would need a backend API to connect to MariaDB
+// Real MariaDB client implementation for production use
+import mysql from 'mysql2/promise';
 
-// Configuration for MariaDB connection (for reference only in browser)
+// Configuration for MariaDB connection
 const DB_HOST = import.meta.env.VITE_DB_HOST || '94.46.168.180';
 const DB_USER = import.meta.env.VITE_DB_USER || 'gfin_admin';
 const DB_PASSWORD = import.meta.env.VITE_DB_PASSWORD || 'P@gu89_lo#';
 const DB_NAME = import.meta.env.VITE_DB_NAME || 'GFIN_DB';
 const DB_PORT = parseInt(import.meta.env.VITE_DB_PORT || '3306');
 
-// Mock storage for browser environment
-type StorageRecord = Record<string, any[]>;
-const mockStorage: Record<string, StorageRecord> = {
-  categories: {},
-  transactions: {},
-  users: {}
-};
+// Create connection pool
+export const pool = mysql.createPool({
+  host: DB_HOST,
+  user: DB_USER,
+  password: DB_PASSWORD,
+  database: DB_NAME,
+  port: DB_PORT,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
-// Test database connection - mock implementation for browser
+// Test database connection
 export async function testConnection(): Promise<boolean> {
-  console.log('Running mock database connection test');
-  // In browser environment, always return true
-  return true;
+  try {
+    console.log('Testing database connection...');
+    const connection = await pool.getConnection();
+    connection.release();
+    console.log('Database connection successful');
+    return true;
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    return false;
+  }
 }
 
-// Helper function to execute queries - mock implementation for browser
+// Helper function to execute queries
 export async function query<T>(sql: string, params: any[] = []): Promise<T[]> {
-  console.log('Mock query:', sql, params);
-  
-  // Very simple SQL parsing for basic SELECT queries
-  if (sql.toLowerCase().includes('select * from categories')) {
-    return Object.values(mockStorage.categories).flat() as unknown as T[];
+  try {
+    const [rows] = await pool.execute(sql, params);
+    return rows as T[];
+  } catch (error) {
+    console.error('Query execution error:', error);
+    console.error('SQL:', sql);
+    console.error('Params:', params);
+    throw error;
   }
-  
-  if (sql.toLowerCase().includes('select * from transactions')) {
-    return Object.values(mockStorage.transactions).flat() as unknown as T[];
-  }
-  
-  if (sql.toLowerCase().includes('select * from users')) {
-    return Object.values(mockStorage.users).flat() as unknown as T[];
-  }
-  
-  // For other queries, return empty array
-  return [] as T[];
 }
 
 // Helper function to execute a single query and return the first result
@@ -53,167 +56,83 @@ export async function querySingle<T>(sql: string, params: any[] = []): Promise<T
 
 // Helper function for inserting data
 export async function insert(table: string, data: Record<string, any>): Promise<number> {
-  console.log(`Mock insert into ${table}:`, data);
-  
-  // Store in our mock storage
-  if (!mockStorage[table]) {
-    mockStorage[table] = {};
-  }
-  
-  const id = data.id || `mock-${Date.now()}`;
-  data.id = id;
-  
-  if (!mockStorage[table][id]) {
-    mockStorage[table][id] = [];
-  }
-  
-  mockStorage[table][id].push(data);
-  
-  // Simulate localStorage persistence for browser environment
   try {
-    const storageKey = `mock_db_${table}`;
-    const existingData = localStorage.getItem(storageKey);
-    const parsedData = existingData ? JSON.parse(existingData) : {};
-    parsedData[id] = data;
-    localStorage.setItem(storageKey, JSON.stringify(parsedData));
-  } catch (e) {
-    console.warn('Could not persist to localStorage', e);
-  }
-  
-  return 1; // Return 1 for affected rows
-}
-
-// Helper function for updating data
-export async function update(table: string, data: Record<string, any>, whereClause: string, whereParams: any[] = []): Promise<number> {
-  console.log(`Mock update ${table}:`, data, whereClause, whereParams);
-  
-  // Very simple where clause parsing for id = ?
-  if (whereClause.includes('id = ?') && whereParams.length > 0) {
-    const id = whereParams[0];
+    const keys = Object.keys(data);
+    const values = Object.values(data);
+    const placeholders = keys.map(() => '?').join(', ');
     
-    if (mockStorage[table] && mockStorage[table][id]) {
-      // Update the mock record
-      const updatedRecord = { ...mockStorage[table][id][0], ...data };
-      mockStorage[table][id] = [updatedRecord];
-      
-      // Update localStorage
-      try {
-        const storageKey = `mock_db_${table}`;
-        const existingData = localStorage.getItem(storageKey);
-        const parsedData = existingData ? JSON.parse(existingData) : {};
-        parsedData[id] = updatedRecord;
-        localStorage.setItem(storageKey, JSON.stringify(parsedData));
-      } catch (e) {
-        console.warn('Could not persist to localStorage', e);
-      }
-      
-      return 1;
-    }
-  }
-  
-  return 0;
-}
-
-// Helper function for deleting data
-export async function remove(table: string, whereClause: string, whereParams: any[] = []): Promise<number> {
-  console.log(`Mock delete from ${table}:`, whereClause, whereParams);
-  
-  // Very simple where clause parsing for id = ?
-  if (whereClause.includes('id = ?') && whereParams.length > 0) {
-    const id = whereParams[0];
+    const sql = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`;
     
-    if (mockStorage[table] && mockStorage[table][id]) {
-      // Remove from mock storage
-      delete mockStorage[table][id];
-      
-      // Update localStorage
-      try {
-        const storageKey = `mock_db_${table}`;
-        const existingData = localStorage.getItem(storageKey);
-        const parsedData = existingData ? JSON.parse(existingData) : {};
-        delete parsedData[id];
-        localStorage.setItem(storageKey, JSON.stringify(parsedData));
-      } catch (e) {
-        console.warn('Could not persist to localStorage', e);
-      }
-      
-      return 1;
-    }
-  }
-  
-  return 0;
-}
-
-// Helper function to check if a table exists
-export async function tableExists(tableName: string): Promise<boolean> {
-  console.log(`Mock check if table exists: ${tableName}`);
-  // In browser mock, assume tables exist
-  return true;
-}
-
-// Helper for transactions - simplified mock for browser
-export async function transaction<T>(callback: (connection: any) => Promise<T>): Promise<T> {
-  console.log('Mock transaction started');
-  try {
-    const mockConnection = {
-      execute: async (sql: string, params: any[] = []) => {
-        console.log('Mock transaction execute:', sql, params);
-        return [[], null];
-      },
-      beginTransaction: async () => console.log('Mock begin transaction'),
-      commit: async () => console.log('Mock commit'),
-      rollback: async () => console.log('Mock rollback'),
-      release: () => console.log('Mock connection released')
-    };
-    
-    const result = await callback(mockConnection);
-    console.log('Mock transaction completed successfully');
-    return result;
+    const [result] = await pool.execute(sql, values);
+    return (result as any).affectedRows;
   } catch (error) {
-    console.log('Mock transaction failed', error);
+    console.error(`Error inserting into ${table}:`, error);
     throw error;
   }
 }
 
-// We don't need a real connection pool in browser
-export const pool = {
-  execute: async (sql: string, params: any[] = []) => {
-    console.log('Mock pool execute:', sql, params);
-    return [[], null];
-  },
-  getConnection: async () => {
-    return {
-      execute: async (sql: string, params: any[] = []) => {
-        console.log('Mock connection execute:', sql, params);
-        return [[], null];
-      },
-      beginTransaction: async () => console.log('Mock begin transaction'),
-      commit: async () => console.log('Mock commit'),
-      rollback: async () => console.log('Mock rollback'),
-      release: () => console.log('Mock connection released')
-    };
-  }
-};
-
-// Initialize mock data from localStorage
-export function initMockStorage() {
+// Helper function for updating data
+export async function update(table: string, data: Record<string, any>, whereClause: string, whereParams: any[] = []): Promise<number> {
   try {
-    ['categories', 'transactions', 'users'].forEach(table => {
-      const storageKey = `mock_db_${table}`;
-      const storedData = localStorage.getItem(storageKey);
-      if (storedData) {
-        const parsedData = JSON.parse(storedData);
-        Object.keys(parsedData).forEach(id => {
-          if (!mockStorage[table]) mockStorage[table] = {};
-          mockStorage[table][id] = [parsedData[id]];
-        });
-      }
-    });
-    console.log('Mock storage initialized from localStorage', mockStorage);
-  } catch (e) {
-    console.warn('Could not initialize mock storage from localStorage', e);
+    const setClause = Object.keys(data)
+      .map(key => `${key} = ?`)
+      .join(', ');
+    
+    const values = [...Object.values(data), ...whereParams];
+    
+    const sql = `UPDATE ${table} SET ${setClause} WHERE ${whereClause}`;
+    
+    const [result] = await pool.execute(sql, values);
+    return (result as any).affectedRows;
+  } catch (error) {
+    console.error(`Error updating ${table}:`, error);
+    throw error;
   }
 }
 
-// Initialize the mock storage when this module is loaded
-initMockStorage();
+// Helper function for deleting data
+export async function remove(table: string, whereClause: string, whereParams: any[] = []): Promise<number> {
+  try {
+    const sql = `DELETE FROM ${table} WHERE ${whereClause}`;
+    
+    const [result] = await pool.execute(sql, whereParams);
+    return (result as any).affectedRows;
+  } catch (error) {
+    console.error(`Error deleting from ${table}:`, error);
+    throw error;
+  }
+}
+
+// Helper function to check if a table exists
+export async function tableExists(tableName: string): Promise<boolean> {
+  try {
+    const sql = `
+      SELECT COUNT(*) as count
+      FROM information_schema.tables
+      WHERE table_schema = ?
+      AND table_name = ?
+    `;
+    
+    const [rows] = await pool.execute(sql, [DB_NAME, tableName]);
+    return (rows as any[])[0].count > 0;
+  } catch (error) {
+    console.error(`Error checking if table ${tableName} exists:`, error);
+    throw error;
+  }
+}
+
+// Helper for transactions
+export async function transaction<T>(callback: (connection: mysql.PoolConnection) => Promise<T>): Promise<T> {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const result = await callback(connection);
+    await connection.commit();
+    return result;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
