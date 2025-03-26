@@ -2,7 +2,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { getMonthName } from "@/utils/financialCalculations";
-import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+// Mock data for use in the browser
+const mockTransactions: Transaction[] = [];
+const mockCategories: TransactionCategory[] = [];
 
 export const useMonthlyData = () => {
   const currentYear = new Date().getFullYear();
@@ -12,61 +16,34 @@ export const useMonthlyData = () => {
   const [showValues, setShowValues] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Fetch transactions and categories from Supabase
+  // Fetch transactions and categories from mock data
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch both transactions and categories in parallel
-        const [transactionsResponse, categoriesResponse] = await Promise.all([
-          supabase.from('transactions').select('*'),
-          supabase.from('categories').select('*')
-        ]);
-          
-        if (transactionsResponse.error) {
-          console.error("Error fetching transactions:", transactionsResponse.error);
-          return;
-        }
-
-        if (categoriesResponse.error) {
-          console.error("Error fetching categories:", categoriesResponse.error);
-          return;
+        // Use mock data instead of Supabase
+        console.log("Fetching mock transaction and category data");
+        
+        // Retrieve from localStorage if available
+        const storedTransactions = localStorage.getItem('transactions');
+        const storedCategories = localStorage.getItem('categories');
+        
+        if (storedTransactions) {
+          const parsedTransactions = JSON.parse(storedTransactions);
+          setTransactions(parsedTransactions);
+        } else {
+          setTransactions(mockTransactions);
         }
         
-        if (transactionsResponse.data) {
-          // Convert database records to application model
-          const formattedData = transactionsResponse.data.map(item => ({
-            id: item.id,
-            description: item.description,
-            amount: Number(item.amount),
-            date: item.date,
-            categoryId: item.categoryid,
-            type: item.type as 'income' | 'expense'
-          }));
-          
-          setTransactions(formattedData);
-        }
-
-        if (categoriesResponse.data) {
-          // Convert database records to application model with isFixedExpense property
-          const formattedCategories = categoriesResponse.data.map(item => {
-            // Check if the category has a fixed expense property
-            const isFixedExpense = 'isfixedexpense' in item ? !!item.isfixedexpense : false;
-            
-            return {
-              id: item.id,
-              name: item.name,
-              type: item.type as 'income' | 'expense',
-              level: item.level,
-              parentId: item.parentid,
-              isFixedExpense: isFixedExpense
-            };
-          });
-          
-          setCategories(formattedCategories);
+        if (storedCategories) {
+          const parsedCategories = JSON.parse(storedCategories);
+          setCategories(parsedCategories);
+        } else {
+          setCategories(mockCategories);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        toast.error(`Error fetching data: ${error instanceof Error ? error.message : String(error)}`);
       } finally {
         setIsLoading(false);
       }
@@ -81,33 +58,16 @@ export const useMonthlyData = () => {
     // Initial fetch
     fetchData();
 
-    // Subscribe to real-time changes
-    const transactionSubscription = supabase
-      .channel('public:transactions')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public',
-        table: 'transactions' 
-      }, () => {
-        fetchData();
-      })
-      .subscribe();
-      
-    const categorySubscription = supabase
-      .channel('public:categories')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public',
-        table: 'categories' 
-      }, () => {
-        fetchData();
-      })
-      .subscribe();
-
-    // Cleanup subscriptions
+    // Listen for storage events to update data when it changes
+    const handleStorageChange = () => {
+      fetchData();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Cleanup event listener
     return () => {
-      transactionSubscription.unsubscribe();
-      categorySubscription.unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
   
