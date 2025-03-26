@@ -58,8 +58,17 @@ export function categoryModelToDb(category: Partial<TransactionCategory>): any {
 
 // Convert mock DB user to application model
 export function dbToUserModel(dbUser: any): UserData {
-  // Ensure role is of type UserRole
-  const role: UserRole = (dbUser.role as UserRole) || 'regular';
+  // Map the role from the database to a valid UserRole
+  // If the role is 'regular', map it to 'viewer' which is a valid UserRole
+  let role: UserRole;
+  if (dbUser.role === 'regular') {
+    role = 'viewer';
+  } else if (dbUser.role === 'editor' || dbUser.role === 'viewer') {
+    role = dbUser.role as UserRole;
+  } else {
+    // Default to 'viewer' for any other unrecognized role
+    role = 'viewer';
+  }
   
   return {
     id: dbUser.id || `mock-${Date.now()}`,
@@ -79,7 +88,7 @@ export function userModelToDb(user: Partial<UserData>): any {
     name: user.name || '',
     username: user.username || '',
     password: user.password || '',
-    role: user.role || 'regular',
+    role: user.role || 'viewer',
     status: user.status || 'active',
     last_login: user.lastLogin || null
   };
