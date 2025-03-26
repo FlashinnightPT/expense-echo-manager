@@ -1,11 +1,12 @@
+
 // This is a browser-compatible version of the MariaDB client
 // In a real application, you would need a backend API to connect to MariaDB
 
 // Configuration for MariaDB connection (for reference only in browser)
-const DB_HOST = import.meta.env.VITE_DB_HOST || 'localhost';
-const DB_USER = import.meta.env.VITE_DB_USER || 'root';
-const DB_PASSWORD = import.meta.env.VITE_DB_PASSWORD || '';
-const DB_NAME = import.meta.env.VITE_DB_NAME || 'financialapp';
+const DB_HOST = import.meta.env.VITE_DB_HOST || '94.46.168.180';
+const DB_USER = import.meta.env.VITE_DB_USER || 'gfin_admin';
+const DB_PASSWORD = import.meta.env.VITE_DB_PASSWORD || 'P@gu89_lo#';
+const DB_NAME = import.meta.env.VITE_DB_NAME || 'GFIN_DB';
 const DB_PORT = parseInt(import.meta.env.VITE_DB_PORT || '3306');
 
 // Mock storage for browser environment
