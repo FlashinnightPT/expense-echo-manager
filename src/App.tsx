@@ -1,5 +1,4 @@
-
-import { Suspense, lazy, useEffect } from "react";
+import { Suspense, lazy } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import "./App.css";
@@ -13,7 +12,9 @@ import { LoadingPage } from "@/components/ui/loading-spinner";
 
 // Main pages
 import Index from "@/pages/Index";
-const Painel = lazy(() => import("@/components/layout/Dashboard"));
+import Dashboard from "@/components/layout/Dashboard";
+
+// Keep lazy loading for other components
 const Monthly = lazy(() => import("@/pages/Monthly"));
 const Yearly = lazy(() => import("@/pages/Yearly"));
 const Categories = lazy(() => import("@/pages/Categories"));
@@ -51,7 +52,7 @@ function App() {
             path="/dashboard" 
             element={
               <RequireAuth>
-                <Painel />
+                <Dashboard />
               </RequireAuth>
             } 
           />
