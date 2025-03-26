@@ -1,116 +1,83 @@
 
+// Mock implementation of supabase adapters (Supabase references removed)
 import { Transaction, TransactionCategory } from './mockData';
 import { UserData } from '@/services/api/users/UserData';
 import { UserRole } from '@/hooks/auth';
 
-// Transform database transaction record to application Transaction model
+// Mock adapters for transactions, categories, and users
+
+// Convert mock DB transaction to application model
 export function dbToTransactionModel(dbTransaction: any): Transaction {
   return {
-    id: dbTransaction.id,
-    description: dbTransaction.description,
-    amount: dbTransaction.amount,
-    date: dbTransaction.date,
-    categoryId: dbTransaction.categoryid, // Map from db's categoryid to model's categoryId
-    type: dbTransaction.type as "income" | "expense",
+    id: dbTransaction.id || `mock-${Date.now()}`,
+    description: dbTransaction.description || '',
+    amount: dbTransaction.amount || 0,
+    date: dbTransaction.date || new Date().toISOString().split('T')[0],
+    categoryId: dbTransaction.categoryid || '',
+    type: (dbTransaction.type as "income" | "expense") || "expense",
   };
 }
 
-// Transform application Transaction model to database record
+// Convert application model to mock DB format
 export function transactionModelToDb(transaction: Partial<Transaction>): any {
   return {
-    id: transaction.id,
-    description: transaction.description,
-    amount: transaction.amount,
-    date: transaction.date,
-    categoryid: transaction.categoryId, // Map from model's categoryId to db's categoryid
-    type: transaction.type,
+    id: transaction.id || `mock-${Date.now()}`,
+    description: transaction.description || '',
+    amount: transaction.amount || 0,
+    date: transaction.date || new Date().toISOString().split('T')[0],
+    categoryid: transaction.categoryId || '',
+    type: transaction.type || "expense",
   };
 }
 
-// Transform database category record to application TransactionCategory model
+// Convert mock DB category to application model
 export function dbToCategoryModel(dbCategory: any): TransactionCategory {
-  console.log("Converting DB category to model:", dbCategory);
-  
-  // FIXED: Ensure we handle boolean values correctly
-  // Using explicit comparison to convert values - this is more reliable than double negation
-  const isActive = dbCategory.isactive === true;
-  const isFixedExpense = dbCategory.isfixedexpense === true;
-  
-  console.log("Boolean conversion results:", {
-    isactive_original: dbCategory.isactive,
-    isactive_original_type: typeof dbCategory.isactive,
-    isActive_converted: isActive,
-    isActive_converted_type: typeof isActive,
-    isfixedexpense_original: dbCategory.isfixedexpense,
-    isfixedexpense_original_type: typeof dbCategory.isfixedexpense,
-    isFixedExpense_converted: isFixedExpense,
-    isFixedExpense_converted_type: typeof isFixedExpense
-  });
-  
   return {
-    id: dbCategory.id,
-    name: dbCategory.name,
-    type: dbCategory.type as "income" | "expense",
-    level: dbCategory.level,
-    parentId: dbCategory.parentid, // Map from db's parentid to model's parentId
-    isFixedExpense: isFixedExpense, // Ensure this is a boolean
-    isActive: isActive, // Map from db's isactive to model's isActive
+    id: dbCategory.id || `mock-${Date.now()}`,
+    name: dbCategory.name || '',
+    type: (dbCategory.type as "income" | "expense") || "expense",
+    level: dbCategory.level || 1,
+    parentId: dbCategory.parentid || null,
+    isFixedExpense: Boolean(dbCategory.isfixedexpense),
+    isActive: dbCategory.isactive !== false,
   };
 }
 
-// Transform application TransactionCategory model to database record
+// Convert application model to mock DB format
 export function categoryModelToDb(category: Partial<TransactionCategory>): any {
-  console.log("Converting category to DB format:", category);
-  
-  // FIXED: Use explicit boolean conversion for database
-  // These are explicitly set to true/false to avoid any type issues
-  const isActive = category.isActive === true ? true : false;
-  const isFixedExpense = category.isFixedExpense === true ? true : false;
-  
-  console.log("Boolean conversion for DB:", {
-    isActive_original: category.isActive,
-    isActive_original_type: typeof category.isActive,
-    isactive_converted: isActive,
-    isactive_converted_type: typeof isActive,
-    isFixedExpense_original: category.isFixedExpense,
-    isFixedExpense_original_type: typeof category.isFixedExpense,
-    isfixedexpense_converted: isFixedExpense,
-    isfixedexpense_converted_type: typeof isFixedExpense
-  });
-  
   return {
-    id: category.id,
-    name: category.name,
-    type: category.type,
-    level: category.level,
-    parentid: category.parentId, // Map from model's parentId to db's parentid
-    isfixedexpense: isFixedExpense, // Explicit boolean for database
-    isactive: isActive, // Explicit boolean for database
+    id: category.id || `mock-${Date.now()}`,
+    name: category.name || '',
+    type: category.type || "expense",
+    level: category.level || 1,
+    parentid: category.parentId || null,
+    isfixedexpense: Boolean(category.isFixedExpense),
+    isactive: category.isActive !== false,
   };
 }
 
-// Transform database user record to application UserData model
+// Convert mock DB user to application model
 export function dbToUserModel(dbUser: any): UserData {
   return {
-    id: dbUser.id,
-    name: dbUser.name,
-    username: dbUser.username,
-    password: dbUser.password,
-    role: dbUser.role as UserRole,
-    status: dbUser.status as 'active' | 'pending' | 'inactive',
-    lastLogin: dbUser.last_login
+    id: dbUser.id || `mock-${Date.now()}`,
+    name: dbUser.name || '',
+    username: dbUser.username || '',
+    password: dbUser.password || '',
+    role: (dbUser.role as UserRole) || 'user',
+    status: (dbUser.status as 'active' | 'pending' | 'inactive') || 'active',
+    lastLogin: dbUser.last_login || null
   };
 }
 
-// Transform application UserData model to database record
+// Convert application model to mock DB format
 export function userModelToDb(user: Partial<UserData>): any {
   return {
-    id: user.id,
-    name: user.name,
-    username: user.username,
-    password: user.password,
-    role: user.role,
-    status: user.status,
-    last_login: user.lastLogin
+    id: user.id || `mock-${Date.now()}`,
+    name: user.name || '',
+    username: user.username || '',
+    password: user.password || '',
+    role: user.role || 'user',
+    status: user.status || 'active',
+    last_login: user.lastLogin || null
   };
 }

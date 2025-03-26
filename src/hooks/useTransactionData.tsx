@@ -2,8 +2,10 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Transaction } from "@/utils/mockData";
-import { supabase } from "@/integrations/supabase/client";
 import { dbToTransactionModel, transactionModelToDb } from "@/utils/supabaseAdapters";
+
+// Mock transaction data storage
+const mockTransactions: Transaction[] = [];
 
 export const useTransactionData = () => {
   const [transactionList, setTransactionList] = useState<Transaction[]>([]);
@@ -12,18 +14,10 @@ export const useTransactionData = () => {
   const fetchTransactions = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*');
-        
-      if (error) {
-        throw error;
-      }
-      
-      // Transform database records to application model
-      setTransactionList((data || []).map(dbToTransactionModel));
+      // Use mock data instead of Supabase
+      setTransactionList([...mockTransactions]);
     } catch (error) {
-      console.error("Error fetching transactions from Supabase:", error);
+      console.error("Error fetching transactions:", error);
       toast.error("Erro ao carregar transações");
     } finally {
       setIsLoading(false);
@@ -40,21 +34,8 @@ export const useTransactionData = () => {
     
     window.addEventListener('storage', handleStorageChange);
     
-    // Subscribe to Supabase real-time changes
-    const subscription = supabase
-      .channel('table-db-changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'transactions' 
-      }, () => {
-        fetchTransactions();
-      })
-      .subscribe();
-    
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      subscription.unsubscribe();
     };
   }, []);
 
@@ -65,14 +46,8 @@ export const useTransactionData = () => {
   const confirmClearTransactions = async () => {
     try {
       if (window.confirm("Tem certeza que deseja apagar todas as transações? Esta ação não pode ser desfeita.")) {
-        const { error } = await supabase
-          .from('transactions')
-          .delete()
-          .neq('id', 'dummy');
-          
-        if (error) {
-          throw error;
-        }
+        // Clear mock transactions
+        mockTransactions.length = 0;
         
         // Update local state
         setTransactionList([]);
@@ -161,22 +136,11 @@ export const useTransactionData = () => {
           };
           
           newTransactions.push(newTransaction);
+          mockTransactions.push(newTransaction);
           transactionsCreated++;
         }
       });
 
-      // Convert all transactions to database format
-      const dbTransactions = newTransactions.map(transactionModelToDb);
-
-      // Save transactions to Supabase
-      const { error } = await supabase
-        .from('transactions')
-        .insert(dbTransactions);
-        
-      if (error) {
-        throw error;
-      }
-      
       // Update local state
       setTransactionList(prev => [...prev, ...newTransactions]);
       

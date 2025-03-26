@@ -1,11 +1,10 @@
 
-// Import the supabase client from the correct location
-import { supabase } from "@/integrations/supabase/client";
+// Mock BackupService (Supabase references removed)
 import { toast } from "sonner";
 import { ApiServiceCore } from "./ApiServiceCore";
 import { exportDatabase, importDatabase } from "@/utils/databaseUtils";
 
-// Service specifically for backup operations
+// Service for backup operations
 export class BackupService extends ApiServiceCore {
   private constructor() {
     super();
@@ -24,5 +23,5 @@ export class BackupService extends ApiServiceCore {
   }
 }
 
-// Export the singleton instance
+// Export singleton instance
 export const backupService = BackupService.getInstance();

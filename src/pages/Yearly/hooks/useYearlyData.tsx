@@ -1,7 +1,11 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { formatCurrency } from "@/utils/financialCalculations";
-import { supabase } from "@/integrations/supabase/client";
+
+// Mock data
+const mockTransactions: Transaction[] = [];
+const mockCategories: TransactionCategory[] = [];
 
 export const useYearlyData = () => {
   const currentYear = new Date().getFullYear();
@@ -11,63 +15,14 @@ export const useYearlyData = () => {
   const [showValues, setShowValues] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Fetch transactions from Supabase
+  // Fetch transactions (using mock data instead of Supabase)
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch transactions
-        const { data: transactionsData, error: transactionsError } = await supabase
-          .from('transactions')
-          .select('*');
-          
-        if (transactionsError) {
-          console.error("Error fetching transactions:", transactionsError);
-          return;
-        }
-
-        // Fetch categories
-        const { data: categoriesData, error: categoriesError } = await supabase
-          .from('categories')
-          .select('*');
-          
-        if (categoriesError) {
-          console.error("Error fetching categories:", categoriesError);
-          return;
-        }
-        
-        if (transactionsData) {
-          // Convert database records to application model
-          const formattedTransactions = transactionsData.map(item => ({
-            id: item.id,
-            description: item.description,
-            amount: Number(item.amount),
-            date: item.date,
-            categoryId: item.categoryid,
-            type: item.type as 'income' | 'expense'
-          }));
-          
-          setTransactions(formattedTransactions);
-        }
-
-        if (categoriesData) {
-          // Convert database records to application model
-          const formattedCategories = categoriesData.map(item => {
-            // Check if the category has a fixed expense property
-            const isFixedExpense = 'isfixedexpense' in item ? !!item.isfixedexpense : false;
-            
-            return {
-              id: item.id,
-              name: item.name,
-              type: item.type as 'income' | 'expense',
-              level: item.level,
-              parentId: item.parentid,
-              isFixedExpense: isFixedExpense
-            };
-          });
-          
-          setCategories(formattedCategories);
-        }
+        // Use mock data
+        setTransactions([...mockTransactions]);
+        setCategories([...mockCategories]);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -75,7 +30,7 @@ export const useYearlyData = () => {
       }
     };
 
-    // Load the preference of displaying values from sessionStorage
+    // Load display preference from sessionStorage
     const savedPreference = sessionStorage.getItem('showFinancialValues');
     if (savedPreference) {
       setShowValues(savedPreference === 'true');
@@ -83,34 +38,18 @@ export const useYearlyData = () => {
 
     // Initial fetch
     fetchData();
-
-    // Subscribe to real-time changes
-    const transactionSubscription = supabase
-      .channel('public:transactions')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public',
-        table: 'transactions' 
-      }, () => {
-        fetchData();
-      })
-      .subscribe();
-      
-    const categorySubscription = supabase
-      .channel('public:categories')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public',
-        table: 'categories' 
-      }, () => {
-        fetchData();
-      })
-      .subscribe();
-
-    // Cleanup subscriptions
+    
+    // Create event listener for storage changes
+    const handleStorageChange = () => {
+      fetchData();
+    };
+    
+    // Add event listener
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Cleanup
     return () => {
-      transactionSubscription.unsubscribe();
-      categorySubscription.unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
   
@@ -130,18 +69,18 @@ export const useYearlyData = () => {
       years.add(transactionDate.getFullYear());
     });
     
-    // Convert Set to array and sort descending (most recent first)
+    // Convert Set to array and sort descending
     return Array.from(years).sort((a, b) => b - a);
   }, [transactions, currentYear]);
   
-  // Initialize selectedYears with the most recent year
+  // Initialize selectedYears with most recent year
   useEffect(() => {
     if (availableYears.length > 0 && selectedYears.length === 0) {
       setSelectedYears([availableYears[0]]);
     }
   }, [availableYears, selectedYears]);
   
-  // Function to toggle selection of a year
+  // Function to toggle year selection
   const toggleYear = (year: number) => {
     if (selectedYears.includes(year)) {
       if (selectedYears.length > 1) {
@@ -152,12 +91,12 @@ export const useYearlyData = () => {
     }
   };
   
-  // Update the isFixedTransaction function
+  // Check if transaction is fixed
   const isFixedTransaction = (transaction: Transaction) => {
     const categoryId = transaction.categoryId;
     if (!categoryId) return false;
     
-    // Find the category
+    // Find category
     const category = categories.find(c => c.id === categoryId);
     if (!category) return false;
     
@@ -179,7 +118,7 @@ export const useYearlyData = () => {
   
   // Generate yearly data from transactions
   const yearlyData = useMemo(() => {
-    // Get unique years from transactions or use availableYears
+    // Get unique years
     const years = new Set<number>(availableYears);
     
     // Create yearly summary for each year
@@ -226,7 +165,7 @@ export const useYearlyData = () => {
     return yearlyData.filter(item => selectedYears.includes(item.year));
   }, [yearlyData, selectedYears]);
   
-  // Calculate totals for selected years
+  // Calculate totals
   const totalIncome = useMemo(() => {
     return filteredData.reduce((sum, item) => sum + item.income, 0);
   }, [filteredData]);

@@ -1,59 +1,34 @@
 
 import { toast } from "sonner";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
-import { supabase } from "@/integrations/supabase/client";
 import { dbToCategoryModel, dbToTransactionModel, categoryModelToDb, transactionModelToDb, dbToUserModel, userModelToDb } from "./supabaseAdapters";
+
+// Mock data storage
+const mockData = {
+  transactions: [] as Transaction[],
+  categories: [] as TransactionCategory[],
+  users: [] as any[]
+};
 
 type DatabaseBackup = {
   transactions: Transaction[];
   categories: TransactionCategory[];
-  users: any[]; // Adicionando users ao tipo de backup
+  users: any[];
   timestamp: number;
   version: string;
 };
 
 /**
- * Exporta todos os dados para um arquivo JSON
+ * Exports all data to a JSON file
  */
 export const exportDatabase = async () => {
   try {
-    // Obter dados do Supabase
-    const { data: transactionsData, error: transError } = await supabase
-      .from('transactions')
-      .select('*');
+    // Use mock data instead of Supabase
+    const transactions = [...mockData.transactions];
+    const categories = [...mockData.categories];
+    const users = [...mockData.users];
     
-    const { data: categoriesData, error: catError } = await supabase
-      .from('categories')
-      .select('*');
-    
-    const { data: usersData, error: usersError } = await supabase
-      .from('users')
-      .select('*');
-    
-    if (transError) {
-      console.error("Erro ao buscar transações:", transError);
-      toast.error("Erro ao buscar transações do Supabase");
-      return false;
-    }
-    
-    if (catError) {
-      console.error("Erro ao buscar categorias:", catError);
-      toast.error("Erro ao buscar categorias do Supabase");
-      return false;
-    }
-    
-    if (usersError) {
-      console.error("Erro ao buscar usuários:", usersError);
-      toast.error("Erro ao buscar usuários do Supabase");
-      return false;
-    }
-    
-    // Transform database records to application models
-    const transactions = (transactionsData || []).map(dbToTransactionModel);
-    const categories = (categoriesData || []).map(dbToCategoryModel);
-    const users = (usersData || []).map(dbToUserModel);
-    
-    // Criar o objeto de backup
+    // Create backup object
     const backup: DatabaseBackup = {
       transactions: transactions,
       categories: categories,
@@ -62,14 +37,14 @@ export const exportDatabase = async () => {
       version: "1.0"
     };
     
-    // Converter para string JSON
+    // Convert to JSON string
     const jsonString = JSON.stringify(backup, null, 2);
     
-    // Criar o blob e gerar URL
+    // Create blob and generate URL
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     
-    // Criar elemento de link para download
+    // Create link element for download
     const link = document.createElement('a');
     link.href = url;
     const date = new Date();
@@ -77,10 +52,10 @@ export const exportDatabase = async () => {
     link.setAttribute('download', `gestor-financeiro-backup-${dateStr}.json`);
     document.body.appendChild(link);
     
-    // Disparar o download
+    // Trigger download
     link.click();
     
-    // Limpar
+    // Clean up
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     
@@ -95,7 +70,7 @@ export const exportDatabase = async () => {
 };
 
 /**
- * Importa dados de um arquivo JSON para o Supabase
+ * Imports data from a JSON file
  */
 export const importDatabase = async (file: File): Promise<boolean> => {
   return new Promise((resolve, reject) => {
@@ -113,70 +88,35 @@ export const importDatabase = async (file: File): Promise<boolean> => {
           const data = e.target.result as string;
           const backup = JSON.parse(data) as DatabaseBackup;
           
-          // Validar o formato do backup
+          // Validate backup format
           if (!backup.transactions || !backup.categories || !backup.timestamp || !backup.version) {
             toast.error("Formato de arquivo de backup inválido");
             reject(false);
             return;
           }
           
-          toast.info("Importando dados para o Supabase...");
+          toast.info("Importando dados...");
           
-          // Limpar tabelas existentes
-          await supabase.from('transactions').delete().neq('id', 'dummy');
-          await supabase.from('categories').delete().neq('id', 'dummy');
-          await supabase.from('users').delete().neq('id', 'dummy');
+          // Clear existing mock data
+          mockData.transactions = [];
+          mockData.categories = [];
+          mockData.users = [];
           
-          // Convert application models to database format
-          const dbCategories = backup.categories.map(categoryModelToDb);
+          // Import categories
+          mockData.categories = [...backup.categories];
           
-          // Importar categorias
-          if (dbCategories.length > 0) {
-            const { error: catError } = await supabase
-              .from('categories')
-              .insert(dbCategories);
-            
-            if (catError) {
-              console.error("Erro ao importar categorias:", catError);
-              toast.error("Erro ao importar categorias para o Supabase");
-            }
-          }
+          // Import transactions
+          mockData.transactions = [...backup.transactions];
           
-          // Convert application models to database format
-          const dbTransactions = backup.transactions.map(transactionModelToDb);
-          
-          // Importar transações
-          if (dbTransactions.length > 0) {
-            const { error: transError } = await supabase
-              .from('transactions')
-              .insert(dbTransactions);
-            
-            if (transError) {
-              console.error("Erro ao importar transações:", transError);
-              toast.error("Erro ao importar transações para o Supabase");
-            }
-          }
-          
-          // Importar dados de usuários
+          // Import users
           if (backup.users && Array.isArray(backup.users)) {
-            const dbUsers = backup.users.map(userModelToDb);
+            mockData.users = [...backup.users];
             
-            if (dbUsers.length > 0) {
-              const { error: usersError } = await supabase
-                .from('users')
-                .insert(dbUsers);
-              
-              if (usersError) {
-                console.error("Erro ao importar usuários:", usersError);
-                toast.error("Erro ao importar usuários para o Supabase");
-              }
-            }
-            
-            // Armazenar também no localStorage para acesso offline
+            // Store in localStorage for offline access
             localStorage.setItem('app_users', JSON.stringify(backup.users));
           }
           
-          // Disparar evento de storage para atualizar a aplicação
+          // Trigger storage event to update application
           window.dispatchEvent(new Event('storage'));
           
           toast.success("Dados importados com sucesso");
@@ -205,52 +145,21 @@ export const importDatabase = async (file: File): Promise<boolean> => {
 };
 
 /**
- * Limpa todos os dados do Supabase
+ * Clears all data
  */
 export const clearAllData = async (): Promise<boolean> => {
   try {
     toast.info("Limpando todos os dados...");
     
-    // Limpar todas as transações
-    const { error: transDeleteError } = await supabase
-      .from('transactions')
-      .delete()
-      .neq('id', 'dummy');
+    // Clear all mock data
+    mockData.transactions = [];
+    mockData.categories = [];
+    mockData.users = [];
     
-    if (transDeleteError) {
-      console.error("Erro ao limpar transações:", transDeleteError);
-      toast.error("Erro ao limpar transações do Supabase");
-      return false;
-    }
-    
-    // Limpar todas as categorias
-    const { error: catDeleteError } = await supabase
-      .from('categories')
-      .delete()
-      .neq('id', 'dummy');
-    
-    if (catDeleteError) {
-      console.error("Erro ao limpar categorias:", catDeleteError);
-      toast.error("Erro ao limpar categorias do Supabase");
-      return false;
-    }
-    
-    // Limpar todos os usuários (exceto o administrador, se necessário)
-    const { error: usersDeleteError } = await supabase
-      .from('users')
-      .delete()
-      .neq('username', 'admin');
-    
-    if (usersDeleteError) {
-      console.error("Erro ao limpar usuários:", usersDeleteError);
-      toast.error("Erro ao limpar usuários do Supabase");
-      return false;
-    }
-    
-    // Limpar o localStorage
+    // Clear localStorage
     localStorage.removeItem('app_users');
     
-    // Disparar evento para outros componentes atualizarem
+    // Trigger event for components to update
     window.dispatchEvent(new Event('storage'));
     
     toast.success("Todos os dados foram limpos com sucesso");

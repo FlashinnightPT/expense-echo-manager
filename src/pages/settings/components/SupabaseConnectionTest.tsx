@@ -23,17 +23,17 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
     setIsLoading(true);
     setError(null);
     try {
-      // Testar conexão com o Supabase
+      // Mock Supabase connection test (using our mock implementation)
       await testSupabaseConnection();
       
-      // Imprimir informações detalhadas no console
+      // Print mock information
       printConnectionInfo();
       
-      // Atualizar o horário do último teste
+      // Update last test time
       setLastTestTime(new Date().toLocaleTimeString());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro desconhecido ao testar conexão");
-      console.error("Erro ao testar conexão:", err);
+      setError(err instanceof Error ? err.message : "Unknown error testing connection");
+      console.error("Error testing connection:", err);
     } finally {
       setIsLoading(false);
     }
@@ -43,13 +43,13 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
     setIsUserLoading(true);
     setError(null);
     try {
-      // Testar conexão com a tabela de utilizadores
+      // Test mock user table connection
       const count = await testUserConnection();
       setUserCount(count);
       setLastTestTime(new Date().toLocaleTimeString());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro desconhecido ao testar conexão com utilizadores");
-      console.error("Erro ao testar conexão com utilizadores:", err);
+      setError(err instanceof Error ? err.message : "Unknown error testing user connection");
+      console.error("Error testing user connection:", err);
       setUserCount(null);
     } finally {
       setIsUserLoading(false);
@@ -61,18 +61,18 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <DatabaseIcon className="h-5 w-5" />
-          Teste de Conexão Supabase
+          Test Mock Database Connection
         </CardTitle>
         <CardDescription>
-          Teste a comunicação com o banco de dados Supabase
+          Test the connection to the mock database (Supabase references removed)
         </CardDescription>
       </CardHeader>
       <Separator />
       <CardContent className="pt-6">
         <Tabs defaultValue="general">
           <TabsList className="mb-4">
-            <TabsTrigger value="general">Geral</TabsTrigger>
-            <TabsTrigger value="users">Utilizadores</TabsTrigger>
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
           
           {error && (
@@ -84,12 +84,12 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
           
           <TabsContent value="general">
             <p className="text-sm text-muted-foreground mb-4">
-              Use esta função para verificar se a aplicação está conectada corretamente ao Supabase.
-              Os resultados serão exibidos como notificações e detalhes adicionais no console do navegador.
+              This function tests if the application is properly connected to the mock database.
+              Results will be displayed as notifications and additional details in the browser console.
             </p>
             {lastTestTime && (
               <p className="text-xs text-muted-foreground mt-2">
-                Último teste: {lastTestTime}
+                Last test: {lastTestTime}
               </p>
             )}
             <Button 
@@ -101,12 +101,12 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
               {isLoading ? (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Testando conexão...
+                  Testing connection...
                 </>
               ) : (
                 <>
                   <DatabaseIcon className="h-4 w-4 mr-2" />
-                  Testar Conexão com Supabase
+                  Test Mock Database Connection
                 </>
               )}
             </Button>
@@ -114,22 +114,22 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
           
           <TabsContent value="users">
             <p className="text-sm text-muted-foreground mb-4">
-              Use esta função para verificar a comunicação com a tabela de utilizadores no Supabase.
-              Os resultados mostrarão a contagem de utilizadores cadastrados.
+              This function tests the communication with the mock user table.
+              Results will show the mock user count.
             </p>
             {userCount !== null && (
               <div className={`p-3 rounded-md mb-4 ${userCount > 0 ? "bg-green-100 dark:bg-green-900/20" : "bg-yellow-100 dark:bg-yellow-900/20"}`}>
-                <p className="font-medium">Informações de Utilizadores:</p>
+                <p className="font-medium">Mock User Information:</p>
                 <p className="text-sm mt-1">
                   {userCount > 0 
-                    ? `Total de utilizadores: ${userCount}`
-                    : "Nenhum utilizador encontrado na tabela. A tabela existe, mas não tem registros."}
+                    ? `Total mock users: ${userCount}`
+                    : "No mock users found."}
                 </p>
               </div>
             )}
             {lastTestTime && (
               <p className="text-xs text-muted-foreground mt-2">
-                Último teste: {lastTestTime}
+                Last test: {lastTestTime}
               </p>
             )}
             <Button 
@@ -141,12 +141,12 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
               {isUserLoading ? (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Verificando utilizadores...
+                  Checking mock users...
                 </>
               ) : (
                 <>
                   <UsersIcon className="h-4 w-4 mr-2" />
-                  Verificar Utilizadores
+                  Check Mock Users
                 </>
               )}
             </Button>
@@ -155,7 +155,7 @@ const SupabaseConnectionTest = ({ className }: SupabaseConnectionTestProps) => {
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
         <p className="text-xs text-muted-foreground w-full text-center">
-          Para consultas mais detalhadas, use o SQL Editor no painel administrativo do Supabase.
+          This is a mock implementation for development. Supabase references removed.
         </p>
       </CardFooter>
     </Card>

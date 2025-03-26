@@ -1,9 +1,11 @@
-
 import { useState, useEffect } from "react";
 import { TransactionCategory } from "@/utils/mockData";
 import { defaultCategories } from "@/utils/defaultCategories";
 import { toast } from "sonner";
 import { categoryService } from "@/services/api/category/CategoryService";
+
+// Mock categories storage
+const mockCategories: TransactionCategory[] = [];
 
 /**
  * Core hook for managing category data state and loading
@@ -30,35 +32,33 @@ export const useCategoriesCore = () => {
   const [categoryList, setCategoryList] = useState<TransactionCategory[]>(initCategories());
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load categories from Supabase on init
+  // Load categories on init
   useEffect(() => {
-    const loadCategoriesFromSupabase = async () => {
+    const loadCategories = async () => {
       try {
         setIsLoading(true);
-        const supabaseCategories = await categoryService.getCategories();
-        if (supabaseCategories && supabaseCategories.length > 0) {
-          console.log("Categorias carregadas do Supabase:", supabaseCategories);
-          setCategoryList(supabaseCategories);
-          localStorage.setItem('categories', JSON.stringify(supabaseCategories));
+        
+        // Check if there are categories in mock storage
+        if (mockCategories.length > 0) {
+          console.log("Categories loaded from mock storage:", mockCategories);
+          setCategoryList(mockCategories);
         } else {
-          // If no categories in Supabase, sync local ones
-          console.log("Nenhuma categoria encontrada no Supabase, sincronizando categorias locais...");
+          // Otherwise use local ones
+          console.log("No categories found in mock storage, using local categories...");
           const localCategories = initCategories();
           
-          // Sync local categories with Supabase
-          for (const category of localCategories) {
-            await categoryService.saveCategory(category);
-          }
+          // Add to mock storage
+          mockCategories.push(...localCategories);
         }
       } catch (error) {
-        console.error("Erro ao carregar categorias do Supabase:", error);
-        toast.error("Erro ao buscar categorias do banco de dados");
+        console.error("Error loading categories:", error);
+        toast.error("Error fetching categories from the database");
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadCategoriesFromSupabase();
+    loadCategories();
   }, []);
 
   // Update local storage when category list changes
@@ -68,7 +68,7 @@ export const useCategoriesCore = () => {
       console.log("Categories saved to localStorage:", categoryList);
     } catch (error) {
       console.error("Error saving categories to localStorage:", error);
-      toast.error("Erro ao salvar categorias");
+      toast.error("Error saving categories");
     }
   }, [categoryList]);
 

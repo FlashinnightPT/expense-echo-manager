@@ -1,114 +1,49 @@
 
-import { supabase } from "@/integrations/supabase/client";
+// Mock implementation of Supabase test utilities
 import { toast } from "sonner";
 
 /**
- * Função para testar a comunicação com o Supabase
- * @returns Promise<boolean> - true se a comunicação estiver ativa, false caso contrário
+ * Function for testing Supabase communication
+ * @returns Promise<boolean> - true if communication is active, false otherwise
  */
 export const testSupabaseConnection = async (): Promise<boolean> => {
   try {
-    // Tentar buscar a contagem de transações
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('count');
-    
-    if (error) {
-      console.error("Erro na comunicação com Supabase:", error);
-      toast.error(`Erro na comunicação com Supabase: ${error.message}`);
-      return false;
-    }
-    
-    // Tentar buscar a contagem de categorias
-    const { data: catData, error: catError } = await supabase
-      .from('categories')
-      .select('count');
-    
-    if (catError) {
-      console.error("Erro na comunicação com Supabase (categorias):", catError);
-      toast.error(`Erro na comunicação com Supabase: ${catError.message}`);
-      return false;
-    }
-    
-    console.log("Teste de comunicação com Supabase bem-sucedido:", { 
-      transactionsData: data, 
-      categoriesData: catData 
-    });
-    
-    toast.success("Comunicação com Supabase estabelecida com sucesso!");
+    console.log("Mock: Testing Supabase connection");
+    toast.success("Mock Supabase connection successful!");
     return true;
   } catch (error) {
-    console.error("Erro ao testar comunicação com Supabase:", error);
-    toast.error(`Erro ao testar comunicação com Supabase: ${error instanceof Error ? error.message : String(error)}`);
+    console.error("Error testing Supabase connection:", error);
+    toast.error(`Error testing Supabase connection: ${error instanceof Error ? error.message : String(error)}`);
     return false;
   }
 };
 
 /**
- * Função para testar a conexão com a tabela de utilizadores
- * @returns Promise<number> - Número de utilizadores na base de dados
+ * Function for testing user connection
+ * @returns Promise<number> - Number of mock users
  */
 export const testUserConnection = async (): Promise<number> => {
   try {
-    // Mostrar mensagem informativa
-    console.log("Tentando conectar com a tabela de utilizadores...");
-    toast.info("Verificando conexão com a tabela de utilizadores...");
+    console.log("Mock: Testing user table connection");
+    toast.info("Mock: Verifying user table connection...");
     
-    const { data, error, count } = await supabase
-      .from('users')
-      .select('*', { count: 'exact' });
+    // Simulate a successful connection with 2 mock users
+    const mockUserCount = 2;
+    toast.success(`Mock: Connection successful! Found ${mockUserCount} users`);
     
-    if (error) {
-      console.error("Erro na comunicação com tabela de utilizadores:", error);
-      toast.error(`Erro ao acessar utilizadores: ${error.message}`);
-      throw error;
-    }
-    
-    if (data) {
-      console.log("Utilizadores encontrados:", data);
-      if (data.length === 0) {
-        toast.warning("Conexão bem-sucedida, mas nenhum utilizador encontrado na tabela.");
-        console.log("A tabela de utilizadores existe, mas não contém registros.");
-      } else {
-        toast.success(`Conexão com tabela de utilizadores bem-sucedida! Total: ${data.length} utilizadores.`);
-      }
-      
-      // Exibir mais detalhes no console para diagnóstico
-      data.forEach((user, index) => {
-        console.log(`Utilizador ${index + 1}:`, {
-          id: user.id,
-          username: user.username,
-          name: user.name,
-          role: user.role,
-          status: user.status,
-          lastLogin: user.last_login
-        });
-      });
-      
-      return data.length;
-    }
-    
-    toast.warning("Nenhum dado retornado na consulta de utilizadores.");
-    return 0;
+    return mockUserCount;
   } catch (error) {
-    console.error("Erro ao testar conexão com utilizadores:", error);
-    toast.error(`Erro ao testar conexão com utilizadores: ${error instanceof Error ? error.message : String(error)}`);
+    console.error("Error testing user connection:", error);
+    toast.error(`Error testing user connection: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 };
 
 /**
- * Imprime informações detalhadas do estado de conexão
+ * Print connection information
  */
 export const printConnectionInfo = () => {
   const isOnline = navigator.onLine;
-  console.log("Estado de conexão à Internet:", isOnline ? "Online" : "Offline");
-  
-  // Verificar informações do projeto Supabase
-  console.log("Projeto Supabase:", "iqxesudkiapkhrursghh");
-  
-  // Executar teste de conexão
-  testSupabaseConnection().then(isConnected => {
-    console.log("Resultado do teste de conexão:", isConnected ? "Conectado" : "Desconectado");
-  });
+  console.log("Internet connection status:", isOnline ? "Online" : "Offline");
+  console.log("Mock: Supabase project connection information");
 };

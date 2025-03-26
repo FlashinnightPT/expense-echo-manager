@@ -1,8 +1,10 @@
 
-import { supabase } from "@/integrations/supabase/client";
 import { UserData } from "./UserData";
 import { ApiServiceCore } from "../ApiServiceCore";
 import { dbToUserModel, userModelToDb } from "@/utils/supabaseAdapters";
+
+// Mock users storage
+const mockUsers: Record<string, any[]> = { users: [] };
 
 export class UserCrudOperations {
   private apiCore: ApiServiceCore;
@@ -12,53 +14,33 @@ export class UserCrudOperations {
   }
 
   /**
-   * Obter todos os utilizadores
+   * Get all users
    */
   async getUsers(): Promise<UserData[]> {
     try {
-      if (this.apiCore.isConnected()) {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*');
-
-        if (error) throw error;
-        return data ? data.map(dbToUserModel) : [];
-      } else {
-        // Fallback para localStorage quando offline
-        const savedUsers = localStorage.getItem('app_users');
-        return savedUsers ? JSON.parse(savedUsers) : [];
-      }
+      // Use localStorage when offline
+      const savedUsers = localStorage.getItem('app_users');
+      return savedUsers ? JSON.parse(savedUsers) : [];
     } catch (error) {
-      console.error('Erro ao obter utilizadores:', error);
-      // Em caso de erro, tentar usar o localStorage
+      console.error('Error getting users:', error);
+      // In case of error, try to use localStorage
       const savedUsers = localStorage.getItem('app_users');
       return savedUsers ? JSON.parse(savedUsers) : [];
     }
   }
 
   /**
-   * Obter um utilizador pelo username
+   * Get user by username
    */
   async getUserByUsername(username: string): Promise<UserData | null> {
     try {
-      if (this.apiCore.isConnected()) {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('username', username)
-          .single();
-
-        if (error && error.code !== 'PGRST116') throw error;
-        return data ? dbToUserModel(data) : null;
-      } else {
-        // Fallback para localStorage quando offline
-        const savedUsers = localStorage.getItem('app_users');
-        const users = savedUsers ? JSON.parse(savedUsers) : [];
-        return users.find((u: UserData) => u.username === username) || null;
-      }
+      // Use localStorage
+      const savedUsers = localStorage.getItem('app_users');
+      const users = savedUsers ? JSON.parse(savedUsers) : [];
+      return users.find((u: UserData) => u.username === username) || null;
     } catch (error) {
-      console.error(`Erro ao obter utilizador ${username}:`, error);
-      // Em caso de erro, tentar usar o localStorage
+      console.error(`Error getting user ${username}:`, error);
+      // In case of error, try to use localStorage
       const savedUsers = localStorage.getItem('app_users');
       const users = savedUsers ? JSON.parse(savedUsers) : [];
       return users.find((u: UserData) => u.username === username) || null;
@@ -66,42 +48,25 @@ export class UserCrudOperations {
   }
 
   /**
-   * Criar um novo utilizador
+   * Create a new user
    */
   async createUser(userData: UserData): Promise<UserData> {
     try {
-      if (this.apiCore.isConnected()) {
-        const dbUser = userModelToDb(userData);
-        const { data, error } = await supabase
-          .from('users')
-          .insert(dbUser)
-          .select()
-          .single();
-
-        if (error) throw error;
-        
-        // Atualizar também o localStorage para manter sincronizado
-        const savedUsers = localStorage.getItem('app_users');
-        const users = savedUsers ? JSON.parse(savedUsers) : [];
-        localStorage.setItem('app_users', JSON.stringify([...users, userData]));
-        
-        return dbToUserModel(data);
-      } else {
-        // Em modo offline, salvar apenas no localStorage
-        const savedUsers = localStorage.getItem('app_users');
-        const users = savedUsers ? JSON.parse(savedUsers) : [];
-        localStorage.setItem('app_users', JSON.stringify([...users, userData]));
-        
-        // Now using the public method
-        this.apiCore.addPendingOperation(async () => {
-          await this.createUser(userData);
-        });
-        
-        return userData;
+      // Save to mock storage and localStorage
+      const savedUsers = localStorage.getItem('app_users');
+      const users = savedUsers ? JSON.parse(savedUsers) : [];
+      localStorage.setItem('app_users', JSON.stringify([...users, userData]));
+      
+      // Add to mock storage
+      if (!mockUsers.users) {
+        mockUsers.users = [];
       }
+      mockUsers.users.push(userModelToDb(userData));
+      
+      return userData;
     } catch (error) {
-      console.error('Erro ao criar utilizador:', error);
-      // Em caso de erro, salvar apenas no localStorage
+      console.error('Error creating user:', error);
+      // In case of error, save only to localStorage
       const savedUsers = localStorage.getItem('app_users');
       const users = savedUsers ? JSON.parse(savedUsers) : [];
       localStorage.setItem('app_users', JSON.stringify([...users, userData]));
@@ -110,89 +75,52 @@ export class UserCrudOperations {
   }
 
   /**
-   * Atualizar um utilizador existente
+   * Update an existing user
    */
   async updateUser(userData: Partial<UserData> & { id: string }): Promise<UserData | null> {
     try {
-      if (this.apiCore.isConnected()) {
-        const dbUser = userModelToDb(userData);
-        const { data, error } = await supabase
-          .from('users')
-          .update(dbUser)
-          .eq('id', userData.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        
-        // Atualizar também o localStorage
-        const savedUsers = localStorage.getItem('app_users');
-        const users = savedUsers ? JSON.parse(savedUsers) : [];
-        const updatedUsers = users.map((u: UserData) => 
-          u.id === userData.id ? { ...u, ...userData } : u
+      // Update localStorage
+      const savedUsers = localStorage.getItem('app_users');
+      const users = savedUsers ? JSON.parse(savedUsers) : [];
+      const updatedUsers = users.map((u: UserData) => 
+        u.id === userData.id ? { ...u, ...userData } : u
+      );
+      localStorage.setItem('app_users', JSON.stringify(updatedUsers));
+      
+      // Update mock storage
+      if (mockUsers.users) {
+        mockUsers.users = mockUsers.users.map((u: any) => 
+          u.id === userData.id ? { ...u, ...userModelToDb(userData) } : u
         );
-        localStorage.setItem('app_users', JSON.stringify(updatedUsers));
-        
-        return dbToUserModel(data);
-      } else {
-        // Em modo offline, atualizar apenas no localStorage
-        const savedUsers = localStorage.getItem('app_users');
-        const users = savedUsers ? JSON.parse(savedUsers) : [];
-        const updatedUsers = users.map((u: UserData) => 
-          u.id === userData.id ? { ...u, ...userData } : u
-        );
-        localStorage.setItem('app_users', JSON.stringify(updatedUsers));
-        
-        // Now using the public method
-        this.apiCore.addPendingOperation(async () => {
-          await this.updateUser(userData);
-        });
-        
-        const updatedUser = users.find((u: UserData) => u.id === userData.id);
-        return updatedUser ? { ...updatedUser, ...userData } : null;
       }
+      
+      const updatedUser = users.find((u: UserData) => u.id === userData.id);
+      return updatedUser ? { ...updatedUser, ...userData } : null;
     } catch (error) {
-      console.error('Erro ao atualizar utilizador:', error);
+      console.error('Error updating user:', error);
       return null;
     }
   }
 
   /**
-   * Eliminar um utilizador
+   * Delete a user
    */
   async deleteUser(userId: string): Promise<boolean> {
     try {
-      if (this.apiCore.isConnected()) {
-        const { error } = await supabase
-          .from('users')
-          .delete()
-          .eq('id', userId);
-
-        if (error) throw error;
-        
-        // Atualizar também o localStorage
-        const savedUsers = localStorage.getItem('app_users');
-        const users = savedUsers ? JSON.parse(savedUsers) : [];
-        const filteredUsers = users.filter((u: UserData) => u.id !== userId);
-        localStorage.setItem('app_users', JSON.stringify(filteredUsers));
-        
-        return true;
-      } else {
-        // Em modo offline, eliminar apenas do localStorage
-        const savedUsers = localStorage.getItem('app_users');
-        const users = savedUsers ? JSON.parse(savedUsers) : [];
-        const filteredUsers = users.filter((u: UserData) => u.id !== userId);
-        localStorage.setItem('app_users', JSON.stringify(filteredUsers));
-        
-        // Now using the public method
-        this.apiCore.addPendingOperation(async () => {
-          await this.deleteUser(userId);
-        });
-        
-        return true;
+      // Update localStorage
+      const savedUsers = localStorage.getItem('app_users');
+      const users = savedUsers ? JSON.parse(savedUsers) : [];
+      const filteredUsers = users.filter((u: UserData) => u.id !== userId);
+      localStorage.setItem('app_users', JSON.stringify(filteredUsers));
+      
+      // Update mock storage
+      if (mockUsers.users) {
+        mockUsers.users = mockUsers.users.filter((u: any) => u.id !== userId);
       }
+      
+      return true;
     } catch (error) {
-      console.error('Erro ao eliminar utilizador:', error);
+      console.error('Error deleting user:', error);
       return false;
     }
   }
