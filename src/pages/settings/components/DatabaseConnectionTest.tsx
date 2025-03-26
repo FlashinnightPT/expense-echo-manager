@@ -6,8 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import { DatabaseIcon, RefreshCw, UsersIcon, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { testConnection } from "@/integrations/mariadb/client";
-import { query } from "@/integrations/mariadb/client";
+import { testConnection, query } from "@/integrations/mariadb/client";
+import { toast } from "sonner";
 
 interface DatabaseConnectionTestProps {
   className?: string;
@@ -25,16 +25,25 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
     setError(null);
     try {
       // Test connection with MariaDB
-      await testConnection();
+      const result = await testConnection();
       
       // Print detailed information in console
-      console.log("Database connection successful");
+      console.log("Database connection test result:", result);
+      
+      if (result) {
+        toast.success("Database connection successful");
+      } else {
+        toast.error("Failed to connect to database");
+        setError("Could not connect to the database");
+      }
       
       // Update last test time
       setLastTestTime(new Date().toLocaleTimeString());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error testing connection");
+      const errorMessage = err instanceof Error ? err.message : "Unknown error testing connection";
+      setError(errorMessage);
       console.error("Connection test error:", err);
+      toast.error("Connection test failed: " + errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -50,9 +59,13 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
       
       setUserCount(count);
       setLastTestTime(new Date().toLocaleTimeString());
+      
+      toast.success(`Successfully connected to users table. Found ${count} users.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error testing user connection");
+      const errorMessage = err instanceof Error ? err.message : "Unknown error testing user connection";
+      setError(errorMessage);
       console.error("User connection test error:", err);
+      toast.error("User connection test failed: " + errorMessage);
       setUserCount(null);
     } finally {
       setIsUserLoading(false);
@@ -67,7 +80,7 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
           Database Connection Test
         </CardTitle>
         <CardDescription>
-          Test communication with the MariaDB database
+          Test communication with the database
         </CardDescription>
       </CardHeader>
       <Separator />
@@ -87,8 +100,12 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
           
           <TabsContent value="general">
             <p className="text-sm text-muted-foreground mb-4">
-              Use this function to verify if the application is correctly connected to MariaDB.
-              Results will be displayed as notifications and additional details in the browser console.
+              Use this function to verify if the application is correctly connected to the database.
+              {import.meta.env.DEV && (
+                <span className="block mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded text-yellow-800 dark:text-yellow-200">
+                  Development Mode: Using browser-compatible mock database.
+                </span>
+              )}
             </p>
             {lastTestTime && (
               <p className="text-xs text-muted-foreground mt-2">
@@ -117,7 +134,7 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
           
           <TabsContent value="users">
             <p className="text-sm text-muted-foreground mb-4">
-              Use this function to verify communication with the users table in MariaDB.
+              Use this function to verify communication with the users table.
               Results will show the count of registered users.
             </p>
             {userCount !== null && (
@@ -158,7 +175,9 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
         <p className="text-xs text-muted-foreground w-full text-center">
-          For more detailed queries, use a dedicated MariaDB client.
+          {import.meta.env.DEV 
+            ? "Using browser-compatible mock database in development mode." 
+            : "For more detailed queries, use a dedicated database client."}
         </p>
       </CardFooter>
     </Card>

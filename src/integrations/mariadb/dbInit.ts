@@ -1,5 +1,5 @@
 
-import { pool, query, tableExists, testConnection } from './client';
+import { query, tableExists, testConnection } from './client';
 import { toast } from 'sonner';
 
 /**
@@ -9,6 +9,7 @@ export async function initializeDatabase(): Promise<boolean> {
   try {
     console.log("Checking and creating database tables if needed...");
     
+    // In browser environment, we'll assume tables exist
     // Create categories table if it doesn't exist
     if (!await tableExists('categories')) {
       console.log("Creating categories table...");
@@ -71,6 +72,6 @@ export async function initializeDatabase(): Promise<boolean> {
 }
 
 /**
- * Export testConnection from client.ts rather than redefining it here
+ * Export testConnection from client.ts
  */
 export { testConnection };

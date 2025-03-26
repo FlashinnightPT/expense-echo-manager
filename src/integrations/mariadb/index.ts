@@ -7,20 +7,24 @@ import { testConnection } from './client';
  */
 export async function initializeMariaDB(): Promise<boolean> {
   try {
+    console.log("Initializing database connection...");
+    
     // Test connection first
     const isConnected = await testConnection();
     
     if (!isConnected) {
-      console.error("Could not connect to MariaDB");
+      console.error("Could not connect to database");
       return false;
     }
+    
+    console.log("Connection successful, initializing database schema...");
     
     // Initialize database schema
     const isInitialized = await initializeDatabase();
     
     return isInitialized;
   } catch (error) {
-    console.error("Error initializing MariaDB:", error);
+    console.error("Error initializing database:", error);
     return false;
   }
 }

@@ -2,7 +2,7 @@
 import { toast } from "sonner";
 import { testConnection } from "@/integrations/mariadb/client";
 
-// Core API Service class with functionality for MariaDB and fallback for localStorage
+// Core API Service class with functionality for database and fallback for localStorage
 export class ApiServiceCore {
   // Using protected instead of private to allow proper inheritance
   protected static instances: Record<string, any> = {};
@@ -37,14 +37,14 @@ export class ApiServiceCore {
     return ApiServiceCore.instances[className] as T;
   }
 
-  // Check connection with MariaDB
+  // Check connection with database
   protected async checkConnection(): Promise<void> {
     try {
       this.connected = await testConnection();
-      console.log(`MariaDB connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
+      console.log(`Database connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
     } catch (error) {
       this.connected = false;
-      console.error("Error checking MariaDB connection:", error);
+      console.error("Error checking database connection:", error);
     }
   }
 
