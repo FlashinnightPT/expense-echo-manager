@@ -1,5 +1,6 @@
 
-import { initializeDatabase, testConnection } from './dbInit';
+import { initializeDatabase } from './dbInit';
+import { testConnection } from './client';
 
 /**
  * Initialize database connection and setup
@@ -24,4 +25,4 @@ export async function initializeMariaDB(): Promise<boolean> {
   }
 }
 
-export { query, querySingle, insert, update, remove, transaction } from './client';
+export { query, querySingle, insert, update, remove, transaction, testConnection } from './client';

@@ -1,5 +1,5 @@
 
-import { pool, query, tableExists } from './client';
+import { pool, query, tableExists, testConnection } from './client';
 import { toast } from 'sonner';
 
 /**
@@ -71,18 +71,6 @@ export async function initializeDatabase(): Promise<boolean> {
 }
 
 /**
- * Test database connection
+ * Export testConnection from client.ts rather than redefining it here
  */
-export async function testConnection(): Promise<boolean> {
-  try {
-    console.log("Testing database connection...");
-    const result = await query('SELECT 1 as test');
-    console.log("Database connection test successful:", result);
-    toast.success("Database connection successful");
-    return true;
-  } catch (error) {
-    console.error("Database connection test failed:", error);
-    toast.error("Database connection failed: " + (error instanceof Error ? error.message : String(error)));
-    return false;
-  }
-}
+export { testConnection };

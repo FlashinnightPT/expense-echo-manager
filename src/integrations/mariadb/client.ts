@@ -20,6 +20,17 @@ export const pool = mysql.createPool({
   queueLimit: 0
 });
 
+// Test database connection
+export async function testConnection(): Promise<boolean> {
+  try {
+    const [rows] = await pool.execute('SELECT 1 as test');
+    return true;
+  } catch (error) {
+    console.error('Database connection test failed:', error);
+    return false;
+  }
+}
+
 // Helper function to execute queries
 export async function query<T>(sql: string, params: any[] = []): Promise<T[]> {
   try {
