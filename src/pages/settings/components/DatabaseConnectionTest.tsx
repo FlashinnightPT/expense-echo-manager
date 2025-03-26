@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { DatabaseIcon, RefreshCw, UsersIcon, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { testConnection, query } from "@/integrations/mariadb/client";
+import { testConnection, query, isDatabaseMock } from "@/integrations/mariadb/client";
 import { toast } from "sonner";
 
 interface DatabaseConnectionTestProps {
@@ -28,10 +28,12 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
       const result = await testConnection();
       
       // Print detailed information in console
-      console.log("Database connection test result:", result);
+      console.log("Database connection test result:", result, "Using mock:", isDatabaseMock);
       
       if (result) {
-        toast.success("Database connection successful");
+        toast.success(isDatabaseMock 
+          ? "Browser mock database connection successful" 
+          : "Database connection successful");
       } else {
         toast.error("Failed to connect to database");
         setError("Could not connect to the database");
@@ -101,9 +103,9 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
           <TabsContent value="general">
             <p className="text-sm text-muted-foreground mb-4">
               Use this function to verify if the application is correctly connected to the database.
-              {import.meta.env.DEV && (
+              {isDatabaseMock && (
                 <span className="block mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded text-yellow-800 dark:text-yellow-200">
-                  Development Mode: Using browser-compatible mock database.
+                  Browser Environment: Using in-memory mock database. Direct database connections are not supported in browsers.
                 </span>
               )}
             </p>
@@ -136,6 +138,11 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
             <p className="text-sm text-muted-foreground mb-4">
               Use this function to verify communication with the users table.
               Results will show the count of registered users.
+              {isDatabaseMock && (
+                <span className="block mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded text-yellow-800 dark:text-yellow-200">
+                  Browser Environment: Using in-memory mock database.
+                </span>
+              )}
             </p>
             {userCount !== null && (
               <div className={`p-3 rounded-md mb-4 ${userCount > 0 ? "bg-green-100 dark:bg-green-900/20" : "bg-yellow-100 dark:bg-yellow-900/20"}`}>
@@ -175,8 +182,8 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
         <p className="text-xs text-muted-foreground w-full text-center">
-          {import.meta.env.DEV 
-            ? "Using browser-compatible mock database in development mode." 
+          {isDatabaseMock 
+            ? "Browser environment detected. Using in-memory mock database." 
             : "For more detailed queries, use a dedicated database client."}
         </p>
       </CardFooter>

@@ -1,6 +1,6 @@
 
 import { toast } from "sonner";
-import { testConnection } from "@/integrations/mariadb/client";
+import { testConnection, isDatabaseMock } from "@/integrations/mariadb/client";
 
 // Core API Service class with functionality for database and fallback for localStorage
 export class ApiServiceCore {
@@ -40,8 +40,14 @@ export class ApiServiceCore {
   // Check connection with database
   protected async checkConnection(): Promise<void> {
     try {
-      this.connected = await testConnection();
-      console.log(`Database connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
+      if (isDatabaseMock) {
+        // In browser environment, we're always "connected" to our mock database
+        this.connected = true;
+        console.log(`Mock database connection active`);
+      } else {
+        this.connected = await testConnection();
+        console.log(`Database connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
+      }
     } catch (error) {
       this.connected = false;
       console.error("Error checking database connection:", error);
