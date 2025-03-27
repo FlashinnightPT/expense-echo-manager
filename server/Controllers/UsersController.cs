@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -32,6 +31,12 @@ namespace GFIN.API.Controllers
                         {
                             while (reader.Read())
                             {
+                                DateTime? lastLogin = null;
+                                if (reader["last_login"] != DBNull.Value)
+                                {
+                                    lastLogin = Convert.ToDateTime(reader["last_login"]);
+                                }
+                                
                                 users.Add(new User
                                 {
                                     Id = reader["id"].ToString(),
@@ -40,7 +45,7 @@ namespace GFIN.API.Controllers
                                     Password = reader["password"].ToString(),
                                     Role = reader["role"].ToString(),
                                     Status = reader["status"].ToString(),
-                                    LastLogin = reader["last_login"] != DBNull.Value ? Convert.ToDateTime(reader["last_login"]) : null
+                                    LastLogin = lastLogin
                                 });
                             }
                         }
@@ -77,6 +82,12 @@ namespace GFIN.API.Controllers
                         {
                             if (reader.Read())
                             {
+                                DateTime? lastLogin = null;
+                                if (reader["last_login"] != DBNull.Value)
+                                {
+                                    lastLogin = Convert.ToDateTime(reader["last_login"]);
+                                }
+                                
                                 user = new User
                                 {
                                     Id = reader["id"].ToString(),
@@ -85,7 +96,7 @@ namespace GFIN.API.Controllers
                                     Password = reader["password"].ToString(),
                                     Role = reader["role"].ToString(),
                                     Status = reader["status"].ToString(),
-                                    LastLogin = reader["last_login"] != DBNull.Value ? Convert.ToDateTime(reader["last_login"]) : null
+                                    LastLogin = lastLogin
                                 };
                             }
                         }
@@ -147,6 +158,12 @@ namespace GFIN.API.Controllers
                         {
                             if (reader.Read())
                             {
+                                DateTime? lastLogin = null;
+                                if (reader["last_login"] != DBNull.Value)
+                                {
+                                    lastLogin = Convert.ToDateTime(reader["last_login"]);
+                                }
+
                                 newUser = new User
                                 {
                                     Id = reader["id"].ToString(),
@@ -155,7 +172,7 @@ namespace GFIN.API.Controllers
                                     Password = reader["password"].ToString(),
                                     Role = reader["role"].ToString(),
                                     Status = reader["status"].ToString(),
-                                    LastLogin = reader["last_login"] != DBNull.Value ? Convert.ToDateTime(reader["last_login"]) : null
+                                    LastLogin = lastLogin
                                 };
                             }
                         }
@@ -223,6 +240,12 @@ namespace GFIN.API.Controllers
                         {
                             if (reader.Read())
                             {
+                                DateTime? lastLogin = null;
+                                if (reader["last_login"] != DBNull.Value)
+                                {
+                                    lastLogin = Convert.ToDateTime(reader["last_login"]);
+                                }
+
                                 updatedUser = new User
                                 {
                                     Id = reader["id"].ToString(),
@@ -231,7 +254,7 @@ namespace GFIN.API.Controllers
                                     Password = reader["password"].ToString(),
                                     Role = reader["role"].ToString(),
                                     Status = reader["status"].ToString(),
-                                    LastLogin = reader["last_login"] != DBNull.Value ? Convert.ToDateTime(reader["last_login"]) : null
+                                    LastLogin = lastLogin
                                 };
                             }
                         }
