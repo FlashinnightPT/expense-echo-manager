@@ -2,6 +2,7 @@
 using System;
 using System.Configuration;
 using Microsoft.Owin.Hosting;
+using Microsoft.Owin.Hosting.Engine;
 
 namespace GFIN.API
 {
@@ -23,7 +24,13 @@ namespace GFIN.API
             
             try
             {
-                using (WebApp.Start<Startup>(baseUrl))
+                // Create startup options with explicit server specification
+                var options = new StartOptions(baseUrl)
+                {
+                    ServerFactory = "Microsoft.Owin.Host.HttpListener"
+                };
+                
+                using (WebApp.Start<Startup>(options))
                 {
                     Console.WriteLine($"Server running at {baseUrl}");
                     Console.WriteLine("Press Enter to stop the server...");
