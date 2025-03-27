@@ -1,6 +1,5 @@
 
 import { CategoryServiceBase } from "./CategoryServiceBase";
-import { query, remove } from "@/integrations/mariadb/client";
 import { toast } from "sonner";
 import { TransactionCategory } from "@/utils/mockData";
 import { dbToCategoryModel } from "@/utils/mariadbAdapters";
@@ -9,10 +8,10 @@ import { dbToCategoryModel } from "@/utils/mariadbAdapters";
 export class CategoryDeleteService extends CategoryServiceBase {
   public async deleteCategory(categoryId: string): Promise<boolean> {
     try {
-      const affectedRows = await remove('categories', 'id = ?', [categoryId]);
+      const success = await this.apiDelete(`/categories/${categoryId}`);
       
-      if (affectedRows === 0) {
-        console.error("Error deleting category from MariaDB: No rows affected");
+      if (!success) {
+        console.error("Error deleting category from API");
         toast.error("Error deleting category");
         return false;
       }
@@ -22,7 +21,7 @@ export class CategoryDeleteService extends CategoryServiceBase {
       
       return true;
     } catch (error) {
-      console.error("Error deleting category from MariaDB:", error);
+      console.error("Error deleting category from API:", error);
       toast.error("Error deleting category");
       return false;
     }
@@ -39,20 +38,17 @@ export class CategoryDeleteService extends CategoryServiceBase {
     console.log("Cleaning categories. Keeping only", rootCategories.length, "root categories.");
     console.log("Categories to remove:", categoriesToRemove.length);
     
-    // Also clean the categories in MariaDB
     if (categoriesToRemove.length > 0) {
       try {
         // Delete all categories that are not level 1
-        const affectedRows = await query(`
-          DELETE FROM categories WHERE level > 1
-        `);
+        const result = await this.apiDelete('/categories/clear/non-root');
         
-        console.log("Categories removed from MariaDB:", affectedRows);
+        console.log("Categories removed from API:", result);
         
         toast.success(`${categoriesToRemove.length} categories were removed successfully.`);
       } catch (error) {
-        console.error("Error cleaning categories in MariaDB:", error);
-        toast.error("Error cleaning categories in MariaDB");
+        console.error("Error cleaning categories in API:", error);
+        toast.error("Error cleaning categories");
       }
     } else {
       toast.info("No categories to remove.");

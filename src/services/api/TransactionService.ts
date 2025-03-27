@@ -4,9 +4,6 @@ import { ApiServiceCore } from "./ApiServiceCore";
 import { toast } from "sonner";
 import { dbToTransactionModel, transactionModelToDb } from "@/utils/supabaseAdapters";
 
-// Mock transactions storage
-const mockTransactions: Record<string, any> = {};
-
 // Service for transaction operations
 export class TransactionService extends ApiServiceCore {
   private constructor() {
@@ -16,21 +13,21 @@ export class TransactionService extends ApiServiceCore {
   public static getInstance(): TransactionService {
     return ApiServiceCore.getOrCreateInstance.call(TransactionService);
   }
-  
-  // Ensure mock table exists
-  private ensureTableExists(): void {
-    if (!mockTransactions['transactions']) {
-      mockTransactions['transactions'] = [];
-    }
-  }
 
   public async getTransactions(): Promise<Transaction[]> {
     try {
-      this.ensureTableExists();
-      // Return mock transactions
-      return mockTransactions['transactions'].map(dbToTransactionModel);
+      const data = await this.apiGet<any[]>('/transactions');
+      
+      if (!data) {
+        console.error("Error fetching transactions from API: No data returned");
+        toast.error("Error fetching transactions");
+        return [];
+      }
+      
+      // Transform database records to application model
+      return data.map(dbToTransactionModel);
     } catch (error) {
-      console.error("Error fetching transactions:", error);
+      console.error("Error fetching transactions from API:", error);
       toast.error("Error fetching transactions");
       return [];
     }
@@ -47,19 +44,22 @@ export class TransactionService extends ApiServiceCore {
     };
     
     try {
-      this.ensureTableExists();
       // Convert to DB format
       const dbTransaction = transactionModelToDb(newTransaction);
       
-      // Add to mock storage
-      mockTransactions['transactions'].push(dbTransaction);
+      // Send to API
+      const result = await this.apiPost('/transactions', dbTransaction);
+      
+      if (!result) {
+        throw new Error("No data returned from API");
+      }
       
       // Simulate event for other components
       window.dispatchEvent(new Event('storage'));
       
       return newTransaction;
     } catch (error) {
-      console.error("Error saving transaction:", error);
+      console.error("Error saving transaction to API:", error);
       toast.error("Error saving transaction");
       return newTransaction;
     }
@@ -67,23 +67,17 @@ export class TransactionService extends ApiServiceCore {
 
   public async deleteTransaction(transactionId: string): Promise<boolean> {
     try {
-      this.ensureTableExists();
-      // Find transaction index
-      const index = mockTransactions['transactions'].findIndex((t: any) => t.id === transactionId);
+      const success = await this.apiDelete(`/transactions/${transactionId}`);
       
-      if (index >= 0) {
-        // Remove from mock storage
-        mockTransactions['transactions'].splice(index, 1);
-        
+      if (success) {
         // Simulate event for other components
         window.dispatchEvent(new Event('storage'));
-        
         return true;
       }
       
       return false;
     } catch (error) {
-      console.error("Error deleting transaction:", error);
+      console.error("Error deleting transaction from API:", error);
       toast.error("Error deleting transaction");
       return false;
     }

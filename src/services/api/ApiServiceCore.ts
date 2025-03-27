@@ -1,13 +1,13 @@
 
 import { toast } from "sonner";
-import { testConnection, isDatabaseMock } from "@/integrations/mariadb/client";
 
-// Core API Service class with functionality for database and fallback for localStorage
+// Core API Service class with functionality for API and fallback for localStorage
 export class ApiServiceCore {
   // Using protected instead of private to allow proper inheritance
   protected static instances: Record<string, any> = {};
   protected connected: boolean = false;
   protected pendingOperations: Array<() => Promise<void>> = [];
+  protected apiBaseUrl: string = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   protected constructor() {
     // Initialize connection check
@@ -37,20 +37,21 @@ export class ApiServiceCore {
     return ApiServiceCore.instances[className] as T;
   }
 
-  // Check connection with database
+  // Check connection with API server
   protected async checkConnection(): Promise<void> {
     try {
-      if (isDatabaseMock) {
-        // In browser environment, we're always "connected" to our mock database
-        this.connected = true;
-        console.log(`Mock database connection active`);
-      } else {
-        this.connected = await testConnection();
-        console.log(`Database connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
-      }
+      const response = await fetch(`${this.apiBaseUrl}/ping`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      this.connected = response.ok;
+      console.log(`API connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
     } catch (error) {
       this.connected = false;
-      console.error("Error checking database connection:", error);
+      console.error("Error checking API connection:", error);
     }
   }
 
@@ -90,5 +91,94 @@ export class ApiServiceCore {
   public addPendingOperation(operation: () => Promise<void>): void {
     this.pendingOperations.push(operation);
     toast.info("Operation stored for later synchronization");
+  }
+  
+  // API helper methods
+  protected async apiGet<T>(endpoint: string): Promise<T> {
+    try {
+      const response = await fetch(`${this.apiBaseUrl}${endpoint}`);
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error(`GET ${endpoint} failed:`, error);
+      throw error;
+    }
+  }
+  
+  protected async apiPost<T>(endpoint: string, data: any): Promise<T> {
+    try {
+      const response = await fetch(`${this.apiBaseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error(`POST ${endpoint} failed:`, error);
+      throw error;
+    }
+  }
+  
+  protected async apiPut<T>(endpoint: string, data: any): Promise<T> {
+    try {
+      const response = await fetch(`${this.apiBaseUrl}${endpoint}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error(`PUT ${endpoint} failed:`, error);
+      throw error;
+    }
+  }
+  
+  protected async apiDelete(endpoint: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.apiBaseUrl}${endpoint}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      return true;
+    } catch (error) {
+      console.error(`DELETE ${endpoint} failed:`, error);
+      throw error;
+    }
+  }
+  
+  // API test connection
+  public async testConnection(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.apiBaseUrl}/db-test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      return result.success;
+    } catch (error) {
+      console.error("Error testing database connection:", error);
+      return false;
+    }
   }
 }

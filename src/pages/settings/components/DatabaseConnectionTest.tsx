@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { DatabaseIcon, RefreshCw, UsersIcon, AlertTriangle, CheckCircle, ServerIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { testConnection, query, isDatabaseMock } from "@/integrations/mariadb/client";
+import { apiService } from "@/services/apiService";
 import { toast } from "sonner";
 
 interface DatabaseConnectionTestProps {
@@ -31,16 +30,13 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
       console.log("Starting database connection test...");
       
       // Test connection with MariaDB
-      const result = await testConnection();
+      const result = await apiService.testConnection();
       
-      // Print detailed information in console
-      console.log("Database connection test result:", result, "Using mock:", isDatabaseMock);
+      console.log("Database connection test result:", result);
       
       if (result) {
         setConnectionSuccess(true);
-        toast.success(isDatabaseMock 
-          ? "Browser simulation: Database connection successful" 
-          : "Database connection successful");
+        toast.success("Database connection successful");
       } else {
         setConnectionSuccess(false);
         toast.error("Failed to connect to database");
@@ -65,7 +61,7 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
     setError(null);
     try {
       // Test connection with users table
-      const users = await query(`SELECT * FROM users`);
+      const users = await apiService['apiGet']('/users');
       const count = users ? users.length : 0;
       
       setUserCount(count);
