@@ -18,33 +18,45 @@ namespace GFIN.API
             Console.WriteLine("This console window is for development purposes only.");
             Console.WriteLine("In production, the application will run under IIS.");
             
-            // Enable self-hosting for development
-            string port = ConfigurationManager.AppSettings["PORT"] ?? "5000";
-            string baseUrl = $"http://localhost:{port}/";
+            // Check if running in development environment
+            bool isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
             
-            try
+            if (isDevelopment)
             {
-                // Create startup options with explicit server specification
-                var options = new StartOptions(baseUrl)
-                {
-                    ServerFactory = "Microsoft.Owin.Host.HttpListener"
-                };
+                // Only start self-hosting in development environment
+                string port = ConfigurationManager.AppSettings["PORT"] ?? "5000";
+                string baseUrl = $"http://localhost:{port}/";
                 
-                using (WebApp.Start<Startup>(options))
+                try
                 {
-                    Console.WriteLine($"Server running at {baseUrl}");
-                    Console.WriteLine("Press Enter to stop the server...");
+                    // Create startup options with explicit server specification
+                    var options = new StartOptions(baseUrl)
+                    {
+                        ServerFactory = "Microsoft.Owin.Host.HttpListener"
+                    };
+                    
+                    using (WebApp.Start<Startup>(options))
+                    {
+                        Console.WriteLine($"Server running at {baseUrl}");
+                        Console.WriteLine("Press Enter to stop the server...");
+                        Console.ReadLine();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Error starting server: {ex.Message}");
+                    Console.WriteLine(ex.StackTrace);
+                    Console.ResetColor();
+                    Console.WriteLine("Press Enter to exit...");
                     Console.ReadLine();
                 }
             }
-            catch (Exception ex)
+            else
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Error starting server: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
-                Console.ResetColor();
-                Console.WriteLine("Press Enter to exit...");
-                Console.ReadLine();
+                // In production, just log that the application has started
+                // The actual hosting is handled by IIS
+                Console.WriteLine("Application started in production mode.");
             }
         }
     }
