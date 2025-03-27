@@ -20,7 +20,7 @@ export class CategoryCreateService extends CategoryServiceBase {
       name: category.name || "",
       type: category.type || "expense",
       level: category.level || 1,
-      parentId: category.parentId,
+      parentId: this.sanitizeForDb(category.parentId), // Sanitize parentId (convert undefined to null)
       // Fix: Explicitly convert to boolean values using strict comparison
       isFixedExpense: category.isFixedExpense === true ? true : false,
       isActive: category.isActive === false ? false : true // default to true if undefined
