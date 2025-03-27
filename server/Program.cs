@@ -1,6 +1,7 @@
 
 using System;
 using System.Configuration;
+using System.IO;
 using Microsoft.Owin.Hosting;
 using Microsoft.Owin.Hosting.Engine;
 
@@ -20,6 +21,27 @@ namespace GFIN.API
             
             // Check if running in development environment
             bool isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+            
+            // Force load the configuration file
+            string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Web.config");
+            if (File.Exists(configPath))
+            {
+                Console.WriteLine($"Loading configuration from: {configPath}");
+                var configMap = new ExeConfigurationFileMap { ExeConfigFilename = configPath };
+                Configuration config = ConfigurationManager.OpenMappedExeConfiguration(configMap, ConfigurationUserLevel.None);
+                ConfigurationManager.RefreshSection("appSettings");
+            }
+            else
+            {
+                Console.WriteLine($"Warning: Configuration file not found at {configPath}");
+            }
+            
+            // Log the loaded AppSettings
+            Console.WriteLine("AppSettings Contents:");
+            foreach (string key in ConfigurationManager.AppSettings.AllKeys)
+            {
+                Console.WriteLine($"{key} = {ConfigurationManager.AppSettings[key]}");
+            }
             
             if (isDevelopment)
             {
