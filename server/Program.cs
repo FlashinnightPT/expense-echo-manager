@@ -1,5 +1,6 @@
 
 using System;
+using System.Configuration;
 using Microsoft.Owin.Hosting;
 
 namespace GFIN.API
@@ -16,11 +17,28 @@ namespace GFIN.API
             Console.WriteLine("This console window is for development purposes only.");
             Console.WriteLine("In production, the application will run under IIS.");
             
-            // You could add self-hosting capabilities here if desired
-            // string baseUrl = "http://localhost:5000/";
-            // WebApp.Start<Startup>(baseUrl);
-            // Console.WriteLine($"Server running at {baseUrl}");
-            // Console.ReadLine();
+            // Enable self-hosting for development
+            string port = ConfigurationManager.AppSettings["PORT"] ?? "5000";
+            string baseUrl = $"http://localhost:{port}/";
+            
+            try
+            {
+                using (WebApp.Start<Startup>(baseUrl))
+                {
+                    Console.WriteLine($"Server running at {baseUrl}");
+                    Console.WriteLine("Press Enter to stop the server...");
+                    Console.ReadLine();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Error starting server: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                Console.ResetColor();
+                Console.WriteLine("Press Enter to exit...");
+                Console.ReadLine();
+            }
         }
     }
 }
