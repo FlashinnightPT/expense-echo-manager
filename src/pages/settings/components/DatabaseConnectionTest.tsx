@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiService } from "@/services/apiService";
 import { toast } from "sonner";
+import { isDatabaseMock } from "@/integrations/mariadb/client";
 
 interface DatabaseConnectionTestProps {
   className?: string;
@@ -62,7 +64,7 @@ const DatabaseConnectionTest = ({ className }: DatabaseConnectionTestProps) => {
     try {
       // Test connection with users table
       const users = await apiService['apiGet']('/users');
-      const count = users ? users.length : 0;
+      const count = users && Array.isArray(users) ? users.length : 0;
       
       setUserCount(count);
       setLastTestTime(new Date().toLocaleTimeString());
