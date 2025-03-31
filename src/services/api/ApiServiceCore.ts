@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 
 // Core API Service class with functionality for API operations
@@ -7,7 +6,7 @@ export class ApiServiceCore {
   protected static instances: Record<string, any> = {};
   protected connected: boolean = false;
   protected pendingOperations: Array<() => Promise<void>> = [];
-  protected apiBaseUrl: string = import.meta.env.VITE_API_URL || 'http://gestaofinanceira.acmorais.com/api';
+  protected apiBaseUrl: string = import.meta.env.VITE_API_URL || 'https://gestaofinanceira.acmorais.com/api';
 
   protected constructor() {
     // Initialize connection check
