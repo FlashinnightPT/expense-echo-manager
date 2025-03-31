@@ -40,12 +40,18 @@ export class ApiServiceCore {
   // Check connection with API server
   protected async checkConnection(): Promise<void> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
       const response = await fetch(`${this.apiBaseUrl}/ping`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       this.connected = response.ok;
       console.log(`API connection status: ${this.connected ? 'Connected' : 'Disconnected'}`);
@@ -163,12 +169,18 @@ export class ApiServiceCore {
   // API test connection
   public async testConnection(): Promise<boolean> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
       const response = await fetch(`${this.apiBaseUrl}/db-test`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         throw new Error(`API error: ${response.status} ${response.statusText}`);
