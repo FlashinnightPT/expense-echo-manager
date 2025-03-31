@@ -2,10 +2,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { formatCurrency } from "@/utils/financialCalculations";
-
-// Mock data
-const mockTransactions: Transaction[] = [];
-const mockCategories: TransactionCategory[] = [];
+import { apiService } from "@/services/apiService";
+import { toast } from "sonner";
 
 export const useYearlyData = () => {
   const currentYear = new Date().getFullYear();
@@ -15,16 +13,22 @@ export const useYearlyData = () => {
   const [showValues, setShowValues] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Fetch transactions (using mock data instead of Supabase)
+  // Fetch transactions and categories from API
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Use mock data
-        setTransactions([...mockTransactions]);
-        setCategories([...mockCategories]);
+        // Use API service to fetch data
+        const [transactionsData, categoriesData] = await Promise.all([
+          apiService.getTransactions(),
+          apiService.getCategories()
+        ]);
+        
+        setTransactions(transactionsData);
+        setCategories(categoriesData);
       } catch (error) {
         console.error("Error fetching data:", error);
+        toast.error(`Error fetching data: ${error instanceof Error ? error.message : String(error)}`);
       } finally {
         setIsLoading(false);
       }

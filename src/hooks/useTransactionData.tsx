@@ -2,10 +2,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Transaction } from "@/utils/mockData";
-import { dbToTransactionModel, transactionModelToDb } from "@/utils/supabaseAdapters";
-
-// Mock transaction data storage
-const mockTransactions: Transaction[] = [];
+import { apiService } from "@/services/apiService";
 
 export const useTransactionData = () => {
   const [transactionList, setTransactionList] = useState<Transaction[]>([]);
@@ -14,11 +11,12 @@ export const useTransactionData = () => {
   const fetchTransactions = async () => {
     try {
       setIsLoading(true);
-      // Use mock data instead of Supabase
-      setTransactionList([...mockTransactions]);
+      // Use API service to fetch transactions
+      const transactions = await apiService.getTransactions();
+      setTransactionList(transactions);
     } catch (error) {
       console.error("Error fetching transactions:", error);
-      toast.error("Erro ao carregar transações");
+      toast.error("Error loading transactions");
     } finally {
       setIsLoading(false);
     }
@@ -45,13 +43,18 @@ export const useTransactionData = () => {
 
   const confirmClearTransactions = async () => {
     try {
-      if (window.confirm("Tem certeza que deseja apagar todas as transações? Esta ação não pode ser desfeita.")) {
-        // Clear mock transactions
-        mockTransactions.length = 0;
+      if (window.confirm("Are you sure you want to delete all transactions? This action cannot be undone.")) {
+        // We would need an API endpoint for this operation
+        // For now, we'll use individual delete operations
+        const deletePromises = transactionList.map(transaction => 
+          apiService.deleteTransaction(transaction.id)
+        );
+        
+        await Promise.all(deletePromises);
         
         // Update local state
         setTransactionList([]);
-        toast.success("Todas as transações foram apagadas com sucesso");
+        toast.success("All transactions deleted successfully");
         
         // Dispatch event for other components
         window.dispatchEvent(new Event('storage'));
@@ -60,8 +63,8 @@ export const useTransactionData = () => {
       }
       return false;
     } catch (error) {
-      console.error("Erro ao limpar transações:", error);
-      toast.error("Erro ao apagar transações");
+      console.error("Error clearing transactions:", error);
+      toast.error("Error deleting transactions");
       return false;
     }
   };
@@ -85,7 +88,7 @@ export const useTransactionData = () => {
   const generateTestTransactions = async (categoryList: any[]) => {
     try {
       if (!categoryList || categoryList.length === 0) {
-        toast.error("Não existem categorias para gerar transações");
+        toast.error("No categories available to generate transactions");
         return false;
       }
 
@@ -94,7 +97,7 @@ export const useTransactionData = () => {
       });
 
       if (leafCategories.length === 0) {
-        toast.error("Não existem categorias folha para gerar transações");
+        toast.error("No leaf categories to generate transactions");
         return false;
       }
 
@@ -106,9 +109,9 @@ export const useTransactionData = () => {
       const endDate = new Date(currentYear, currentMonth - 1, currentDay);
       
       let transactionsCreated = 0;
-      const newTransactions: Transaction[] = [];
+      const transactionPromises = [];
 
-      leafCategories.forEach(category => {
+      for (const category of leafCategories) {
         const transactionsPerYear = Math.floor(Math.random() * 6) + 2;
         const numYears = (currentYear - startDate.getFullYear()) + 1;
         const totalTransactions = transactionsPerYear * numYears;
@@ -123,11 +126,10 @@ export const useTransactionData = () => {
           const randomAmount = Math.round(Math.random() * 990 + 10);
           
           const description = category.type === 'income' 
-            ? `Receita: ${category.name}` 
-            : `Despesa: ${category.name}`;
+            ? `Income: ${category.name}` 
+            : `Expense: ${category.name}`;
           
-          const newTransaction: Transaction = {
-            id: `transaction-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+          const newTransaction: Partial<Transaction> = {
             description,
             amount: randomAmount,
             date: dateString,
@@ -135,24 +137,27 @@ export const useTransactionData = () => {
             type: category.type
           };
           
-          newTransactions.push(newTransaction);
-          mockTransactions.push(newTransaction);
+          // Save using API service
+          transactionPromises.push(apiService.saveTransaction(newTransaction));
           transactionsCreated++;
         }
-      });
+      }
 
-      // Update local state
-      setTransactionList(prev => [...prev, ...newTransactions]);
+      // Wait for all save operations to complete
+      const savedTransactions = await Promise.all(transactionPromises);
       
-      toast.success(`${transactionsCreated} transações de teste foram criadas com sucesso`);
+      // Update local state
+      setTransactionList(prev => [...prev, ...savedTransactions]);
+      
+      toast.success(`${transactionsCreated} test transactions created successfully`);
       
       // Dispatch event for other components
       window.dispatchEvent(new Event('storage'));
       
       return true;
     } catch (error) {
-      console.error("Erro ao gerar transações de teste:", error);
-      toast.error("Ocorreu um erro ao gerar transações de teste");
+      console.error("Error generating test transactions:", error);
+      toast.error("Error generating test transactions");
       return false;
     }
   };

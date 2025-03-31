@@ -1,13 +1,13 @@
 
 import { toast } from "sonner";
 
-// Core API Service class with functionality for API and fallback for localStorage
+// Core API Service class with functionality for API operations
 export class ApiServiceCore {
   // Using protected instead of private to allow proper inheritance
   protected static instances: Record<string, any> = {};
   protected connected: boolean = false;
   protected pendingOperations: Array<() => Promise<void>> = [];
-  protected apiBaseUrl: string = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  protected apiBaseUrl: string = import.meta.env.VITE_API_URL || 'http://gestaofinanceira.acmorais.com/api';
 
   protected constructor() {
     // Initialize connection check

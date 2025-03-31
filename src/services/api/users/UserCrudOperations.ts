@@ -16,19 +16,12 @@ export class UserCrudOperations {
    */
   async getUsers(): Promise<UserData[]> {
     try {
-      if (this.apiCore.isConnected()) {
-        const data = await this.apiCore['apiGet']<any[]>('/users');
-        return data.map(dbToUserModel);
-      }
-      
-      // Use localStorage when offline
-      const savedUsers = localStorage.getItem('app_users');
-      return savedUsers ? JSON.parse(savedUsers) : [];
+      const data = await this.apiCore['apiGet']<any[]>('/users');
+      return data.map(dbToUserModel);
     } catch (error) {
       console.error('Error getting users:', error);
-      // In case of error, try to use localStorage
-      const savedUsers = localStorage.getItem('app_users');
-      return savedUsers ? JSON.parse(savedUsers) : [];
+      toast.error('Failed to load users from API');
+      return [];
     }
   }
 
@@ -37,21 +30,12 @@ export class UserCrudOperations {
    */
   async getUserByUsername(username: string): Promise<UserData | null> {
     try {
-      if (this.apiCore.isConnected()) {
-        const data = await this.apiCore['apiGet']<any>(`/users/username/${username}`);
-        return dbToUserModel(data);
-      }
-      
-      // Use localStorage
-      const savedUsers = localStorage.getItem('app_users');
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
-      return users.find((u: UserData) => u.username === username) || null;
+      const data = await this.apiCore['apiGet']<any>(`/users/username/${username}`);
+      return dbToUserModel(data);
     } catch (error) {
       console.error(`Error getting user ${username}:`, error);
-      // In case of error, try to use localStorage
-      const savedUsers = localStorage.getItem('app_users');
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
-      return users.find((u: UserData) => u.username === username) || null;
+      toast.error(`Failed to load user ${username} from API`);
+      return null;
     }
   }
 
@@ -60,25 +44,14 @@ export class UserCrudOperations {
    */
   async createUser(userData: UserData): Promise<UserData> {
     try {
-      if (this.apiCore.isConnected()) {
-        const dbUser = userModelToDb(userData);
-        const result = await this.apiCore['apiPost']<any>('/users', dbUser);
-        return dbToUserModel(result);
-      }
-      
-      // Save to localStorage when offline
-      const savedUsers = localStorage.getItem('app_users');
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
-      localStorage.setItem('app_users', JSON.stringify([...users, userData]));
-      
-      return userData;
+      const dbUser = userModelToDb(userData);
+      const result = await this.apiCore['apiPost']<any>('/users', dbUser);
+      toast.success(`User ${userData.name} created successfully`);
+      return dbToUserModel(result);
     } catch (error) {
       console.error('Error creating user:', error);
-      // In case of error, save only to localStorage
-      const savedUsers = localStorage.getItem('app_users');
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
-      localStorage.setItem('app_users', JSON.stringify([...users, userData]));
-      return userData;
+      toast.error('Failed to create user in API');
+      throw error;
     }
   }
 
@@ -87,24 +60,13 @@ export class UserCrudOperations {
    */
   async updateUser(userData: Partial<UserData> & { id: string }): Promise<UserData | null> {
     try {
-      if (this.apiCore.isConnected()) {
-        const dbUser = userModelToDb(userData);
-        const result = await this.apiCore['apiPut']<any>(`/users/${userData.id}`, dbUser);
-        return dbToUserModel(result);
-      }
-      
-      // Update localStorage
-      const savedUsers = localStorage.getItem('app_users');
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
-      const updatedUsers = users.map((u: UserData) => 
-        u.id === userData.id ? { ...u, ...userData } : u
-      );
-      localStorage.setItem('app_users', JSON.stringify(updatedUsers));
-      
-      const updatedUser = users.find((u: UserData) => u.id === userData.id);
-      return updatedUser ? { ...updatedUser, ...userData } : null;
+      const dbUser = userModelToDb(userData);
+      const result = await this.apiCore['apiPut']<any>(`/users/${userData.id}`, dbUser);
+      toast.success('User updated successfully');
+      return dbToUserModel(result);
     } catch (error) {
       console.error('Error updating user:', error);
+      toast.error('Failed to update user in API');
       return null;
     }
   }
@@ -114,19 +76,12 @@ export class UserCrudOperations {
    */
   async deleteUser(userId: string): Promise<boolean> {
     try {
-      if (this.apiCore.isConnected()) {
-        await this.apiCore['apiDelete'](`/users/${userId}`);
-      }
-      
-      // Update localStorage
-      const savedUsers = localStorage.getItem('app_users');
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
-      const filteredUsers = users.filter((u: UserData) => u.id !== userId);
-      localStorage.setItem('app_users', JSON.stringify(filteredUsers));
-      
+      await this.apiCore['apiDelete'](`/users/${userId}`);
+      toast.success('User deleted successfully');
       return true;
     } catch (error) {
       console.error('Error deleting user:', error);
+      toast.error('Failed to delete user from API');
       return false;
     }
   }
@@ -136,20 +91,10 @@ export class UserCrudOperations {
    */
   async updateLastLogin(userId: string): Promise<void> {
     try {
-      if (this.apiCore.isConnected()) {
-        await this.apiCore['apiPut'](`/users/${userId}/last-login`, {});
-      }
-      
-      // Also update in localStorage
-      const savedUsers = localStorage.getItem('app_users');
-      const users = savedUsers ? JSON.parse(savedUsers) : [];
-      const updatedUsers = users.map((u: UserData) => 
-        u.id === userId ? { ...u, lastLogin: new Date().toISOString() } : u
-      );
-      localStorage.setItem('app_users', JSON.stringify(updatedUsers));
+      await this.apiCore['apiPut'](`/users/${userId}/last-login`, {});
     } catch (error) {
       console.error('Error updating last login:', error);
-      toast.error('Error updating last login');
+      // Non-critical operation, so just log the error
     }
   }
 }

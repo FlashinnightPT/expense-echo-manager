@@ -1,12 +1,8 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { getMonthName } from "@/utils/financialCalculations";
 import { toast } from "sonner";
-
-// Mock data for use in the browser
-const mockTransactions: Transaction[] = [];
-const mockCategories: TransactionCategory[] = [];
+import { apiService } from "@/services/apiService";
 
 export const useMonthlyData = () => {
   const currentYear = new Date().getFullYear();
@@ -16,31 +12,19 @@ export const useMonthlyData = () => {
   const [showValues, setShowValues] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Fetch transactions and categories from mock data
+  // Fetch transactions and categories from API
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Use mock data instead of Supabase
-        console.log("Fetching mock transaction and category data");
+        // Use API service to fetch data
+        const [transactionsData, categoriesData] = await Promise.all([
+          apiService.getTransactions(),
+          apiService.getCategories()
+        ]);
         
-        // Retrieve from localStorage if available
-        const storedTransactions = localStorage.getItem('transactions');
-        const storedCategories = localStorage.getItem('categories');
-        
-        if (storedTransactions) {
-          const parsedTransactions = JSON.parse(storedTransactions);
-          setTransactions(parsedTransactions);
-        } else {
-          setTransactions(mockTransactions);
-        }
-        
-        if (storedCategories) {
-          const parsedCategories = JSON.parse(storedCategories);
-          setCategories(parsedCategories);
-        } else {
-          setCategories(mockCategories);
-        }
+        setTransactions(transactionsData);
+        setCategories(categoriesData);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error(`Error fetching data: ${error instanceof Error ? error.message : String(error)}`);
