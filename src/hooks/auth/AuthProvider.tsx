@@ -84,13 +84,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []); 
 
   // Login function
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const login = async (username: string, password: string, userData?: any): Promise<boolean> => {
     try {
       console.log("AuthProvider: Attempting login for", username);
       // Reset previous state in case of consecutive login attempts
       setUser(null);
       setIsAuthenticated(false);
       
+      // If userData is provided from the API response, use it directly
+      if (userData) {
+        const userToSave: User = {
+          id: userData.id,
+          name: userData.name || username,
+          username: userData.username || username,
+          role: userData.role || "user"
+        };
+        
+        // Update state and session
+        setUser(userToSave);
+        setIsAuthenticated(true);
+        sessionStorage.setItem("current_user", JSON.stringify(userToSave));
+        
+        // Set default financial values visibility to false after login
+        sessionStorage.setItem('showFinancialValues', 'false');
+        
+        console.log("AuthProvider: Login successful for", username, "with API provided user data");
+        return true;
+      }
+      
+      // If no userData provided, fall back to original flow
       // Get user from system
       const foundUser = await UserService.getUserByUsername(username);
       

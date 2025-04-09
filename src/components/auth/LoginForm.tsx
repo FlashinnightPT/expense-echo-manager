@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Eye, EyeOff, LogIn, User, Lock, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -77,12 +78,67 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         return;
       }
 
+      // Send login request to the API
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://gestaofinanceira.acmorais.com/api';
+      
+      try {
+        const response = await fetch(`${apiUrl}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: form.username,
+            password: form.password
+          })
+        });
+
+        // If the API is unavailable or returns an error, fallback to the original flow
+        if (!response.ok) {
+          console.warn("API login failed, falling back to local auth");
+          return await handleLocalLogin();
+        }
+
+        const result = await response.json();
+        
+        if (result.success) {
+          const success = await login(form.username, form.password, result.user);
+          
+          if (success) {
+            toast.success("Login realizado com sucesso");
+            
+            if (onLoginSuccess) {
+              onLoginSuccess();
+            } else {
+              navigate("/dashboard");
+            }
+          } else {
+            toast.error("Erro ao processar autenticação");
+          }
+        } else if (result.firstLogin) {
+          setIsFirstLogin(true);
+          toast.info("Por favor, altere a sua senha");
+        } else {
+          toast.error(result.message || "Credenciais inválidas");
+        }
+      } catch (error) {
+        console.warn("API login request failed, falling back to local auth:", error);
+        return await handleLocalLogin();
+      }
+    } catch (error) {
+      console.error("Erro ao fazer login:", error);
+      toast.error("Ocorreu um erro ao tentar fazer login");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fallback to local authentication when API is unavailable
+  const handleLocalLogin = async () => {
+    try {
       const user = await UserService.getUserByUsername(form.username);
       
       if (!user) {
         toast.error("Utilizador não encontrado");
-        setIsLoading(false);
-        return;
+        return false;
       }
       
       if (user.username === "admin" && form.password === "admin123") {
@@ -97,14 +153,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             navigate("/dashboard");
           }
         }
-        return;
+        return true;
       }
       
       if (form.password === "temp123") {
         setIsFirstLogin(true);
         toast.info("Por favor, altere a sua senha");
-        setIsLoading(false);
-        return;
+        return true;
       }
 
       const success = await login(form.username, form.password);
@@ -116,14 +171,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         } else {
           navigate("/dashboard");
         }
+        return true;
       } else {
         toast.error("Credenciais inválidas");
+        return false;
       }
     } catch (error) {
-      console.error("Erro ao fazer login:", error);
-      toast.error("Ocorreu um erro ao tentar fazer login");
-    } finally {
-      setIsLoading(false);
+      console.error("Local login error:", error);
+      toast.error("Erro de autenticação local");
+      return false;
     }
   };
 
