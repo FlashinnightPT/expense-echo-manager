@@ -2,11 +2,11 @@
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using GFIN.API.Database;
+using expense_echo_manager_api.Database;
 
-namespace GFIN.API.Controllers
+namespace expense_echo_manager_api.Controllers
 {
-    [RoutePrefix("api/db-test")]
+    [RoutePrefix("db-test")]
     public class DbTestController : ApiController
     {
         [HttpPost]

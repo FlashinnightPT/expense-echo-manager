@@ -1,7 +1,7 @@
 
 using System;
 
-namespace GFIN.API.Models
+namespace expense_echo_manager_api.Models
 {
     public class Category
     {

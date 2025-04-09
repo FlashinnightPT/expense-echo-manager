@@ -3,9 +3,9 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 
-namespace GFIN.API.Controllers
+namespace expense_echo_manager_api.Controllers
 {
-    [RoutePrefix("api/ping")]
+    [RoutePrefix("ping")]
     public class PingController : ApiController
     {
         [HttpGet]

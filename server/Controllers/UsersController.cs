@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using GFIN.API.Database;
-using GFIN.API.Models;
+using expense_echo_manager_api.Database;
+using expense_echo_manager_api.Models;
 using MySql.Data.MySqlClient;
 
-namespace GFIN.API.Controllers
+namespace expense_echo_manager_api.Controllers
 {
-    [RoutePrefix("api/users")]
+    [RoutePrefix("users")]
     public class UsersController : ApiController
     {
         [HttpGet]

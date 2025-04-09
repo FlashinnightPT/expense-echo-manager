@@ -4,14 +4,14 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using GFIN.API.Database;
-using GFIN.API.Models;
+using expense_echo_manager_api.Database;
+using expense_echo_manager_api.Models;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 
-namespace GFIN.API.Controllers
+namespace expense_echo_manager_api.Controllers
 {
-    [RoutePrefix("api/categories")]
+    [RoutePrefix("categories")]
     public class CategoriesController : ApiController
     {
         [HttpGet]
