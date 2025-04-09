@@ -13,7 +13,7 @@ export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isInitialized: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string, userData?: any) => Promise<boolean>; // Updated login signature
   logout: () => void;
   canEdit: boolean;
   validatePassword: (password: string) => { isValid: boolean; errors: string[] };

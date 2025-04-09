@@ -83,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // This effect should only run once on mount
   }, []); 
 
-  // Login function
+  // Login function - updated to support both API and local login flows
   const login = async (username: string, password: string, userData?: any): Promise<boolean> => {
     try {
       console.log("AuthProvider: Attempting login for", username);
