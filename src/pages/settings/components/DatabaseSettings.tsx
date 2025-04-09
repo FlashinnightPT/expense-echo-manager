@@ -1,11 +1,11 @@
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { FileJson, Import, Upload, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui-custom/Card";
 import { Button } from "@/components/ui/button";
-import { exportDatabase, importDatabase, clearAllData } from "@/utils/databaseUtils";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useState } from "react";
+import { backupService } from "@/services/api/BackupService";
+import { toast } from "sonner";
 
 interface DatabaseSettingsProps {
   className?: string;
@@ -16,7 +16,7 @@ const DatabaseSettings = ({ className }: DatabaseSettingsProps) => {
   const [openClearDialog, setOpenClearDialog] = useState(false);
   
   const handleExportDatabase = () => {
-    exportDatabase();
+    backupService.exportDatabase();
   };
   
   const handleImportClick = () => {
@@ -34,7 +34,7 @@ const DatabaseSettings = ({ className }: DatabaseSettingsProps) => {
     try {
       // Confirmar com o usuário
       if (window.confirm("Esta ação irá substituir todos os dados existentes. Tem certeza que deseja continuar?")) {
-        await importDatabase(file);
+        await backupService.importDatabase(file);
         // Recarregar a página para garantir que todos os componentes sejam atualizados
         window.location.reload();
       }
@@ -49,9 +49,24 @@ const DatabaseSettings = ({ className }: DatabaseSettingsProps) => {
   };
 
   const handleClearAllData = async () => {
-    if (await clearAllData()) {
-      setOpenClearDialog(false);
-      window.location.reload();
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/backup/clear`, {
+        method: 'POST',
+      });
+      
+      if (response.ok) {
+        setOpenClearDialog(false);
+        toast.success("Todos os dados foram removidos com sucesso");
+        window.location.reload();
+        return true;
+      } else {
+        toast.error("Erro ao limpar dados");
+        return false;
+      }
+    } catch (error) {
+      console.error("Erro ao limpar dados:", error);
+      toast.error("Erro ao limpar dados");
+      return false;
     }
   };
 
