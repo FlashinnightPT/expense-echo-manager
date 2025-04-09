@@ -5,7 +5,7 @@ import { categoryService } from "@/services/api/category/CategoryService";
 
 interface UseCategoryUpdatesProps {
   categoryList: TransactionCategory[];
-  setCategoryList: (categories: TransactionCategory[]) => void;
+  setCategoryList: React.Dispatch<React.SetStateAction<TransactionCategory[]>>;
   setIsLoading: (isLoading: boolean) => void;
 }
 
@@ -41,23 +41,11 @@ export const useCategoryUpdates = ({
         updatedCategory.isActive = isActive;
       }
       
-      // Update via API
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/categories/${categoryId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updatedCategory)
-      });
+      // Update via the category service instead of direct API call
+      await categoryService.saveCategory(updatedCategory);
       
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      
-      // Update local state
-      setCategoryList(prev => 
+      // Update local state with explicit type
+      setCategoryList((prev: TransactionCategory[]) => 
         prev.map(cat => cat.id === categoryId ? 
           { ...cat, name: newName, ...(isActive !== undefined && { isActive }) } : 
           cat
@@ -93,21 +81,11 @@ export const useCategoryUpdates = ({
         isActive
       };
       
-      // Update via API
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/categories/${categoryId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updatedCategory)
-      });
+      // Update via the category service
+      await categoryService.saveCategory(updatedCategory);
       
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-      
-      // Update local state
-      setCategoryList(prev => 
+      // Update local state with explicit type
+      setCategoryList((prev: TransactionCategory[]) => 
         prev.map(cat => cat.id === categoryId ? { ...cat, isActive } : cat)
       );
       
@@ -140,21 +118,11 @@ export const useCategoryUpdates = ({
         isFixedExpense
       };
       
-      // Update via API
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/categories/${categoryId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updatedCategory)
-      });
+      // Update via the category service
+      await categoryService.saveCategory(updatedCategory);
       
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
-      
-      // Update local state
-      setCategoryList(prev => 
+      // Update local state with explicit type
+      setCategoryList((prev: TransactionCategory[]) => 
         prev.map(cat => cat.id === categoryId ? { ...cat, isFixedExpense } : cat)
       );
       
