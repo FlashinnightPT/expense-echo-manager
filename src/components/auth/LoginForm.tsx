@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Eye, EyeOff, LogIn, User, Lock, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/auth";
 import { UserService } from "@/services/api/UserService";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface LoginFormProps {
   onLoginSuccess?: () => void;
@@ -78,10 +77,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         return;
       }
 
-      // Send login request to the API
       const apiUrl = import.meta.env.VITE_API_URL || 'https://gestaofinanceira.acmorais.com/api';
+      console.log(`Using API URL: ${apiUrl}`);
       
       try {
+        console.log(`Sending login request to API: ${apiUrl}/auth/login`);
         const response = await fetch(`${apiUrl}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -91,13 +91,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           })
         });
 
-        // If the API is unavailable or returns an error, fallback to the original flow
+        console.log(`API response status: ${response.status}`);
+        
         if (!response.ok) {
-          console.warn("API login failed, falling back to local auth");
+          console.warn(`API login failed with status ${response.status}, falling back to local auth`);
           return await handleLocalLogin();
         }
 
         const result = await response.json();
+        console.log(`API login result:`, result);
         
         if (result.success) {
           const success = await login(form.username, form.password, result.user);
@@ -131,7 +133,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  // Fallback to local authentication when API is unavailable
   const handleLocalLogin = async () => {
     try {
       const user = await UserService.getUserByUsername(form.username);
