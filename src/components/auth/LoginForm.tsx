@@ -35,15 +35,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     const initializeUsers = async () => {
       try {
         await UserService.initializeDefaultAdmin();
-        
-        const users = await UserService.getUsers();
-        if (users.length === 1 && users[0].username === "admin") {
-          setForm({
-            username: "",
-            password: "",
-          });
-        }
-        
         setIsInitialized(true);
       } catch (error) {
         console.error("Erro ao inicializar utilizadores:", error);
@@ -94,8 +85,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
         console.log(`API response status: ${response.status}`);
         
         if (!response.ok) {
-          console.warn(`API login failed with status ${response.status}, falling back to local auth`);
-          return await handleLocalLogin();
+          toast.error(`Falha na autenticação: ${response.status}`);
+          setIsLoading(false);
+          return;
         }
 
         const result = await response.json();
@@ -122,65 +114,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           toast.error(result.message || "Credenciais inválidas");
         }
       } catch (error) {
-        console.warn("API login request failed, falling back to local auth:", error);
-        return await handleLocalLogin();
+        console.error("API login request failed:", error);
+        toast.error("Falha na conexão com o servidor. Verifique sua conexão de internet.");
       }
     } catch (error) {
       console.error("Erro ao fazer login:", error);
       toast.error("Ocorreu um erro ao tentar fazer login");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleLocalLogin = async () => {
-    try {
-      const user = await UserService.getUserByUsername(form.username);
-      
-      if (!user) {
-        toast.error("Utilizador não encontrado");
-        return false;
-      }
-      
-      if (user.username === "admin" && form.password === "admin123") {
-        const success = await login(form.username, form.password);
-        
-        if (success) {
-          toast.success("Login realizado com sucesso");
-          
-          if (onLoginSuccess) {
-            onLoginSuccess();
-          } else {
-            navigate("/dashboard");
-          }
-        }
-        return true;
-      }
-      
-      if (form.password === "temp123") {
-        setIsFirstLogin(true);
-        toast.info("Por favor, altere a sua senha");
-        return true;
-      }
-
-      const success = await login(form.username, form.password);
-      if (success) {
-        toast.success("Login realizado com sucesso");
-        
-        if (onLoginSuccess) {
-          onLoginSuccess();
-        } else {
-          navigate("/dashboard");
-        }
-        return true;
-      } else {
-        toast.error("Credenciais inválidas");
-        return false;
-      }
-    } catch (error) {
-      console.error("Local login error:", error);
-      toast.error("Erro de autenticação local");
-      return false;
     }
   };
 
@@ -198,37 +139,55 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     try {
       if (newPassword !== confirmPassword) {
         toast.error("As senhas não coincidem");
+        setIsLoading(false);
         return;
       }
       
       if (!validateNewPassword(newPassword)) {
+        setIsLoading(false);
         return;
       }
 
-      const user = await UserService.getUserByUsername(form.username);
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://gestaofinanceira.acmorais.com/api';
       
-      if (!user) {
-        toast.error("Utilizador não encontrado");
-        return;
-      }
-      
-      await UserService.updateUser({
-        id: user.id,
-        password: newPassword,
-        status: "active"
-      });
-      
-      toast.success("Senha alterada com sucesso");
-      setIsFirstLogin(false);
-      
-      const success = await login(form.username, newPassword);
-      
-      if (success) {
-        if (onLoginSuccess) {
-          onLoginSuccess();
-        } else {
-          navigate("/dashboard");
+      try {
+        const response = await fetch(`${apiUrl}/auth/change-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: form.username,
+            oldPassword: form.password,
+            newPassword: newPassword
+          })
+        });
+
+        if (!response.ok) {
+          toast.error(`Falha ao alterar senha: ${response.status}`);
+          setIsLoading(false);
+          return;
         }
+
+        const result = await response.json();
+        
+        if (result.success) {
+          toast.success("Senha alterada com sucesso");
+          setIsFirstLogin(false);
+          
+          const loginSuccess = await login(form.username, newPassword);
+          
+          if (loginSuccess) {
+            if (onLoginSuccess) {
+              onLoginSuccess();
+            } else {
+              navigate("/dashboard");
+            }
+          }
+        } else {
+          toast.error(result.message || "Erro ao alterar senha");
+        }
+      } catch (error) {
+        console.error("API change password request failed:", error);
+        toast.error("Falha na conexão com o servidor. Verifique sua conexão de internet.");
       }
     } catch (error) {
       console.error("Erro ao alterar senha:", error);

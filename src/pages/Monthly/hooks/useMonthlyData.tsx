@@ -41,18 +41,6 @@ export const useMonthlyData = () => {
 
     // Initial fetch
     fetchData();
-
-    // Listen for storage events to update data when it changes
-    const handleStorageChange = () => {
-      fetchData();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Cleanup event listener
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, []);
   
   const availableYears = useMemo(() => {

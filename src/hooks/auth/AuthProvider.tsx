@@ -61,13 +61,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.log("AuthProvider: No user in session");
         }
         
-        // Initialize default admin user if needed (do this after session check)
+        // Initialize default admin user if needed
         await UserService.initializeDefaultAdmin();
       } catch (error) {
         console.error("Erro ao inicializar autenticação:", error);
-        toast.error("Erro de conexão com o servidor. Funcionando em modo offline.");
+        toast.error("Erro de conexão com o servidor.");
       } finally {
-        // CRITICAL: Always set isInitialized to true regardless of any errors
+        // Always set isInitialized to true regardless of any errors
         console.log("AuthProvider: Auth initialization completed, setting isInitialized = true");
         setIsInitialized(true);
       }
@@ -75,15 +75,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     console.log("AuthProvider: useEffect running");
     // Set a short timeout to ensure other components have mounted
-    // This helps prevent routing issues on initial load
     setTimeout(() => {
       initAuth();
     }, 100);
-    
-    // This effect should only run once on mount
   }, []); 
 
-  // Login function - updated to support both API and local login flows
+  // Login function - updated to use API only
   const login = async (username: string, password: string, userData?: any): Promise<boolean> => {
     try {
       console.log("AuthProvider: Attempting login for", username);
@@ -112,31 +109,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return true;
       }
       
-      // If no userData provided, fall back to original flow
-      // Get user from system
-      const foundUser = await UserService.getUserByUsername(username);
+      // If no userData provided, make an API call
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://gestaofinanceira.acmorais.com/api';
+      const response = await fetch(`${apiUrl}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
       
-      if (!foundUser) {
-        console.log("Utilizador não encontrado:", username);
+      if (!response.ok) {
+        console.log("API login failed:", response.status);
         return false;
       }
       
-      // Verify password matches (temporary simple validation)
-      if (foundUser.password && foundUser.password !== password && 
-          !(foundUser.username === "admin" && password === "admin123")) {
-        console.log("Senha inválida para o utilizador:", username);
+      const result = await response.json();
+      if (!result.success) {
+        console.log("API login unsuccessful:", result.message);
         return false;
       }
       
       const userToSave: User = {
-        id: foundUser.id,
-        name: foundUser.name,
-        username: foundUser.username,
-        role: foundUser.role
+        id: result.user.id,
+        name: result.user.name,
+        username: result.user.username,
+        role: result.user.role
       };
-      
-      // Update last login
-      await UserService.updateLastLogin(foundUser.id);
       
       // Update state and session
       setUser(userToSave);

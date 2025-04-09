@@ -17,7 +17,7 @@ export class CategoryFetchService extends CategoryServiceBase {
       }
       
       // Transform database records to application model
-      return (data || []).map(dbToCategoryModel);
+      return data.map(dbToCategoryModel);
     } catch (error) {
       console.error("Error fetching categories from API:", error);
       toast.error("Error fetching categories.");

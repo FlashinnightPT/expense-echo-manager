@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Transaction, TransactionCategory, MonthlyData, YearlyData } from "@/utils/mockData";
+import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { apiService } from "@/services/apiService";
 import { toast } from "sonner";
 
@@ -32,18 +32,6 @@ export const useDashboardData = () => {
     };
     
     loadData();
-    
-    // Adicionar listener para eventos de storage
-    const handleStorageChange = () => {
-      console.log("Storage changed, updating data");
-      loadData();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, []);
   
   // Available years for selection
@@ -157,7 +145,7 @@ export const useDashboardData = () => {
       monthMap.set(month, monthData);
     });
     
-    const result: MonthlyData[] = [];
+    const result = [];
     monthMap.forEach((data, month) => {
       result.push({
         year: selectedYear,
@@ -187,7 +175,7 @@ export const useDashboardData = () => {
     
     const sortedYears = Array.from(years).sort();
     
-    const result: YearlyData[] = sortedYears.map(year => {
+    const result = sortedYears.map(year => {
       const yearTransactions = transactions.filter(transaction => {
         const transactionDate = new Date(transaction.date);
         return transactionDate.getFullYear() === year;
@@ -254,9 +242,6 @@ export const useDashboardData = () => {
     if (window.confirm("Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.")) {
       setTransactions([]);
       setCategories([]);
-      localStorage.setItem('transactions', JSON.stringify([]));
-      localStorage.setItem('categories', JSON.stringify([]));
-      window.dispatchEvent(new Event('storage'));
       toast.success("Todos os dados foram limpos com sucesso");
     }
   };

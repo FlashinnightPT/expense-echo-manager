@@ -24,17 +24,6 @@ export const useTransactionData = () => {
 
   useEffect(() => {
     fetchTransactions();
-    
-    const handleStorageChange = () => {
-      console.log("Storage changed, updating transaction list");
-      fetchTransactions();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, []);
 
   const isCategoryUsedInTransactions = (categoryId: string) => {
@@ -55,9 +44,6 @@ export const useTransactionData = () => {
         // Update local state
         setTransactionList([]);
         toast.success("All transactions deleted successfully");
-        
-        // Dispatch event for other components
-        window.dispatchEvent(new Event('storage'));
         
         return true;
       }
@@ -150,9 +136,6 @@ export const useTransactionData = () => {
       setTransactionList(prev => [...prev, ...savedTransactions]);
       
       toast.success(`${transactionsCreated} test transactions created successfully`);
-      
-      // Dispatch event for other components
-      window.dispatchEvent(new Event('storage'));
       
       return true;
     } catch (error) {

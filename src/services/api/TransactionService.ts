@@ -34,18 +34,9 @@ export class TransactionService extends ApiServiceCore {
   }
 
   public async saveTransaction(transaction: Partial<Transaction>): Promise<Transaction> {
-    const newTransaction: Transaction = {
-      id: transaction.id || `transaction-${Date.now()}`,
-      description: transaction.description || (transaction.type === "income" ? "Receita" : "Despesa"),
-      amount: transaction.amount || 0,
-      date: transaction.date || new Date().toISOString().split('T')[0],
-      categoryId: transaction.categoryId || "",
-      type: transaction.type || "expense"
-    };
-    
     try {
       // Convert to DB format
-      const dbTransaction = transactionModelToDb(newTransaction);
+      const dbTransaction = transactionModelToDb(transaction);
       
       // Send to API
       const result = await this.apiPost('/transactions', dbTransaction);
@@ -54,28 +45,18 @@ export class TransactionService extends ApiServiceCore {
         throw new Error("No data returned from API");
       }
       
-      // Simulate event for other components
-      window.dispatchEvent(new Event('storage'));
-      
-      return newTransaction;
+      const savedTransaction = dbToTransactionModel(result);
+      return savedTransaction;
     } catch (error) {
       console.error("Error saving transaction to API:", error);
       toast.error("Error saving transaction");
-      return newTransaction;
+      throw error;
     }
   }
 
   public async deleteTransaction(transactionId: string): Promise<boolean> {
     try {
-      const success = await this.apiDelete(`/transactions/${transactionId}`);
-      
-      if (success) {
-        // Simulate event for other components
-        window.dispatchEvent(new Event('storage'));
-        return true;
-      }
-      
-      return false;
+      return await this.apiDelete(`/transactions/${transactionId}`);
     } catch (error) {
       console.error("Error deleting transaction from API:", error);
       toast.error("Error deleting transaction");
