@@ -5,184 +5,164 @@ import { categoryService } from "@/services/api/category/CategoryService";
 
 interface UseCategoryUpdatesProps {
   categoryList: TransactionCategory[];
-  setCategoryList: React.Dispatch<React.SetStateAction<TransactionCategory[]>>;
+  setCategoryList: (categories: TransactionCategory[]) => void;
   setIsLoading: (isLoading: boolean) => void;
 }
 
 /**
- * Hook containing methods for updating existing categories
+ * Hook with methods for updating existing categories
  */
-export const useCategoryUpdates = ({ 
-  categoryList, 
-  setCategoryList, 
-  setIsLoading 
+export const useCategoryUpdates = ({
+  categoryList,
+  setCategoryList,
+  setIsLoading
 }: UseCategoryUpdatesProps) => {
   
-  // Update category name
-  const updateCategoryName = async (categoryId: string, newName: string): Promise<boolean> => {
+  const updateCategoryName = async (categoryId: string, newName: string, isActive?: boolean) => {
     try {
       setIsLoading(true);
       
-      // Find the category
-      const category = categoryList.find(cat => cat.id === categoryId);
-      if (!category) {
-        toast.error("Categoria não encontrada");
+      // Find the category to update
+      const categoryToUpdate = categoryList.find(cat => cat.id === categoryId);
+      
+      if (!categoryToUpdate) {
+        toast.error("Category not found");
         return false;
       }
       
-      // Create updated category
-      const updatedCategory: TransactionCategory = {
-        ...category,
+      // Create updated category object
+      const updatedCategory: Partial<TransactionCategory> = {
+        ...categoryToUpdate,
         name: newName
       };
       
-      // Save to Supabase first
-      const savedCategory = await categoryService.saveCategory(updatedCategory);
+      // If isActive is provided, update it
+      if (isActive !== undefined) {
+        updatedCategory.isActive = isActive;
+      }
       
-      // Update local list
-      setCategoryList(prevList => {
-        return prevList.map(cat => {
-          if (cat.id === categoryId) {
-            return savedCategory;
-          }
-          return cat;
-        });
+      // Update via API
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/categories/${categoryId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedCategory)
       });
       
-      toast.success("Nome da categoria atualizado");
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      // Update local state
+      setCategoryList(prev => 
+        prev.map(cat => cat.id === categoryId ? 
+          { ...cat, name: newName, ...(isActive !== undefined && { isActive }) } : 
+          cat
+        )
+      );
+      
+      toast.success("Category updated successfully");
       return true;
     } catch (error) {
-      console.error("Erro ao atualizar nome de categoria:", error);
-      toast.error("Erro ao atualizar nome da categoria");
+      console.error("Error updating category name:", error);
+      toast.error("Error updating category");
       return false;
     } finally {
       setIsLoading(false);
     }
   };
-  
-  // Toggle category active state
-  const updateCategoryActive = async (categoryId: string, isActive: boolean): Promise<boolean> => {
+
+  const updateCategoryActive = async (categoryId: string, isActive: boolean) => {
     try {
       setIsLoading(true);
       
-      // Find the category
-      const category = categoryList.find(cat => cat.id === categoryId);
-      if (!category) {
-        toast.error("Categoria não encontrada");
+      // Find the category to update
+      const categoryToUpdate = categoryList.find(cat => cat.id === categoryId);
+      
+      if (!categoryToUpdate) {
+        toast.error("Category not found");
         return false;
       }
       
-      // FIX: Explicitly set boolean value using strict comparison
-      // This ensures it's truly a boolean true/false, not just truthy/falsy
-      const activeState = isActive === true ? true : false;
-      
-      console.log("UPDATING CATEGORY ACTIVE STATE - BEFORE:", {
-        categoryId, 
-        currentIsActive: category.isActive,
-        currentIsActive_type: typeof category.isActive,
-        newIsActive: activeState,
-        newIsActive_type: typeof activeState
-      });
-      
-      // Create updated category with an explicit boolean
-      const updatedCategory: TransactionCategory = {
-        ...category,
-        isActive: activeState // Force boolean
+      // Create updated category object
+      const updatedCategory: Partial<TransactionCategory> = {
+        ...categoryToUpdate,
+        isActive
       };
       
-      console.log("UPDATED CATEGORY OBJECT - SENDING TO SERVER:", updatedCategory);
-      
-      // Save to Supabase first
-      const savedCategory = await categoryService.saveCategory(updatedCategory);
-      
-      console.log("SAVED CATEGORY FROM SERVER - AFTER UPDATE:", {
-        savedCategory,
-        isActive: savedCategory.isActive,
-        isActive_type: typeof savedCategory.isActive
+      // Update via API
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/categories/${categoryId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedCategory)
       });
       
-      // Update local list
-      setCategoryList(prevList => {
-        return prevList.map(cat => {
-          if (cat.id === categoryId) {
-            return savedCategory;
-          }
-          return cat;
-        });
-      });
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
       
-      toast.success(activeState 
-        ? "Categoria ativada com sucesso" 
-        : "Categoria desativada com sucesso");
+      // Update local state
+      setCategoryList(prev => 
+        prev.map(cat => cat.id === categoryId ? { ...cat, isActive } : cat)
+      );
       
+      toast.success("Category status updated successfully");
       return true;
     } catch (error) {
-      console.error("Erro ao atualizar estado ativo de categoria:", error);
-      toast.error("Erro ao atualizar estado da categoria");
+      console.error("Error updating category active status:", error);
+      toast.error("Error updating category status");
       return false;
     } finally {
       setIsLoading(false);
     }
   };
-  
-  // Update fixed expense state
-  const updateFixedExpense = async (categoryId: string, isFixedExpense: boolean): Promise<boolean> => {
+
+  const updateFixedExpense = async (categoryId: string, isFixedExpense: boolean) => {
     try {
       setIsLoading(true);
       
-      // Find the category
-      const category = categoryList.find(cat => cat.id === categoryId);
-      if (!category) {
-        toast.error("Categoria não encontrada");
+      // Find the category to update
+      const categoryToUpdate = categoryList.find(cat => cat.id === categoryId);
+      
+      if (!categoryToUpdate) {
+        toast.error("Category not found");
         return false;
       }
       
-      // FIX: Explicitly set boolean value using strict comparison
-      const fixedExpenseState = isFixedExpense === true ? true : false;
-      
-      console.log("UPDATING FIXED EXPENSE STATE - BEFORE:", {
-        categoryId, 
-        currentIsFixedExpense: category.isFixedExpense,
-        currentIsFixedExpense_type: typeof category.isFixedExpense,
-        newIsFixedExpense: fixedExpenseState,
-        newIsFixedExpense_type: typeof fixedExpenseState
-      });
-      
-      // Create updated category with an explicit boolean
-      const updatedCategory: TransactionCategory = {
-        ...category,
-        isFixedExpense: fixedExpenseState // Force boolean
+      // Create updated category object
+      const updatedCategory: Partial<TransactionCategory> = {
+        ...categoryToUpdate,
+        isFixedExpense
       };
       
-      console.log("UPDATED CATEGORY OBJECT - SENDING TO SERVER:", updatedCategory);
-      
-      // Save to Supabase first
-      const savedCategory = await categoryService.saveCategory(updatedCategory);
-      
-      console.log("SAVED CATEGORY FROM SERVER - AFTER UPDATE:", {
-        savedCategory,
-        isFixedExpense: savedCategory.isFixedExpense,
-        isFixedExpense_type: typeof savedCategory.isFixedExpense
+      // Update via API
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/categories/${categoryId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedCategory)
       });
       
-      // Update local list
-      setCategoryList(prevList => {
-        return prevList.map(cat => {
-          if (cat.id === categoryId) {
-            return savedCategory;
-          }
-          return cat;
-        });
-      });
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
       
-      toast.success(fixedExpenseState 
-        ? "Despesa fixa marcada com sucesso" 
-        : "Despesa fixa desmarcada com sucesso");
+      // Update local state
+      setCategoryList(prev => 
+        prev.map(cat => cat.id === categoryId ? { ...cat, isFixedExpense } : cat)
+      );
       
+      toast.success("Fixed expense status updated successfully");
       return true;
     } catch (error) {
-      console.error("Erro ao atualizar estado de despesa fixa:", error);
-      toast.error("Erro ao atualizar estado de despesa fixa");
+      console.error("Error updating fixed expense status:", error);
+      toast.error("Error updating fixed expense status");
       return false;
     } finally {
       setIsLoading(false);

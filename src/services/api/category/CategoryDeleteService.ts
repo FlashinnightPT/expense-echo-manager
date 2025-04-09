@@ -1,24 +1,13 @@
 
+import { TransactionCategory } from "@/utils/mockData";
 import { CategoryServiceBase } from "./CategoryServiceBase";
 import { toast } from "sonner";
-import { TransactionCategory } from "@/utils/mockData";
-import { dbToCategoryModel } from "@/utils/mariadbAdapters";
 
 // Class specifically for category deletion operations
 export class CategoryDeleteService extends CategoryServiceBase {
   public async deleteCategory(categoryId: string): Promise<boolean> {
     try {
-      const success = await this.apiDelete(`/categories/${categoryId}`);
-      
-      if (!success) {
-        console.error("Error deleting category from API");
-        toast.error("Error deleting category");
-        return false;
-      }
-      
-      // Dispatch event for other components
-      window.dispatchEvent(new Event('storage'));
-      
+      await this.apiDelete(`/categories/${categoryId}`);
       return true;
     } catch (error) {
       console.error("Error deleting category from API:", error);
@@ -26,34 +15,25 @@ export class CategoryDeleteService extends CategoryServiceBase {
       return false;
     }
   }
-
-  // Add function to clear all categories except level 1
+  
   public async clearNonRootCategories(categories: TransactionCategory[]): Promise<TransactionCategory[]> {
-    // Filter only the categories of level 1 (root)
-    const rootCategories = categories.filter(cat => cat.level === 1);
-    
-    // Identify the categories to be removed
-    const categoriesToRemove = categories.filter(cat => cat.level > 1);
-    
-    console.log("Cleaning categories. Keeping only", rootCategories.length, "root categories.");
-    console.log("Categories to remove:", categoriesToRemove.length);
-    
-    if (categoriesToRemove.length > 0) {
-      try {
-        // Delete all categories that are not level 1
-        const result = await this.apiDelete('/categories/clear/non-root');
-        
-        console.log("Categories removed from API:", result);
-        
-        toast.success(`${categoriesToRemove.length} categories were removed successfully.`);
-      } catch (error) {
-        console.error("Error cleaning categories in API:", error);
-        toast.error("Error cleaning categories");
+    try {
+      // Call API to clear non-root categories
+      const response = await this.apiDelete('/categories/clear/non-root');
+      
+      if (response) {
+        // Return only the root categories (level 1)
+        const rootCategories = categories.filter(cat => cat.level === 1);
+        toast.success("All non-root categories cleared successfully");
+        return rootCategories;
+      } else {
+        toast.error("Error clearing non-root categories");
+        return categories;
       }
-    } else {
-      toast.info("No categories to remove.");
+    } catch (error) {
+      console.error("Error clearing non-root categories:", error);
+      toast.error("Error clearing non-root categories");
+      return categories;
     }
-    
-    return rootCategories;
   }
 }
