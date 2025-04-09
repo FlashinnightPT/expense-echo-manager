@@ -16,10 +16,11 @@ export class CategoryFetchService extends CategoryServiceBase {
       }
       
       // Map API response to TransactionCategory model
+      // Ensure type is correctly handled for display
       return data.map(item => ({
         id: item.id,
         name: item.name,
-        type: item.type,
+        type: item.type.toLowerCase(), // Ensure consistent lowercase format
         level: item.level,
         parentId: item.parentId || null,
         isFixedExpense: item.isFixedExpense || false,

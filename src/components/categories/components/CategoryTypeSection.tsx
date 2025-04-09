@@ -25,8 +25,15 @@ const CategoryTypeSection = ({
   renderCategory,
   updateFixedExpense
 }: CategoryTypeSectionProps) => {
-  const typeName = type === "income" ? "Receitas" : "Despesas";
-  const mainCategories = categoryList.filter(cat => cat.type === type && cat.level === 2);
+  // Ensure correct display labels for types
+  const typeName = type.toLowerCase() === "income" ? "Receitas" : "Despesas";
+  
+  // Filter categories by type (case-insensitive)
+  const mainCategories = categoryList.filter(cat => 
+    cat.type.toLowerCase() === type.toLowerCase() && cat.level === 2
+  );
+  
+  console.log(`Categorias do tipo ${type}:`, mainCategories);
   
   return (
     <div className="space-y-3">

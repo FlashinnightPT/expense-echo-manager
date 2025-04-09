@@ -20,6 +20,9 @@ export const useCategoriesCore = () => {
         // Use category service to fetch from API
         const categories = await categoryService.getCategories();
         
+        // Log fetched categories to help debug
+        console.log("Categorias carregadas da API:", categories);
+        
         // Update state with API data
         setCategoryList(categories);
       } catch (error) {
