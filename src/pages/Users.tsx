@@ -60,7 +60,7 @@ import { LoadingPage } from "@/components/ui/loading-spinner";
 
 const Users = () => {
   const navigate = useNavigate();
-  const { validatePassword } = useAuth();
+  const { validatePassword, user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -210,6 +210,11 @@ const Users = () => {
     }
   };
 
+  // Verifica se o usuário é o atual logado
+  const isCurrentUser = (userId: string) => {
+    return currentUser && currentUser.id === userId;
+  };
+
   if (loading && users.length === 0) {
     return <LoadingPage text="A carregar utilizadores..." />;
   }
@@ -343,36 +348,48 @@ const Users = () => {
                             <Lock className="h-4 w-4" />
                           </Button>
                           
-                          <AlertDialog open={userToDelete === user.id} onOpenChange={(open) => !open && setUserToDelete(null)}>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="text-red-500 hover:text-red-600"
-                                onClick={() => setUserToDelete(user.id)}
-                                title="Eliminar utilizador"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Tem a certeza?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Esta ação não pode ser desfeita. O utilizador será permanentemente removido.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction 
-                                  className="bg-red-500 hover:bg-red-600"
-                                  onClick={handleDeleteUser}
+                          {!isCurrentUser(user.id) ? (
+                            <AlertDialog open={userToDelete === user.id} onOpenChange={(open) => !open && setUserToDelete(null)}>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="text-red-500 hover:text-red-600"
+                                  onClick={() => setUserToDelete(user.id)}
+                                  title="Eliminar utilizador"
                                 >
-                                  Eliminar
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Tem a certeza?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta ação não pode ser desfeita. O utilizador será permanentemente removido.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    className="bg-red-500 hover:bg-red-600"
+                                    onClick={handleDeleteUser}
+                                  >
+                                    Eliminar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="text-gray-400 cursor-not-allowed opacity-50"
+                              disabled
+                              title="Não é possível eliminar o próprio utilizador"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -435,3 +452,4 @@ const Users = () => {
 };
 
 export default Users;
+
