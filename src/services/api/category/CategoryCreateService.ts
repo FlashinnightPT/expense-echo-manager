@@ -14,16 +14,16 @@ export class CategoryCreateService extends CategoryServiceBase {
       category.id = `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     }
     
-    // Fix: Explicitly set boolean values
+    // Fix: Explicitly set boolean values and ensure all required properties exist
     const normalizedCategory: TransactionCategory = {
       id: category.id || "",
       name: category.name || "",
       type: category.type || "expense",
       level: category.level || 1,
       parentId: this.sanitizeForDb(category.parentId), // Sanitize parentId (convert undefined to null)
-      // Fix: Explicitly convert to boolean values using strict comparison
-      isFixedExpense: category.isFixedExpense === true ? true : false,
-      isActive: category.isActive === false ? false : true // default to true if undefined
+      isFixedExpense: Boolean(category.isFixedExpense), // Ensure proper boolean conversion
+      isActive: category.isActive === false ? false : true, // default to true if undefined
+      createdAt: category.createdAt || new Date() // Ensure createdAt exists
     };
     
     console.log("Category to save (normalized):", normalizedCategory);
@@ -55,10 +55,10 @@ export class CategoryCreateService extends CategoryServiceBase {
       
       console.log("Category saved to API (response):", data);
       
-      // Convert from database format back to application model
-      const convertedCategory = dbToCategoryModel(data);
+      // Handle potential null response data by providing a fallback
+      const convertedCategory = data ? dbToCategoryModel(data) : normalizedCategory;
       console.log("Category after conversion back:", convertedCategory);
-      return convertedCategory || normalizedCategory;
+      return convertedCategory;
     } catch (error) {
       console.error("Error saving category to API:", error);
       toast.error("Error saving category");

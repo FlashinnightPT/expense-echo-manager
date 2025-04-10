@@ -25,33 +25,37 @@ export const useCategoryActions = ({
         return;
       }
 
-      // Default to active for new categories
+      // Default to active for new categories and ensure all fields have values
       const categoryToSave = {
         ...category,
-        isActive: category.isActive !== false
+        isActive: category.isActive !== false,
+        isFixedExpense: Boolean(category.isFixedExpense),
       };
 
+      console.log("Saving category with data:", categoryToSave);
       setIsLoading(true);
       
-      // Save category to Supabase first
+      // Save category to API
       const savedCategory = await categoryService.saveCategory(categoryToSave);
       
-      console.log("Categoria salva no Supabase:", savedCategory);
+      console.log("Categoria salva na API:", savedCategory);
       
-      // Update local list with category returned from Supabase
-      setCategoryList(prevList => {
-        // Check if category exists in the list and replace it
-        const exists = prevList.some(cat => cat.id === savedCategory.id);
-        if (exists) {
-          return prevList.map(cat => cat.id === savedCategory.id ? savedCategory : cat);
-        }
-        // Otherwise add it as new
-        return [...prevList, savedCategory];
-      });
-      
-      console.log("Categoria adicionada:", savedCategory);
-      
-      toast.success(`Categoria "${savedCategory.name}" adicionada com sucesso`);
+      if (savedCategory) {
+        // Update local list with category returned from API
+        setCategoryList(prevList => {
+          // Check if category exists in the list and replace it
+          const exists = prevList.some(cat => cat.id === savedCategory.id);
+          if (exists) {
+            return prevList.map(cat => cat.id === savedCategory.id ? savedCategory : cat);
+          }
+          // Otherwise add it as new
+          return [...prevList, savedCategory];
+        });
+        
+        console.log("Categoria adicionada:", savedCategory);
+        
+        toast.success(`Categoria "${savedCategory.name}" adicionada com sucesso`);
+      }
     } catch (error) {
       console.error("Erro ao adicionar categoria:", error);
       toast.error("Erro ao adicionar categoria");
@@ -74,11 +78,11 @@ export const useCategoryActions = ({
   const confirmDeleteCategory = async (categoryId: string) => {
     try {
       setIsLoading(true);
-      // Delete from Supabase
+      // Delete from API
       const success = await categoryService.deleteCategory(categoryId);
       
       if (success) {
-        // Update local list only if deletion in Supabase was successful
+        // Update local list only if deletion in API was successful
         setCategoryList(prevList => prevList.filter(cat => cat.id !== categoryId));
         toast.success("Categoria apagada com sucesso");
         return true;

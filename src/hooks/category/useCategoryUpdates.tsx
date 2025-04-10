@@ -44,10 +44,10 @@ export const useCategoryUpdates = ({
       // Update via the category service instead of direct API call
       await categoryService.saveCategory(updatedCategory);
       
-      // Update local state with explicit type
+      // Update local state
       setCategoryList((prev: TransactionCategory[]) => 
         prev.map(cat => cat.id === categoryId ? 
-          { ...cat, name: newName, ...(isActive !== undefined && { isActive }) } : 
+          { ...cat, name: newName, ...(isActive !== undefined ? { isActive } : {}) } : 
           cat
         )
       );
@@ -84,7 +84,7 @@ export const useCategoryUpdates = ({
       // Update via the category service
       await categoryService.saveCategory(updatedCategory);
       
-      // Update local state with explicit type
+      // Update local state
       setCategoryList((prev: TransactionCategory[]) => 
         prev.map(cat => cat.id === categoryId ? { ...cat, isActive } : cat)
       );
@@ -121,7 +121,7 @@ export const useCategoryUpdates = ({
       // Update via the category service
       await categoryService.saveCategory(updatedCategory);
       
-      // Update local state with explicit type
+      // Update local state
       setCategoryList((prev: TransactionCategory[]) => 
         prev.map(cat => cat.id === categoryId ? { ...cat, isFixedExpense } : cat)
       );

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { TransactionCategory } from "@/utils/mockData";
 import { toast } from "sonner";
@@ -38,10 +39,13 @@ export const useCategoryForm = ({ onSave, categoryList }: UseCategoryFormProps) 
       return;
     }
     
-    let newCategory: Partial<TransactionCategory> = {
+    // Create category with all required fields to avoid undefined properties
+    const newCategory: Partial<TransactionCategory> = {
       name: categoryName,
       type: type,
       level: level,
+      isActive: true,
+      isFixedExpense: false,
     };
     
     if (level > 2) {
