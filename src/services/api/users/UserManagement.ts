@@ -1,5 +1,4 @@
 
-import { UserData } from './UserData';
 import { UserCrudOperations } from './UserCrudOperations';
 
 export class UserManagement {
@@ -9,37 +8,45 @@ export class UserManagement {
     this.userCrudOps = userCrudOps;
   }
 
-  /**
-   * Atualizar o último login de um utilizador
-   */
   async updateLastLogin(userId: string): Promise<void> {
-    const lastLogin = new Date().toISOString();
-    await this.userCrudOps.updateUser({
-      id: userId,
-      status: 'active',
-      lastLogin
-    });
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${apiUrl}/users/${userId}/last-login`, {
+        method: 'PUT'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      console.log('Last login updated successfully');
+    } catch (error) {
+      console.error('Failed to update last login:', error);
+    }
   }
 
-  /**
-   * Inicializar o utilizador administrador padrão se não existir nenhum utilizador
-   */
   async initializeDefaultAdmin(): Promise<void> {
-    const users = await this.userCrudOps.getUsers();
-    
-    if (!users || users.length === 0) {
-      const defaultAdmin: UserData = {
-        id: "1",
-        name: "Administrador",
-        username: "admin",
-        password: "admin123", // Para validação inicial
-        role: "editor",
-        status: "active",
-        lastLogin: new Date().toISOString()
-      };
+    try {
+      // Check if there's at least one user in the system
+      const users = await this.userCrudOps.getUsers();
       
-      await this.userCrudOps.createUser(defaultAdmin);
-      console.log("Utilizador administrador padrão criado");
+      if (users.length === 0) {
+        console.log('No users found, creating default admin account');
+        
+        // Create default admin user
+        await this.userCrudOps.createUser({
+          id: 'admin-' + Date.now(),
+          name: 'Admin',
+          username: 'admin',
+          password: 'admin123', // This should be changed immediately
+          role: 'editor',
+          status: 'active'
+        });
+        
+        console.log('Default admin account created');
+      }
+    } catch (error) {
+      console.error('Failed to initialize default admin:', error);
     }
   }
 }

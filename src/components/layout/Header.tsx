@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useLocation } from "react-router-dom";
 import { DesktopNavMenu } from "./nav/DesktopNavMenu";
 import { MobileNavMenu } from "./nav/MobileNavMenu";
@@ -25,7 +25,7 @@ const settingsSubMenu = [
 
 const Header = () => {
   const location = useLocation();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = React.useState(false);
 
   // Function to check if current path matches given href
   const isActivePath = (href: string) => {
@@ -39,6 +39,11 @@ const Header = () => {
   const closeMenu = () => {
     setIsExpanded(false);
   };
+
+  // Check if we're on the login page, don't show the header
+  if (location.pathname === "/login") {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background backdrop-blur-lg">
