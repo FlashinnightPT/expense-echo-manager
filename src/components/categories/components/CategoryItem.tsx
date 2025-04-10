@@ -33,7 +33,10 @@ const CategoryItem = ({
   const isInactive = category.isActive === false;
   
   console.log("Renderizando categoria:", {
+    id: category.id,
     nome: category.name,
+    tipo: category.type,
+    level: category.level,
     isActive: category.isActive,
     isInactive: isInactive,
     tipoIsActive: typeof category.isActive
@@ -78,7 +81,7 @@ const CategoryItem = ({
         </div>
         
         <div className="flex items-center gap-1">
-          {category.type === "expense" && (
+          {category.type.toLowerCase() === "expense" && (
             <FixedExpenseToggle
               checked={category.isFixedExpense || false}
               onToggle={onToggleFixedExpense}

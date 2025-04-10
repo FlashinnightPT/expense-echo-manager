@@ -29,9 +29,12 @@ const CategoryTypeSection = ({
   const typeName = type.toLowerCase() === "income" ? "Receitas" : "Despesas";
   
   // Filter categories by type (case-insensitive)
-  const mainCategories = categoryList.filter(cat => 
-    cat.type.toLowerCase() === type.toLowerCase() && cat.level === 2
-  );
+  const mainCategories = categoryList.filter(cat => {
+    const catTypeMatch = cat.type.toLowerCase() === type.toLowerCase();
+    const isMainCategory = cat.level === 2;
+    console.log(`Verificando categoria ${cat.name}: tipo=${cat.type}, level=${cat.level}, match=${catTypeMatch && isMainCategory}`);
+    return catTypeMatch && isMainCategory;
+  });
   
   console.log(`Categorias do tipo ${type}:`, mainCategories);
   

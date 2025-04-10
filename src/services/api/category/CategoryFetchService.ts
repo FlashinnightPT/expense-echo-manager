@@ -15,17 +15,19 @@ export class CategoryFetchService extends CategoryServiceBase {
         return [];
       }
       
+      console.log("Raw API response:", data);
+      
       // Map API response to TransactionCategory model
-      // Ensure type is correctly handled for display
+      // Handle Pascal case field names from API (Id, Name, Type, etc.)
       return data.map(item => ({
-        id: item.id,
-        name: item.name,
-        type: item.type.toLowerCase(), // Ensure consistent lowercase format
-        level: item.level,
-        parentId: item.parentId || null,
-        isFixedExpense: item.isFixedExpense || false,
-        isActive: item.isActive !== undefined ? item.isActive : true,
-        createdAt: item.createdAt ? new Date(item.createdAt) : new Date()
+        id: item.Id || item.id,
+        name: item.Name || item.name,
+        type: (item.Type || item.type || "").toLowerCase(), // Ensure consistent lowercase format
+        level: item.Level || item.level,
+        parentId: item.ParentId || item.parentId || null,
+        isFixedExpense: item.IsFixedExpense || item.isFixedExpense || false,
+        isActive: item.IsActive !== undefined ? item.IsActive : (item.isActive !== undefined ? item.isActive : true),
+        createdAt: item.CreatedAt ? new Date(item.CreatedAt) : (item.createdAt ? new Date(item.createdAt) : new Date())
       }));
     } catch (error) {
       console.error("Error fetching categories from API:", error);

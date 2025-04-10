@@ -22,6 +22,8 @@ export const useCategoriesCore = () => {
         
         // Log fetched categories to help debug
         console.log("Categorias carregadas da API:", categories);
+        console.log("Número de categorias carregadas:", categories.length);
+        console.log("Tipos de categorias:", categories.map(cat => cat.type).filter((value, index, self) => self.indexOf(value) === index));
         
         // Update state with API data
         setCategoryList(categories);
