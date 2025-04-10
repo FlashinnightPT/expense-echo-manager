@@ -1,4 +1,3 @@
-
 // Mock implementation of supabase adapters (Supabase references removed)
 import { Transaction, TransactionCategory } from './mockData';
 import { UserData } from '@/services/api/users/UserData';
@@ -7,14 +6,45 @@ import { UserRole } from '@/hooks/auth';
 // Mock adapters for transactions, categories, and users
 
 // Convert mock DB transaction to application model
-export function dbToTransactionModel(dbTransaction: any): Transaction {
+export function dbToTransactionModel(dbRecord: any): Transaction {
+  // Verificar se o registro tem o formato esperado
+  if (!dbRecord) {
+    console.error("Registro de transação inválido:", dbRecord);
+    throw new Error("Registro de transação inválido");
+  }
+  
+  // Normalizar nomes de propriedades (API retorna com inicial maiúscula)
+  const normalizedRecord = {
+    id: dbRecord.Id || dbRecord.id,
+    date: dbRecord.Date || dbRecord.date,
+    createdAt: dbRecord.CreatedAt || dbRecord.createdAt,
+    amount: dbRecord.Amount || dbRecord.amount,
+    description: dbRecord.Description || dbRecord.description,
+    categoryId: dbRecord.CategoryId || dbRecord.categoryId,
+    type: dbRecord.Type || dbRecord.type
+  };
+  
+  // Converter formato de data se necessário (a API retorna no formato DD-MM-YYYY)
+  let formattedDate = normalizedRecord.date;
+  if (formattedDate && formattedDate.includes("-") && !formattedDate.match(/^\d{4}-\d{2}-\d{2}/)) {
+    // Se o formato for DD-MM-YYYY, converter para YYYY-MM-DD
+    const parts = formattedDate.split(" ")[0].split("-");
+    if (parts.length === 3) {
+      formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  }
+  
+  console.log("Convertendo transação da API:", normalizedRecord, "Data formatada:", formattedDate);
+
   return {
-    id: dbTransaction.id || `mock-${Date.now()}`,
-    description: dbTransaction.description || '',
-    amount: dbTransaction.amount || 0,
-    date: dbTransaction.date || new Date().toISOString().split('T')[0],
-    categoryId: dbTransaction.categoryid || '',
-    type: (dbTransaction.type as "income" | "expense") || "expense",
+    id: normalizedRecord.id,
+    date: formattedDate,
+    amount: typeof normalizedRecord.amount === 'number' 
+      ? normalizedRecord.amount 
+      : parseFloat(normalizedRecord.amount),
+    description: normalizedRecord.description || "",
+    categoryId: normalizedRecord.categoryId,
+    type: normalizedRecord.type as "income" | "expense",
   };
 }
 

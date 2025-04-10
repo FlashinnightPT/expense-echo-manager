@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { apiService } from "@/services/apiService";
@@ -11,6 +12,18 @@ export const useDashboardData = () => {
   const [categories, setCategories] = useState<TransactionCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Função para carregar transações
+  const loadTransactions = async () => {
+    try {
+      const transactionsData = await apiService.getTransactions();
+      console.log("Transações carregadas:", transactionsData);
+      setTransactions(transactionsData);
+    } catch (error) {
+      console.error("Erro ao carregar transações:", error);
+      toast.error("Não foi possível carregar as transações");
+    }
+  };
+  
   // Load data from API service
   useEffect(() => {
     const loadData = async () => {
@@ -21,6 +34,7 @@ export const useDashboardData = () => {
           apiService.getCategories()
         ]);
         
+        console.log("Transações carregadas do servidor:", transactionsData);
         setTransactions(transactionsData);
         setCategories(categoriesData);
       } catch (error) {
@@ -217,7 +231,8 @@ export const useDashboardData = () => {
   const handleSaveTransaction = async (transaction: Partial<Transaction>) => {
     try {
       const newTransaction = await apiService.saveTransaction(transaction);
-      setTransactions(prev => [...prev, newTransaction]);
+      // Após salvar, recarrega todas as transações
+      await loadTransactions();
       return newTransaction;
     } catch (error) {
       console.error('Erro ao salvar transação:', error);
@@ -229,7 +244,8 @@ export const useDashboardData = () => {
   const handleDeleteTransaction = async (transactionId: string) => {
     try {
       await apiService.deleteTransaction(transactionId);
-      setTransactions(prev => prev.filter(t => t.id !== transactionId));
+      // Após excluir, recarrega todas as transações
+      await loadTransactions();
       return true;
     } catch (error) {
       console.error('Erro ao excluir transação:', error);

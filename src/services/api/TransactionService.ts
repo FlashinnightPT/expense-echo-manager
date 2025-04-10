@@ -24,8 +24,12 @@ export class TransactionService extends ApiServiceCore {
         return [];
       }
       
+      console.log("Dados recebidos da API:", data);
+      
       // Transform database records to application model
-      return data.map(dbToTransactionModel);
+      const transactions = data.map(dbToTransactionModel);
+      console.log("Transações convertidas:", transactions);
+      return transactions;
     } catch (error) {
       console.error("Error fetching transactions from API:", error);
       toast.error("Error fetching transactions");
