@@ -29,7 +29,7 @@ const CategorySelector = ({
       <Label htmlFor="category">
         {level === 2 
           ? "Categoria" 
-          : `Subcategoria (Nível ${level})`}
+          : `Subcategoria (Nível ${level - 1})`}
       </Label>
       <Select
         value={value}

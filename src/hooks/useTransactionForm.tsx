@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -59,8 +60,8 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
     loadCategories();
   }, []);
 
-  useEffect(() => {
-    // Inicializar categorias baseadas no tipo selecionado, começando no nível adequado
+  // Resetar para categorias de primeiro nível com base no tipo selecionado
+  const resetToFirstLevelCategories = () => {
     // Como suas categorias começam no nível 2, ajustamos aqui
     const firstLevelCategories = allCategories.filter(
       (category) => 
@@ -69,12 +70,16 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
         category.isActive !== false // Mostrar apenas categorias ativas
     );
     
-    console.log("First level categories:", firstLevelCategories);
+    console.log("Resetting to first level categories:", firstLevelCategories);
     setAvailableCategories(firstLevelCategories);
     setCategoryLevel(2); // Começar no nível 2, onde suas categorias começam
-    
     setCategoryPath([]);
     setIsAtLeafCategory(false);
+  };
+
+  useEffect(() => {
+    // Inicializar categorias baseadas no tipo selecionado
+    resetToFirstLevelCategories();
     
     // Log para depuração
     console.log("Resetting form for type:", formData.type);
@@ -203,17 +208,15 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
     if (onSave) {
       onSave(formData);
       
-      // Não resetar a data após salvar, mantendo a data selecionada pelo usuário
-      setFormData({
-        ...formData,
+      // Resetar o formulário após salvar, mantendo o tipo e data
+      setFormData(prev => ({
+        ...prev,
         amount: 0,
         categoryId: "",
-      });
+      }));
       
-      // Manter a mesma data e tipo, resetando apenas os outros campos
-      setCategoryPath([]);
-      setCategoryLevel(2);
-      setIsAtLeafCategory(false);
+      // Resetar para o primeiro nível de categorias
+      resetToFirstLevelCategories();
       
       toast.success(transaction ? "Transação atualizada" : "Transação adicionada");
     }
@@ -237,9 +240,7 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
         categoryId: "",
       });
       // Data e tipo são mantidos
-      setCategoryPath([]);
-      setCategoryLevel(2);
-      setIsAtLeafCategory(false);
+      resetToFirstLevelCategories();
     }
   };
 
