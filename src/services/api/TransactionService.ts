@@ -41,6 +41,7 @@ export class TransactionService extends ApiServiceCore {
     try {
       // Convert to DB format
       const dbTransaction = transactionModelToDb(transaction);
+      console.log("Saving transaction:", dbTransaction);
       
       // Send to API
       const result = await this.apiPost('/transactions', dbTransaction);
@@ -50,6 +51,7 @@ export class TransactionService extends ApiServiceCore {
       }
       
       const savedTransaction = dbToTransactionModel(result);
+      console.log("Saved transaction:", savedTransaction);
       return savedTransaction;
     } catch (error) {
       console.error("Error saving transaction to API:", error);

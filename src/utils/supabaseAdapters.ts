@@ -1,3 +1,4 @@
+
 // Mock implementation of supabase adapters (Supabase references removed)
 import { Transaction, TransactionCategory } from './mockData';
 import { UserData } from '@/services/api/users/UserData';
@@ -36,12 +37,24 @@ export function dbToTransactionModel(dbRecord: any): Transaction {
   
   console.log("Convertendo transação da API:", normalizedRecord, "Data formatada:", formattedDate);
 
+  // Processar o valor da transação corretamente
+  let amount: number;
+  if (typeof normalizedRecord.amount === 'number') {
+    amount = normalizedRecord.amount;
+  } else if (typeof normalizedRecord.amount === 'string') {
+    // Remove qualquer formatação de moeda e converte para número
+    amount = parseFloat(normalizedRecord.amount.replace(/[^\d.-]/g, ''));
+  } else {
+    console.error("Formato de valor inválido:", normalizedRecord.amount);
+    amount = 0;
+  }
+
+  console.log("Valor convertido:", amount);
+
   return {
     id: normalizedRecord.id,
     date: formattedDate,
-    amount: typeof normalizedRecord.amount === 'number' 
-      ? normalizedRecord.amount 
-      : parseFloat(normalizedRecord.amount),
+    amount: amount,
     description: normalizedRecord.description || "",
     categoryId: normalizedRecord.categoryId,
     type: normalizedRecord.type as "income" | "expense",
