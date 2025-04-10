@@ -23,7 +23,7 @@ export class CategoryCreateService extends CategoryServiceBase {
       parentId: this.sanitizeForDb(category.parentId), // Sanitize parentId (convert undefined to null)
       isFixedExpense: Boolean(category.isFixedExpense), // Ensure proper boolean conversion
       isActive: category.isActive === false ? false : true, // default to true if undefined
-      createdAt: category.createdAt || new Date() // Ensure createdAt exists
+      createdAt: category.createdAt || new Date().toISOString() // Ensure createdAt exists and is a string
     };
     
     console.log("Category to save (normalized):", normalizedCategory);

@@ -1,4 +1,3 @@
-
 import { Transaction, TransactionCategory } from './mockData';
 import { UserData } from '@/services/api/users/UserData';
 import { UserRole } from '@/hooks/auth';
@@ -54,6 +53,7 @@ export function dbToCategoryModel(dbCategory: any): TransactionCategory {
     parentId: dbCategory.parentid,
     isFixedExpense: isFixedExpense,
     isActive: isActive,
+    createdAt: dbCategory.createdat || new Date().toISOString(), // Handle createdAt from database
   };
 }
 
@@ -84,6 +84,7 @@ export function categoryModelToDb(category: Partial<TransactionCategory>): any {
     parentid: category.parentId,
     isfixedexpense: isFixedExpense,
     isactive: isActive,
+    createdat: category.createdAt || new Date().toISOString(), // Include createdAt in DB format
   };
 }
 

@@ -8,6 +8,7 @@ export type TransactionCategory = {
   parentId?: string | null;
   isFixedExpense?: boolean;
   isActive?: boolean;
+  createdAt?: Date | string; // Add createdAt property
 };
 
 export type Transaction = {
