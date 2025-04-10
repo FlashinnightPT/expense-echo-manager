@@ -13,6 +13,7 @@ import useAuth from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface TransactionFormProps {
   onSave?: (transaction: Partial<Transaction>) => void;
@@ -43,7 +44,8 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
     handleResetCategoryPath,
     handleSubmit,
     handleReset,
-    getCategoryPathNames
+    getCategoryPathNames,
+    isLoading
   } = useTransactionForm({ 
     transaction, 
     onSave 
@@ -64,51 +66,58 @@ const TransactionForm = ({ onSave, transaction, className }: TransactionFormProp
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4">
-            {/* Date Selector */}
-            <DateSelector 
-              selectedDate={selectedDate} 
-              onChange={setSelectedDate} 
-            />
-            
-            {/* Type Selector */}
-            <TypeSelector 
-              value={formData.type || "expense"} 
-              onChange={(value) => handleChange("type", value)} 
-            />
-            
-            {/* Category Navigation */}
-            <div className="space-y-2">
-              <CategoryBreadcrumbNav 
-                categoryNames={categoryPathNames} 
-                onNavigate={handleResetCategoryPath} 
+        {isLoading ? (
+          <div className="flex justify-center p-6">
+            <LoadingSpinner size="lg" />
+            <span className="ml-3">Carregando categorias...</span>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid gap-4">
+              {/* Date Selector */}
+              <DateSelector 
+                selectedDate={selectedDate} 
+                onChange={setSelectedDate} 
               />
               
-              {/* Category Selector */}
-              <CategorySelector 
-                value={formData.categoryId || ""} 
-                onChange={(value) => handleChange("categoryId", value)} 
-                categories={availableCategories} 
-                level={categoryLevel} 
+              {/* Type Selector */}
+              <TypeSelector 
+                value={formData.type || "expense"} 
+                onChange={(value) => handleChange("type", value)} 
+              />
+              
+              {/* Category Navigation */}
+              <div className="space-y-2">
+                <CategoryBreadcrumbNav 
+                  categoryNames={categoryPathNames} 
+                  onNavigate={handleResetCategoryPath} 
+                />
+                
+                {/* Category Selector */}
+                <CategorySelector 
+                  value={formData.categoryId || ""} 
+                  onChange={(value) => handleChange("categoryId", value)} 
+                  categories={availableCategories} 
+                  level={categoryLevel} 
+                />
+              </div>
+              
+              {/* Amount Input */}
+              <AmountInput 
+                value={formData.amount || ""} 
+                onChange={(value) => handleChange("amount", value)} 
+                isEnabled={isAtLeafCategory} 
               />
             </div>
             
-            {/* Amount Input */}
-            <AmountInput 
-              value={formData.amount || ""} 
-              onChange={(value) => handleChange("amount", value)} 
-              isEnabled={isAtLeafCategory} 
+            {/* Form Actions */}
+            <FormActions 
+              onReset={handleReset} 
+              isEditing={!!transaction} 
+              isSubmitDisabled={!isAtLeafCategory} 
             />
-          </div>
-          
-          {/* Form Actions */}
-          <FormActions 
-            onReset={handleReset} 
-            isEditing={!!transaction} 
-            isSubmitDisabled={!isAtLeafCategory} 
-          />
-        </form>
+          </form>
+        )}
       </CardContent>
     </Card>
   );

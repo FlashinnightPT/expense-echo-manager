@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Transaction, TransactionCategory } from "@/utils/mockData";
+import { categoryService } from "@/services/api/category/CategoryService";
 
 interface UseTransactionFormProps {
   transaction?: Transaction;
@@ -33,17 +33,30 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
   const [categoryLevel, setCategoryLevel] = useState<number>(1);
   const [isAtLeafCategory, setIsAtLeafCategory] = useState<boolean>(false);
   const [allCategories, setAllCategories] = useState<TransactionCategory[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   
-  // Carregar categorias do localStorage
+  // Carregar categorias da API em vez do localStorage
   useEffect(() => {
-    const storedCategories = localStorage.getItem('categories');
-    const localCategories = storedCategories ? JSON.parse(storedCategories) : [];
+    const loadCategories = async () => {
+      try {
+        setIsLoading(true);
+        // Use o serviço de categoria para buscar da API
+        const apiCategories = await categoryService.getCategories();
+        
+        // Usar apenas categorias da API, não usar dados mockados
+        setAllCategories(apiCategories);
+        
+        // Log para depuração
+        console.log("Loaded categories from API:", apiCategories);
+      } catch (error) {
+        console.error("Error loading categories from API:", error);
+        toast.error("Não foi possível carregar as categorias");
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    // Usar apenas as categorias locais, não mesclar com as mockadas
-    setAllCategories(localCategories);
-    
-    // Log para depuração
-    console.log("Loaded categories from localStorage:", localCategories);
+    loadCategories();
   }, []);
 
   useEffect(() => {
@@ -250,6 +263,7 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
     handleResetCategoryPath,
     handleSubmit,
     handleReset,
-    getCategoryPathNames
+    getCategoryPathNames,
+    isLoading
   };
 }
