@@ -29,6 +29,7 @@ export class UserManagement {
     try {
       // Check if there's at least one user in the system
       const users = await this.userCrudOps.getUsers();
+      console.log("Verificando se existem usuários:", users);
       
       if (users.length === 0) {
         console.log('No users found, creating default admin account');
@@ -44,6 +45,8 @@ export class UserManagement {
         });
         
         console.log('Default admin account created');
+      } else {
+        console.log('Usuários já existem, não é necessário criar admin padrão:', users);
       }
     } catch (error) {
       console.error('Failed to initialize default admin:', error);

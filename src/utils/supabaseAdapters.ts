@@ -101,26 +101,40 @@ export function categoryModelToDb(category: Partial<TransactionCategory>): any {
 
 // Convert mock DB user to application model
 export function dbToUserModel(dbUser: any): UserData {
+  console.log("Convertendo usuário da API:", dbUser);
+  
+  // Normalizar nomes de propriedades (API retorna com inicial maiúscula)
+  const normalizedUser = {
+    id: dbUser.Id || dbUser.id || "",
+    name: dbUser.Name || dbUser.name || "",
+    username: dbUser.Username || dbUser.username || "",
+    password: dbUser.Password || dbUser.password || "",
+    role: dbUser.Role || dbUser.role || "viewer",
+    status: dbUser.Status || dbUser.status || "active",
+    lastLogin: dbUser.LastLogin || dbUser.lastLogin || dbUser.last_login || null
+  };
+  
+  console.log("Usuário normalizado:", normalizedUser);
+  
   // Map the role from the database to a valid UserRole
-  // If the role is 'regular', map it to 'viewer' which is a valid UserRole
   let role: UserRole;
-  if (dbUser.role === 'regular') {
+  if (normalizedUser.role === 'regular') {
     role = 'viewer';
-  } else if (dbUser.role === 'editor' || dbUser.role === 'viewer') {
-    role = dbUser.role as UserRole;
+  } else if (normalizedUser.role === 'editor' || normalizedUser.role === 'viewer') {
+    role = normalizedUser.role as UserRole;
   } else {
     // Default to 'viewer' for any other unrecognized role
     role = 'viewer';
   }
   
   return {
-    id: dbUser.id || `mock-${Date.now()}`,
-    name: dbUser.name || '',
-    username: dbUser.username || '',
-    password: dbUser.password || '',
+    id: normalizedUser.id,
+    name: normalizedUser.name,
+    username: normalizedUser.username,
+    password: normalizedUser.password,
     role: role,
-    status: (dbUser.status as 'active' | 'pending' | 'inactive') || 'active',
-    lastLogin: dbUser.last_login || null
+    status: (normalizedUser.status as 'active' | 'pending' | 'inactive'),
+    lastLogin: normalizedUser.lastLogin
   };
 }
 

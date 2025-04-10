@@ -20,7 +20,12 @@ export class UserCrudOperations {
       }
       
       const users = await response.json();
-      return users.map((user: any) => dbToUserModel(user));
+      console.log("Dados de usuários recebidos da API:", users);
+      
+      const mappedUsers = users.map((user: any) => dbToUserModel(user));
+      console.log("Usuários convertidos para o modelo da aplicação:", mappedUsers);
+      
+      return mappedUsers;
     } catch (error) {
       console.error('Error fetching users:', error);
       return [];
