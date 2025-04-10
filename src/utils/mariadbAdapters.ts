@@ -1,3 +1,4 @@
+
 import { Transaction, TransactionCategory } from './mockData';
 import { UserData } from '@/services/api/users/UserData';
 import { UserRole } from '@/hooks/auth';
@@ -30,30 +31,51 @@ export function transactionModelToDb(transaction: Partial<Transaction>): any {
 export function dbToCategoryModel(dbCategory: any): TransactionCategory {
   console.log("Converting DB category to model:", dbCategory);
   
-  // MariaDB returns 0/1 for boolean values, convert them properly
-  const isActive = dbCategory.isactive === 1;
-  const isFixedExpense = dbCategory.isfixedexpense === 1;
+  // Handle different case formats from API (Id/id, Type/type, etc.)
+  const id = dbCategory.id || dbCategory.Id || "";
+  const name = dbCategory.name || dbCategory.Name || "";
+  const type = (dbCategory.type || dbCategory.Type || "expense") as "income" | "expense";
+  const level = dbCategory.level || dbCategory.Level || 1;
+  const parentId = dbCategory.parentid || dbCategory.ParentId || null;
+  
+  // Handle boolean conversions from various formats (0/1, true/false, etc.)
+  let isFixedExpense = false;
+  if (dbCategory.isfixedexpense !== undefined) {
+    isFixedExpense = dbCategory.isfixedexpense === 1 || dbCategory.isfixedexpense === true;
+  } else if (dbCategory.IsFixedExpense !== undefined) {
+    isFixedExpense = dbCategory.IsFixedExpense === 1 || dbCategory.IsFixedExpense === true;
+  }
+  
+  let isActive = true; // Default to true
+  if (dbCategory.isactive !== undefined) {
+    isActive = dbCategory.isactive === 1 || dbCategory.isactive === true;
+  } else if (dbCategory.IsActive !== undefined) {
+    isActive = dbCategory.IsActive === 1 || dbCategory.IsActive === true;
+  }
+  
+  // Handle createdat field
+  const createdAt = dbCategory.createdat || dbCategory.CreatedAt || new Date().toISOString();
   
   console.log("Boolean conversion results:", {
-    isactive_original: dbCategory.isactive,
-    isactive_original_type: typeof dbCategory.isactive,
+    isactive_original: dbCategory.isactive || dbCategory.IsActive,
+    isactive_original_type: typeof (dbCategory.isactive || dbCategory.IsActive),
     isActive_converted: isActive,
     isActive_converted_type: typeof isActive,
-    isfixedexpense_original: dbCategory.isfixedexpense,
-    isfixedexpense_original_type: typeof dbCategory.isfixedexpense,
+    isfixedexpense_original: dbCategory.isfixedexpense || dbCategory.IsFixedExpense,
+    isfixedexpense_original_type: typeof (dbCategory.isfixedexpense || dbCategory.IsFixedExpense),
     isFixedExpense_converted: isFixedExpense,
     isFixedExpense_converted_type: typeof isFixedExpense
   });
   
   return {
-    id: dbCategory.id,
-    name: dbCategory.name,
-    type: dbCategory.type as "income" | "expense",
-    level: dbCategory.level,
-    parentId: dbCategory.parentid,
-    isFixedExpense: isFixedExpense,
-    isActive: isActive,
-    createdAt: dbCategory.createdat || new Date().toISOString(), // Handle createdAt from database
+    id,
+    name,
+    type,
+    level,
+    parentId,
+    isFixedExpense,
+    isActive,
+    createdAt,
   };
 }
 

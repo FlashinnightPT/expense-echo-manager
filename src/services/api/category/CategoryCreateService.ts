@@ -58,7 +58,18 @@ export class CategoryCreateService extends CategoryServiceBase {
       // Handle potential null response data by providing a fallback
       const convertedCategory = data ? dbToCategoryModel(data) : normalizedCategory;
       console.log("Category after conversion back:", convertedCategory);
-      return convertedCategory;
+      
+      // Fix: Return a complete category object with all properties
+      return {
+        id: convertedCategory.id || normalizedCategory.id,
+        name: convertedCategory.name || normalizedCategory.name,
+        type: convertedCategory.type || normalizedCategory.type,
+        level: convertedCategory.level || normalizedCategory.level,
+        parentId: convertedCategory.parentId ?? normalizedCategory.parentId,
+        isFixedExpense: convertedCategory.isFixedExpense ?? normalizedCategory.isFixedExpense,
+        isActive: convertedCategory.isActive ?? normalizedCategory.isActive,
+        createdAt: convertedCategory.createdAt || normalizedCategory.createdAt
+      };
     } catch (error) {
       console.error("Error saving category to API:", error);
       toast.error("Error saving category");

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { TransactionCategory } from "@/utils/mockData";
 import { toast } from "sonner";
@@ -40,7 +41,8 @@ export const useCategoryActions = ({
       
       console.log("Categoria salva na API:", savedCategory);
       
-      if (savedCategory) {
+      // Verify we have a valid saved category with required fields
+      if (savedCategory && savedCategory.id && savedCategory.name) {
         // Update local list with category returned from API
         setCategoryList(prevList => {
           // Check if category exists in the list and replace it
@@ -55,10 +57,16 @@ export const useCategoryActions = ({
         console.log("Categoria adicionada:", savedCategory);
         
         toast.success(`Categoria "${savedCategory.name}" adicionada com sucesso`);
+        return savedCategory;
+      } else {
+        console.error("Invalid saved category data:", savedCategory);
+        toast.error("Erro ao adicionar categoria: dados inválidos");
+        return null;
       }
     } catch (error) {
       console.error("Erro ao adicionar categoria:", error);
       toast.error("Erro ao adicionar categoria");
+      return null;
     } finally {
       setIsLoading(false);
     }
