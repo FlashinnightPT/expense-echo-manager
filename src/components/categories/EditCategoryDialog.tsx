@@ -60,10 +60,12 @@ export function EditCategoryDialog({
       console.log("Enviando dados da edição:", {
         nome: newName,
         isFixed: isFixed,
-        isActive: isActive
+        isActive: isActive,
+        "isActive tipo": typeof isActive
       });
       
       // Passar explicitamente valores booleanos
+      // Importante: Não converter para número - manter como booleano
       onSave(newName, isFixed, isActive);
       onOpenChange(false);
     }
@@ -75,6 +77,8 @@ export function EditCategoryDialog({
 
   const handleToggleActive = () => {
     setIsActive(!isActive);
+    
+    console.log("Alterado status ativo para:", !isActive, "tipo:", typeof !isActive);
   };
 
   return (

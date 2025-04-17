@@ -22,17 +22,25 @@ export class CategoryCreateService extends CategoryServiceBase {
       level: category.level || 1,
       parentId: this.sanitizeForDb(category.parentId), // Sanitize parentId (convert undefined to null)
       isFixedExpense: Boolean(category.isFixedExpense), // Ensure proper boolean conversion
-      isActive: category.isActive === false ? false : true, // default to true if undefined
+      // Important: Preserve the exact boolean value for isActive
+      isActive: category.isActive === undefined ? true : Boolean(category.isActive),
       createdAt: category.createdAt || new Date().toISOString() // Ensure createdAt exists and is a string
     };
     
-    console.log("Category to save (normalized):", normalizedCategory);
+    console.log("Category to save (normalized):", {
+      ...normalizedCategory,
+      "isActive type": typeof normalizedCategory.isActive
+    });
     
     try {
       // Convert to database format
       const dbCategory = categoryModelToDb(normalizedCategory);
       
-      console.log("Category formatted for DB:", dbCategory);
+      console.log("Category formatted for DB:", {
+        ...dbCategory,
+        "isactive value": dbCategory.isactive,
+        "isactive type": typeof dbCategory.isactive
+      });
       
       let data;
       

@@ -41,6 +41,11 @@ export const useCategoryUpdates = ({
         updatedCategory.isActive = isActive;
       }
       
+      console.log("Updating category with data:", {
+        ...updatedCategory,
+        "isActive type": typeof updatedCategory.isActive
+      });
+      
       // Update via the category service instead of direct API call
       await categoryService.saveCategory(updatedCategory);
       
@@ -75,10 +80,12 @@ export const useCategoryUpdates = ({
         return false;
       }
       
+      console.log("Updating category active status with value:", isActive, "type:", typeof isActive);
+      
       // Create updated category object
       const updatedCategory: Partial<TransactionCategory> = {
         ...categoryToUpdate,
-        isActive
+        isActive: isActive
       };
       
       // Update via the category service

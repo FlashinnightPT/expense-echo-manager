@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import CategoryForm from "@/components/forms/CategoryForm";
 import CategoryList from "@/components/categories/CategoryList";
@@ -74,8 +73,8 @@ const Categories = () => {
     if (isActive !== undefined) {
       console.log("Atualizando estado ativo para:", isActive, "tipo:", typeof isActive);
       
-      // Converter explicitamente para booleano para garantir
-      const activeSuccess = await updateCategoryActive(categoryId, isActive === true);
+      // Passar o valor booleano diretamente, sem conversões
+      const activeSuccess = await updateCategoryActive(categoryId, isActive);
       if (!activeSuccess) {
         return false;
       }
@@ -85,7 +84,8 @@ const Categories = () => {
     if (isFixedExpense !== undefined) {
       console.log("Atualizando despesa fixa para:", isFixedExpense, "tipo:", typeof isFixedExpense);
       
-      const fixedSuccess = await updateFixedExpense(categoryId, isFixedExpense === true);
+      // Passar o valor booleano diretamente, sem conversões
+      const fixedSuccess = await updateFixedExpense(categoryId, isFixedExpense);
       if (!fixedSuccess) {
         return false;
       }
