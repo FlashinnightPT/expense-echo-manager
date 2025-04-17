@@ -32,10 +32,11 @@ namespace expense_echo_manager_api.Controllers
                         {
                             while (reader.Read())
                             {
+                                DateTime date = Convert.ToDateTime(reader["date"]);
                                 transactions.Add(new Transaction
                                 {
                                     Id = reader["id"].ToString(),
-                                    Date = reader["date"].ToString(),
+                                    Date = date.ToString("dd-MM-yyyy HH:mm:ss"),
                                     Amount = Convert.ToDecimal(reader["amount"]),
                                     Description = reader["description"].ToString(),
                                     CategoryId = reader["categoryid"].ToString(),
@@ -94,10 +95,11 @@ namespace expense_echo_manager_api.Controllers
                         {
                             if (reader.Read())
                             {
+                                DateTime date = Convert.ToDateTime(reader["date"]);
                                 newTransaction = new Transaction
                                 {
                                     Id = reader["id"].ToString(),
-                                    Date = reader["date"].ToString(),
+                                    Date = date.ToString("dd-MM-yyyy HH:mm:ss"),
                                     Amount = Convert.ToDecimal(reader["amount"]),
                                     Description = reader["description"].ToString(),
                                     CategoryId = reader["categoryid"].ToString(),

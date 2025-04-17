@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using System.Web.Http.Cors;
 using expense_echo_manager_api.Database;
 using expense_echo_manager_api.Models;
 using MySql.Data.MySqlClient;
@@ -12,6 +13,13 @@ namespace expense_echo_manager_api.Controllers
     [RoutePrefix("users")]
     public class UsersController : ApiController
     {
+        [HttpOptions]
+        [Route("")]
+        public IHttpActionResult Options()
+        {
+            return Ok();
+        }
+
         [HttpGet]
         [Route("")]
         public HttpResponseMessage GetUsers()

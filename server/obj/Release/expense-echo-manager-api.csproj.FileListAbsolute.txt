@@ -131,3 +131,6 @@ C:\PersonalProjects\ACMorais\expense-echo-manager-api\expense-echo-manager-api\b
 C:\PersonalProjects\ACMorais\expense-echo-manager-api\expense-echo-manager-api\bin\System.Configuration.ConfigurationManager.xml
 C:\PersonalProjects\ACMorais\expense-echo-manager-api\expense-echo-manager-api\bin\System.Diagnostics.DiagnosticSource.xml
 C:\PersonalProjects\ACMorais\expense-echo-manager-api\expense-echo-manager-api\bin\System.IO.Pipelines.xml
+C:\PersonalProjects\ACMorais\expense-echo-manager-api\expense-echo-manager-api\bin\System.Web.Cors.dll
+C:\PersonalProjects\ACMorais\expense-echo-manager-api\expense-echo-manager-api\bin\System.Web.Http.Cors.dll
+C:\PersonalProjects\ACMorais\expense-echo-manager-api\expense-echo-manager-api\bin\System.Web.Http.Cors.xml
