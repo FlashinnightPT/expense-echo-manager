@@ -14,21 +14,30 @@ export class CategoryCreateService extends CategoryServiceBase {
       category.id = `${category.type}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     }
     
-    // Fix: Explicitly set boolean values and ensure all required properties exist
+    // Ensure boolean values are properly set
+    // The key issue here is to preserve the exact boolean values provided
     const normalizedCategory: TransactionCategory = {
       id: category.id || "",
       name: category.name || "",
       type: category.type || "expense",
       level: category.level || 1,
       parentId: this.sanitizeForDb(category.parentId), // Sanitize parentId (convert undefined to null)
-      isFixedExpense: Boolean(category.isFixedExpense), // Ensure proper boolean conversion
-      // Important: Preserve the exact boolean value for isActive
-      isActive: category.isActive === undefined ? true : Boolean(category.isActive),
-      createdAt: category.createdAt || new Date().toISOString() // Ensure createdAt exists and is a string
+      
+      // Use Boolean() constructor for consistency, but respect undefined values
+      isFixedExpense: category.isFixedExpense !== undefined ? Boolean(category.isFixedExpense) : false,
+      
+      // For isActive, default to true if undefined
+      isActive: category.isActive !== undefined ? Boolean(category.isActive) : true,
+      
+      createdAt: category.createdAt || new Date().toISOString()
     };
     
     console.log("Category to save (normalized):", {
-      ...normalizedCategory,
+      id: normalizedCategory.id,
+      name: normalizedCategory.name,
+      "isFixedExpense": normalizedCategory.isFixedExpense,
+      "isFixedExpense type": typeof normalizedCategory.isFixedExpense,
+      "isActive": normalizedCategory.isActive,
       "isActive type": typeof normalizedCategory.isActive
     });
     
@@ -37,9 +46,12 @@ export class CategoryCreateService extends CategoryServiceBase {
       const dbCategory = categoryModelToDb(normalizedCategory);
       
       console.log("Category formatted for DB:", {
-        ...dbCategory,
+        "id": dbCategory.id,
+        "name": dbCategory.name,
         "isactive value": dbCategory.isactive,
-        "isactive type": typeof dbCategory.isactive
+        "isactive type": typeof dbCategory.isactive,
+        "isfixedexpense value": dbCategory.isfixedexpense,
+        "isfixedexpense type": typeof dbCategory.isfixedexpense
       });
       
       let data;

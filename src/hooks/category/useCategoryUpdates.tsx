@@ -18,7 +18,7 @@ export const useCategoryUpdates = ({
   setIsLoading
 }: UseCategoryUpdatesProps) => {
   
-  const updateCategoryName = async (categoryId: string, newName: string, isActive?: boolean) => {
+  const updateCategoryName = async (categoryId: string, newName: string, isFixedExpense?: boolean, isActive?: boolean) => {
     try {
       setIsLoading(true);
       
@@ -30,37 +30,57 @@ export const useCategoryUpdates = ({
         return false;
       }
       
-      // Create updated category object
+      // Create updated category object with all properties that need updating
       const updatedCategory: Partial<TransactionCategory> = {
         ...categoryToUpdate,
         name: newName
       };
       
-      // If isActive is provided, update it
+      // Only update these properties if they were explicitly provided
+      if (isFixedExpense !== undefined) {
+        updatedCategory.isFixedExpense = isFixedExpense;
+      }
+      
       if (isActive !== undefined) {
         updatedCategory.isActive = isActive;
       }
       
       console.log("Updating category with data:", {
-        ...updatedCategory,
-        "isActive type": typeof updatedCategory.isActive
+        id: updatedCategory.id,
+        name: updatedCategory.name,
+        isFixedExpense: updatedCategory.isFixedExpense,
+        isActive: updatedCategory.isActive,
+        "isActive type": typeof updatedCategory.isActive,
+        "isFixedExpense type": typeof updatedCategory.isFixedExpense
       });
       
-      // Update via the category service instead of direct API call
+      // Make a single API call with all updated properties
       await categoryService.saveCategory(updatedCategory);
       
-      // Update local state
+      // Update local state with all properties that were updated
       setCategoryList((prev: TransactionCategory[]) => 
-        prev.map(cat => cat.id === categoryId ? 
-          { ...cat, name: newName, ...(isActive !== undefined ? { isActive } : {}) } : 
-          cat
-        )
+        prev.map(cat => {
+          if (cat.id === categoryId) {
+            const updatedCat = { ...cat, name: newName };
+            
+            if (isFixedExpense !== undefined) {
+              updatedCat.isFixedExpense = isFixedExpense;
+            }
+            
+            if (isActive !== undefined) {
+              updatedCat.isActive = isActive;
+            }
+            
+            return updatedCat;
+          }
+          return cat;
+        })
       );
       
       toast.success("Category updated successfully");
       return true;
     } catch (error) {
-      console.error("Error updating category name:", error);
+      console.error("Error updating category:", error);
       toast.error("Error updating category");
       return false;
     } finally {
@@ -68,6 +88,7 @@ export const useCategoryUpdates = ({
     }
   };
 
+  // These methods are kept for backward compatibility, but internally they'll use updateCategoryName
   const updateCategoryActive = async (categoryId: string, isActive: boolean) => {
     try {
       setIsLoading(true);
@@ -82,22 +103,9 @@ export const useCategoryUpdates = ({
       
       console.log("Updating category active status with value:", isActive, "type:", typeof isActive);
       
-      // Create updated category object
-      const updatedCategory: Partial<TransactionCategory> = {
-        ...categoryToUpdate,
-        isActive: isActive
-      };
+      // Use the unified update method
+      return await updateCategoryName(categoryId, categoryToUpdate.name, undefined, isActive);
       
-      // Update via the category service
-      await categoryService.saveCategory(updatedCategory);
-      
-      // Update local state
-      setCategoryList((prev: TransactionCategory[]) => 
-        prev.map(cat => cat.id === categoryId ? { ...cat, isActive } : cat)
-      );
-      
-      toast.success("Category status updated successfully");
-      return true;
     } catch (error) {
       console.error("Error updating category active status:", error);
       toast.error("Error updating category status");
@@ -119,22 +127,9 @@ export const useCategoryUpdates = ({
         return false;
       }
       
-      // Create updated category object
-      const updatedCategory: Partial<TransactionCategory> = {
-        ...categoryToUpdate,
-        isFixedExpense
-      };
+      // Use the unified update method
+      return await updateCategoryName(categoryId, categoryToUpdate.name, isFixedExpense, undefined);
       
-      // Update via the category service
-      await categoryService.saveCategory(updatedCategory);
-      
-      // Update local state
-      setCategoryList((prev: TransactionCategory[]) => 
-        prev.map(cat => cat.id === categoryId ? { ...cat, isFixedExpense } : cat)
-      );
-      
-      toast.success("Fixed expense status updated successfully");
-      return true;
     } catch (error) {
       console.error("Error updating fixed expense status:", error);
       toast.error("Error updating fixed expense status");

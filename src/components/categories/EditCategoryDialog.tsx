@@ -32,53 +32,57 @@ export function EditCategoryDialog({
   const [newName, setNewName] = useState("");
   const [isFixed, setIsFixed] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [formChanged, setFormChanged] = useState(false);
 
+  // Reset form state when dialog opens with a new category
   useEffect(() => {
     if (category) {
       setNewName(category.name);
       
-      // Garantir valores booleanos explícitos
+      // Ensure explicit boolean values
       setIsFixed(category.isFixedExpense === true);
-      
-      // Garantir valor booleano explícito para isActive, com valor padrão true
-      // se for undefined ou null
       setIsActive(category.isActive !== false);
+      setFormChanged(false);
       
-      console.log("Estado inicial do diálogo de edição:", {
-        categoria: category,
-        nome: category.name,
-        isFixed: category.isFixedExpense,
-        isActive: category.isActive,
-        "isFixed após conversão": category.isFixedExpense === true,
-        "isActive após conversão": category.isActive !== false
+      console.log("Dialog initialized with values:", {
+        name: category.name,
+        isFixedExpense: category.isFixedExpense === true,
+        isActive: category.isActive !== false
       });
     }
   }, [category]);
 
-  const handleSave = () => {
-    if (newName.trim()) {
-      console.log("Enviando dados da edição:", {
-        nome: newName,
-        isFixed: isFixed,
-        isActive: isActive,
-        "isActive tipo": typeof isActive
-      });
-      
-      // Passar explicitamente valores booleanos
-      // Importante: Não converter para número - manter como booleano
-      onSave(newName, isFixed, isActive);
-      onOpenChange(false);
-    }
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewName(e.target.value);
+    setFormChanged(true);
   };
 
   const handleToggleFixed = () => {
-    setIsFixed(!isFixed);
+    const newValue = !isFixed;
+    setIsFixed(newValue);
+    setFormChanged(true);
+    console.log("Fixed expense toggled to:", newValue);
   };
 
   const handleToggleActive = () => {
-    setIsActive(!isActive);
-    
-    console.log("Alterado status ativo para:", !isActive, "tipo:", typeof !isActive);
+    const newValue = !isActive;
+    setIsActive(newValue);
+    setFormChanged(true);
+    console.log("Active status toggled to:", newValue);
+  };
+
+  const handleSave = () => {
+    if (newName.trim()) {
+      console.log("Saving category with values:", {
+        name: newName,
+        isFixedExpense: isFixed,
+        isActive: isActive
+      });
+      
+      // Only pass all values together in a single call
+      onSave(newName, isFixed, isActive);
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -100,7 +104,7 @@ export function EditCategoryDialog({
               <Input
                 id="categoryName"
                 value={newName}
-                onChange={(e) => setNewName(e.target.value)}
+                onChange={handleNameChange}
                 className="col-span-3"
               />
             </div>
@@ -131,8 +135,12 @@ export function EditCategoryDialog({
         )}
         
         <DialogFooter>
-          <Button type="submit" onClick={handleSave}>
-              Guardar Alterações
+          <Button 
+            type="submit" 
+            onClick={handleSave}
+            disabled={!category || !newName.trim()}
+          >
+            Guardar Alterações
           </Button>
           <DialogClose asChild>
             <Button type="button" variant="outline">
