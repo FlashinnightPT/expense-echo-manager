@@ -132,7 +132,7 @@ export function EditCategoryDialog({
         
         <DialogFooter>
           <Button type="submit" onClick={handleSave}>
-            Salvar Alterações
+              Guardar Alterações
           </Button>
           <DialogClose asChild>
             <Button type="button" variant="outline">
