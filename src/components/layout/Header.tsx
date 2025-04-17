@@ -26,18 +26,30 @@ const settingsSubMenu = [
 const Header = () => {
   const location = useLocation();
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isNavigating, setIsNavigating] = React.useState(false);
 
   // Function to check if current path matches given href
   const isActivePath = (href: string) => {
+    // Check if we're on the dashboard page
     if (href === "/dashboard" && location.pathname === "/dashboard") {
       return true;
     }
+    
+    // Check if the current path exactly matches the href
     return location.pathname === href;
   };
 
   // Close menu (for mobile/responsive designs)
   const closeMenu = () => {
     setIsExpanded(false);
+    
+    // Set navigating state to prevent multiple clicks
+    setIsNavigating(true);
+    
+    // Reset navigating state after navigation should be complete
+    setTimeout(() => {
+      setIsNavigating(false);
+    }, 200);
   };
 
   // Check if we're on the login page, don't show the header

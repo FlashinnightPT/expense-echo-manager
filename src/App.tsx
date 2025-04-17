@@ -1,4 +1,3 @@
-
 import { Suspense, lazy, useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
@@ -42,7 +41,6 @@ function App() {
     console.log("App: Current location", location.pathname);
   }, [location]);
   
-  console.log("App component rendering");
   return (
     <>
       <Suspense fallback={<LoadingPage />}>
