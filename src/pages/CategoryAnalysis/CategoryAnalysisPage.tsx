@@ -63,16 +63,31 @@ const CategoryAnalysisPage = () => {
   // Filter root categories by type and search term
   const filteredRootCategories = filterRootCategories(categories, activeTab, searchTerm);
 
-  // Clean up on unmount
+  // Clean up on unmount and prepare page for navigation
   useEffect(() => {
+    console.log("CategoryAnalysisPage: Page mounted");
+    
+    // Helper function to allow navigation away from this page
+    const prepareForNavigation = () => {
+      console.log("CategoryAnalysisPage: Preparing for navigation");
+      // Reset any state that might be blocking navigation
+      setSelectedCategoryId("");
+    };
+    
+    // Create and remove event listener for beforeunload
+    window.addEventListener("beforeunload", prepareForNavigation);
+    
     return () => {
-      // Clear the selected category when component unmounts
+      console.log("CategoryAnalysisPage: Component unmounting, cleaning up");
+      window.removeEventListener("beforeunload", prepareForNavigation);
+      // Clear the selected category and any other state that might
+      // be causing navigation issues when component unmounts
       setSelectedCategoryId("");
     };
   }, [setSelectedCategoryId]);
 
   return (
-    <main className="container mx-auto py-4">
+    <main className="container mx-auto py-4" id="category-analysis-page">
       <CategoryAnalysisFilters 
         activeTab={activeTab}
         setActiveTab={setActiveTab}

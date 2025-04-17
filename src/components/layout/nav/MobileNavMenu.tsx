@@ -19,17 +19,44 @@ export function MobileNavMenu({
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [lastNavigationTime, setLastNavigationTime] = useState(0);
 
   const handleNavClick = (href: string) => {
+    // Prevent navigation if already navigating
+    if (isNavigating) {
+      console.log("MobileNavMenu: Navigation already in progress, skipping");
+      return;
+    }
+    
+    // Debounce navigation clicks
+    const now = Date.now();
+    if (now - lastNavigationTime < 300) {
+      console.log("MobileNavMenu: Navigation clicked too soon, skipping");
+      return;
+    }
+    
+    console.log(`MobileNavMenu: Navigating from ${location.pathname} to ${href}`);
+    setLastNavigationTime(now);
+    
     // Close the menu first
     setIsOpen(false);
     
-    // Wait for the menu to close before navigating
-    // Add additional delay if coming from category-analysis page
-    const delay = location.pathname === '/category-analysis' ? 150 : 100;
+    // Set navigating state to prevent multiple clicks
+    setIsNavigating(true);
+    
+    // Add additional delay if coming from problematic pages
+    const problematicPages = ['/category-analysis', '/category-comparison'];
+    const delay = problematicPages.includes(location.pathname) ? 250 : 100;
     
     setTimeout(() => {
+      console.log(`MobileNavMenu: Executing delayed navigation to ${href}`);
       navigate(href);
+      
+      // Reset navigating state after navigation should be complete
+      setTimeout(() => {
+        setIsNavigating(false);
+      }, 300);
     }, delay);
   };
 

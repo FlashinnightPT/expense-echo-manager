@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useEffect, useState, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { DesktopNavMenu } from "./nav/DesktopNavMenu";
 import { MobileNavMenu } from "./nav/MobileNavMenu";
 import { AppLogo } from "./nav/AppLogo";
@@ -25,6 +25,7 @@ const settingsSubMenu = [
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const [lastNavigationTime, setLastNavigationTime] = useState(0);
@@ -41,11 +42,17 @@ const Header = () => {
   };
 
   // Close menu (for mobile/responsive designs) and prevent rapid navigation
-  const closeMenu = () => {
+  const closeMenu = useCallback(() => {
+    // Prevent navigation if already navigating
+    if (isNavigating) {
+      console.log("Header: Navigation already in progress, skipping");
+      return;
+    }
+    
     // Debounce navigation clicks
     const now = Date.now();
     if (now - lastNavigationTime < 300) {
-      // Skip if clicked too soon
+      console.log("Header: Navigation clicked too soon, skipping");
       return;
     }
     
@@ -59,11 +66,14 @@ const Header = () => {
     setTimeout(() => {
       setIsNavigating(false);
     }, 300);
-  };
+  }, [isNavigating, lastNavigationTime]);
   
   // Debug current location
   useEffect(() => {
     console.log("Header: Current location is", location.pathname);
+    
+    // Reset navigation state when location changes
+    setIsNavigating(false);
   }, [location.pathname]);
 
   // Check if we're on the login page, don't show the header

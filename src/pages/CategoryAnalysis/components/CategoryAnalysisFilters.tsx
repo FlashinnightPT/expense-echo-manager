@@ -41,8 +41,9 @@ const CategoryAnalysisFilters = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Tabs for type (Income/Expense) */}
           <div>
-            <Label htmlFor="type">Tipo</Label>
+            <Label htmlFor="type-tabs">Tipo</Label>
             <Tabs 
+              id="type-tabs"
               defaultValue={activeTab} 
               className="w-full" 
               onValueChange={(value) => setActiveTab(value as "expense" | "income")}
@@ -56,12 +57,12 @@ const CategoryAnalysisFilters = ({
 
           {/* Year Selector */}
           <div>
-            <Label htmlFor="year">Ano</Label>
+            <Label htmlFor="year-select">Ano</Label>
             <Select 
               value={selectedYear.toString()} 
               onValueChange={(value) => setSelectedYear(Number(value))}
             >
-              <SelectTrigger id="year">
+              <SelectTrigger id="year-select">
                 <SelectValue placeholder="Selecione o ano" />
               </SelectTrigger>
               <SelectContent>
@@ -82,12 +83,12 @@ const CategoryAnalysisFilters = ({
 
           {/* Month Selector */}
           <div>
-            <Label htmlFor="month">Mês (opcional)</Label>
+            <Label htmlFor="month-select">Mês (opcional)</Label>
             <Select 
               value={selectedMonth?.toString() ?? "null"} 
               onValueChange={(value) => setSelectedMonth(value === "null" ? null : Number(value))}
             >
-              <SelectTrigger id="month">
+              <SelectTrigger id="month-select">
                 <SelectValue placeholder="Todos os meses" />
               </SelectTrigger>
               <SelectContent>
@@ -103,9 +104,9 @@ const CategoryAnalysisFilters = ({
 
           {/* Category Search */}
           <div>
-            <Label htmlFor="search">Pesquisar Categoria</Label>
+            <Label htmlFor="category-search">Pesquisar Categoria</Label>
             <Input
-              id="search"
+              id="category-search"
               placeholder="Digite para pesquisar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
