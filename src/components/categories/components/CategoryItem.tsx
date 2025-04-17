@@ -81,13 +81,12 @@ const CategoryItem = ({
         </div>
         
         <div className="flex items-center gap-1">
-          {category.type.toLowerCase() === "expense" && (
-            <FixedExpenseToggle
-              checked={category.isFixedExpense || false}
-              onToggle={onToggleFixedExpense}
-              disabled={disabled}
-            />
-          )}
+          {/* Show fixed toggle for both expense and income categories */}
+          <FixedExpenseToggle
+            checked={category.isFixedExpense || false}
+            onToggle={onToggleFixedExpense}
+            disabled={disabled}
+          />
           
           <Button
             variant="ghost"
