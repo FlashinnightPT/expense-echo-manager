@@ -15,10 +15,15 @@ export const useSubcategoryAnalysis = (
   const [subcategoryData, setSubcategoryData] = useState<any[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
 
+  const deepEqual = (a: any[], b: any[]) =>
+    JSON.stringify(a) === JSON.stringify(b);
+
   // Update data when filters change
   useEffect(() => {
     if (!selectedCategoryId) {
-      setSubcategoryData([]);
+      if (subcategoryData.length !== 0) {
+        setSubcategoryData([]);
+      }
       setTotalAmount(0);
       setSelectedCategoryName("");
       return;
@@ -34,7 +39,9 @@ export const useSubcategoryAnalysis = (
     // Get the selected category
     const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
     if (!selectedCategory) {
-      setSubcategoryData([]);
+      if (subcategoryData.length !== 0) {
+        setSubcategoryData([]);
+      }
       setTotalAmount(0);
       setSelectedCategoryName("");
       return;
@@ -95,8 +102,11 @@ export const useSubcategoryAnalysis = (
       ...item,
       percentage: total > 0 ? (item.amount / total) * 100 : 0
     }));
-    
-    setSubcategoryData(dataWithPercentages);
+
+    if (!deepEqual(subcategoryData, dataWithPercentages)) {
+      setSubcategoryData(dataWithPercentages);
+    }
+
   }, [selectedCategoryId, selectedYear, selectedMonth, activeTab, categories, getFilteredTransactions]);
 
   return {
