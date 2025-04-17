@@ -24,11 +24,16 @@ export function DesktopNavMenu({
   const location = useLocation();
   
   // Function that handles navigation and closes the menu
-  const handleNavigation = () => {
-    // Force a small delay to ensure React Router has time to process navigation
-    setTimeout(() => {
+  const handleNavigation = (e: React.MouseEvent) => {
+    // Prevent default to ensure we have control over navigation
+    if (location.pathname === '/category-analysis') {
+      // Use setTimeout to ensure React Router has time to process navigation
+      setTimeout(() => {
+        closeMenu();
+      }, 50);
+    } else {
       closeMenu();
-    }, 10);
+    }
   };
 
   return (

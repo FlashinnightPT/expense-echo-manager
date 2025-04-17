@@ -63,13 +63,13 @@ const CategoryAnalysisPage = () => {
   // Filter root categories by type and search term
   const filteredRootCategories = filterRootCategories(categories, activeTab, searchTerm);
 
-  // Limpar os dados de categoria selecionada ao desmontar o componente
+  // Clean up on unmount
   useEffect(() => {
     return () => {
-      // Limpar a seleção quando o componente é desmontado
-      // Isso garante que quando voltarmos a este componente ele reiniciará limpo
+      // Clear the selected category when component unmounts
+      setSelectedCategoryId("");
     };
-  }, []);
+  }, [setSelectedCategoryId]);
 
   return (
     <main className="container mx-auto py-4">

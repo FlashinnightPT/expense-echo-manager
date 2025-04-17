@@ -1,3 +1,3 @@
 
-import CategoryComparison from "./comparison/CategoryComparison";
-export default CategoryComparison;
+import DashboardCategoryComparison from "./comparison/CategoryComparison";
+export default DashboardCategoryComparison;

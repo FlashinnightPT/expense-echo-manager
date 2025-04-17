@@ -18,15 +18,19 @@ export function MobileNavMenu({
 }: MobileNavMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleNavClick = (href: string) => {
     // Close the menu first
     setIsOpen(false);
     
     // Wait for the menu to close before navigating
+    // Add additional delay if coming from category-analysis page
+    const delay = location.pathname === '/category-analysis' ? 150 : 100;
+    
     setTimeout(() => {
       navigate(href);
-    }, 100);
+    }, delay);
   };
 
   return (

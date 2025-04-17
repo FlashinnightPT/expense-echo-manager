@@ -18,7 +18,8 @@ interface CategoryComparisonProps {
   showValues: boolean;
 }
 
-const CategoryComparison = ({
+// Using the DashboardCategoryComparison name to avoid conflicts with page component
+const DashboardCategoryComparison = ({
   categories,
   transactions,
   startDate,
@@ -89,4 +90,4 @@ const CategoryComparison = ({
   );
 };
 
-export default CategoryComparison;
+export default DashboardCategoryComparison;

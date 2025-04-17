@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { DesktopNavMenu } from "./nav/DesktopNavMenu";
 import { MobileNavMenu } from "./nav/MobileNavMenu";
@@ -25,9 +25,10 @@ const settingsSubMenu = [
 
 const Header = () => {
   const location = useLocation();
-  const [isExpanded, setIsExpanded] = React.useState(false);
-  const [isNavigating, setIsNavigating] = React.useState(false);
-
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [lastNavigationTime, setLastNavigationTime] = useState(0);
+  
   // Function to check if current path matches given href
   const isActivePath = (href: string) => {
     // Check if we're on the dashboard page
@@ -39,8 +40,16 @@ const Header = () => {
     return location.pathname === href;
   };
 
-  // Close menu (for mobile/responsive designs)
+  // Close menu (for mobile/responsive designs) and prevent rapid navigation
   const closeMenu = () => {
+    // Debounce navigation clicks
+    const now = Date.now();
+    if (now - lastNavigationTime < 300) {
+      // Skip if clicked too soon
+      return;
+    }
+    
+    setLastNavigationTime(now);
     setIsExpanded(false);
     
     // Set navigating state to prevent multiple clicks
@@ -49,8 +58,13 @@ const Header = () => {
     // Reset navigating state after navigation should be complete
     setTimeout(() => {
       setIsNavigating(false);
-    }, 200);
+    }, 300);
   };
+  
+  // Debug current location
+  useEffect(() => {
+    console.log("Header: Current location is", location.pathname);
+  }, [location.pathname]);
 
   // Check if we're on the login page, don't show the header
   if (location.pathname === "/login") {
