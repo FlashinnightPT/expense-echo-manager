@@ -69,6 +69,7 @@ const Categories = () => {
       "isActive tipo": typeof isActive 
     });
     
+    /*
     // Verificar explicitamente se o isActive foi fornecido
     if (isActive !== undefined) {
       console.log("Atualizando estado ativo para:", isActive, "tipo:", typeof isActive);
@@ -90,9 +91,10 @@ const Categories = () => {
         return false;
       }
     }
-    
+    */
+
     // Atualizar o nome sempre
-    return updateCategoryName(categoryId, newName);
+    return updateCategoryName(categoryId, newName, isFixedExpense, isActive);
   };
 
   return (

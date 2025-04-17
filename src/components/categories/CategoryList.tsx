@@ -11,7 +11,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 interface CategoryListProps {
   categoryList: TransactionCategory[];
   handleDeleteCategory: (categoryId: string) => void;
-  updateCategoryName: (categoryId: string, newName: string, isActive?: boolean) => Promise<boolean> | boolean;
+  updateCategoryName: (categoryId: string, newName: string, isFixedExpense?: boolean, isActive?: boolean) => Promise<boolean> | boolean;
   moveCategory: (categoryId: string, newParentId: string | null) => Promise<boolean> | boolean;
   updateFixedExpense: (categoryId: string, isFixedExpense: boolean) => Promise<boolean> | boolean;
   isLoading?: boolean;
@@ -70,13 +70,16 @@ const CategoryList = ({
 
   const handleSaveEdit = (newName: string, isFixedExpense?: boolean, isActive?: boolean) => {
     if (editingCategory) {
-      updateCategoryName(editingCategory.id, newName, isActive);
+      updateCategoryName(editingCategory.id, newName, isFixedExpense, isActive);
       
+      /*
       // If the fixed expense setting was changed, update it as well
       if (isFixedExpense !== undefined && isFixedExpense !== editingCategory.isFixedExpense) {
         updateFixedExpense(editingCategory.id, isFixedExpense);
       }
+       */ 
     }
+      
   };
 
   return (
