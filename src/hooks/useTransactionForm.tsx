@@ -183,6 +183,23 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
           type: selectedCategory.type || formData.type
         });
         
+        // Corrigir aqui: quando selecionar uma nova categoria no mesmo nível,
+        // substituir a categoria atual em vez de adicionar à path
+        
+        // Verificar se estamos no último nível (se estamos selecionando uma categoria que substituirá outra)
+        const currentLevel = categoryLevel;
+        
+        // Se o caminho já tem categorias e estamos no mesmo nível, substituir a última categoria
+        if (categoryPath.length >= currentLevel - 1) {
+          // Mantém o caminho até o nível anterior e adiciona a nova categoria
+          const newPath = [...categoryPath.slice(0, currentLevel - 2), value as string];
+          console.log("Replacing category at level", currentLevel, "with", value, "new path:", newPath);
+          setCategoryPath(newPath);
+        } else {
+          // Comportamento normal: adicionar ao caminho
+          setCategoryPath([...categoryPath, value as string]);
+        }
+        
         // Verifica se existem subcategorias ativas
         const childCategories = allCategories.filter(
           (category) => category.parentId === value && category.isActive !== false
@@ -190,13 +207,11 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
         
         if (childCategories.length > 0) {
           // Se existirem subcategorias, atualiza o caminho e mostra as subcategorias
-          setCategoryPath([...categoryPath, value as string]);
           setAvailableCategories(childCategories);
           setCategoryLevel(selectedCategory.level + 1);
           setIsAtLeafCategory(false);
         } else {
           // Se não existirem subcategorias, estamos em uma categoria folha
-          setCategoryPath([...categoryPath, value as string]);
           setIsAtLeafCategory(true);
         }
       }
@@ -219,11 +234,11 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
 
   const handleResetCategoryPath = (index: number) => {
     // Volta para um nível específico na hierarquia
-    const newPath = categoryPath.slice(0, index);
+    const newPath = categoryPath.slice(0, index + 1); // +1 porque queremos manter o item do índice
     setCategoryPath(newPath);
     
     // Se volta ao início, mostrar categorias de primeiro nível (nível 2 no seu caso)
-    if (index === 0) {
+    if (index === -1) { // -1 indica que queremos voltar ao início completamente
       const firstLevelCategories = allCategories.filter(
         (category) => 
           category.type === formData.type && 
@@ -236,26 +251,29 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
       setIsAtLeafCategory(false);
     } else {
       // Senão, mostrar subcategorias do nível selecionado
-      const parentId = newPath[newPath.length - 1];
-      const childCategories = allCategories.filter(
-        (category) => 
-          category.parentId === parentId && 
-          category.isActive !== false // Mostrar apenas categorias ativas
-      );
-      setAvailableCategories(childCategories);
+      const categoryId = newPath[newPath.length - 1];
+      const category = getCategoryFromAll(categoryId);
       
-      // Definir o nível correto com base na categoria pai
-      const parentCategory = getCategoryFromAll(parentId);
-      if (parentCategory) {
-        setCategoryLevel(parentCategory.level + 1);
+      if (category) {
+        // Mostrar subcategorias desta categoria
+        const childCategories = allCategories.filter(
+          (cat) => cat.parentId === categoryId && cat.isActive !== false
+        );
+        
+        setAvailableCategories(childCategories);
+        setCategoryLevel(category.level + 1);
+        
+        // Verificar se a categoria selecionada é folha
+        setIsAtLeafCategory(childCategories.length === 0);
+        
+        // Se for uma categoria folha, atualize o categoryId no formData
+        if (childCategories.length === 0) {
+          setFormData(prev => ({
+            ...prev,
+            categoryId: categoryId
+          }));
+        }
       }
-      
-      // Verificar se a categoria selecionada é folha
-      const hasChildren = allCategories.some(cat => 
-        cat.parentId === parentId && 
-        cat.isActive !== false // Verificar apenas categorias ativas
-      );
-      setIsAtLeafCategory(!hasChildren);
     }
   };
 
