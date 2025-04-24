@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useDashboardData } from "@/components/dashboard/hooks/useDashboardData";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -18,10 +17,8 @@ import { useTransactionData } from "@/hooks/useTransactionData";
 const Painel = () => {
   const { canEdit, useIdleWarning } = useAuth();
   const [showValues, setShowValues] = useState(false);
-  // Corrigindo a forma de acessar o componente IdleWarningDialog
   const { IdleWarningDialog } = useIdleWarning;
   
-  // Preferência para mostrar/ocultar valores
   useEffect(() => {
     const savedPreference = sessionStorage.getItem('showFinancialValues');
     if (savedPreference) {
@@ -35,7 +32,6 @@ const Painel = () => {
     sessionStorage.setItem('showFinancialValues', showValues.toString());
   }, [showValues]);
   
-  // Importando a função para gerar transações de teste
   const { generateTestTransactions } = useTransactionData();
   
   const {
@@ -70,7 +66,6 @@ const Painel = () => {
     setShowValues(prev => !prev);
   };
   
-  // Função para gerar transações de teste
   const handleGenerateTestTransactions = () => {
     if (!canEdit) {
       toast.error("Precisa de permissões de edição para criar transações de teste");
@@ -79,7 +74,6 @@ const Painel = () => {
     generateTestTransactions(categories);
   };
   
-  // Nova função para gerar o relatório mensal detalhado
   const handleGenerateDetailedMonthlyReport = async () => {
     try {
       toast.info("Gerando relatório mensal detalhado...");
@@ -91,7 +85,6 @@ const Painel = () => {
     }
   };
 
-  // Detectar status de conexão
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   
   useEffect(() => {
@@ -172,6 +165,7 @@ const Painel = () => {
           getCategoryById={getCategoryById}
           getCategoryPath={getCategoryPath}
           handleDeleteTransactionWithToast={handleDeleteTransactionWithToast}
+          handleSaveTransactionWithToast={handleSaveTransactionWithToast}
           showValues={showValues}
           canEdit={canEdit}
         />

@@ -1,16 +1,17 @@
-
-import { FC, useMemo } from "react";
+import { FC, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit } from "lucide-react";
 import TransactionsTable from "@/components/dashboard/TransactionsTable";
 import { Transaction } from "@/utils/mockData";
 import { formatCurrency } from "@/utils/financialCalculations";
+import EditTransactionDialog from "../dialogs/EditTransactionDialog";
 
 interface TransactionsSectionProps {
   transactions: Transaction[];
   getCategoryById: (categoryId: string) => any;
   getCategoryPath: (categoryId: string) => string[];
   handleDeleteTransactionWithToast: (transactionId: string) => void;
+  handleSaveTransactionWithToast: (transaction: Partial<Transaction>) => void;
   showValues: boolean;
   canEdit: boolean;
 }
@@ -20,10 +21,21 @@ const TransactionsSection: FC<TransactionsSectionProps> = ({
   getCategoryById,
   getCategoryPath,
   handleDeleteTransactionWithToast,
+  handleSaveTransactionWithToast,
   showValues,
   canEdit
 }) => {
-  const transactionColumns = useMemo(() => [
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+
+  const handleEditClick = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+  };
+
+  const handleCloseDialog = () => {
+    setEditingTransaction(null);
+  };
+
+  const transactionColumns = [
     {
       id: "date",
       header: "Data",
@@ -85,33 +97,58 @@ const TransactionsSection: FC<TransactionsSectionProps> = ({
       sortable: true,
       className: "text-right"
     },
-    ...(canEdit ? [{
+    {
       id: "actions",
       header: "Ações",
       accessorFn: (row: Transaction) => (
-        <div className="flex justify-end">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-red-500 hover:text-red-700 hover:bg-red-100"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteTransactionWithToast(row.id);
-            }}
-          >
-            <Trash2 className="h-4 w-4" />
-            <span className="sr-only">Excluir</span>
-          </Button>
+        <div className="flex justify-end gap-2">
+          {canEdit && (
+            <>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="text-blue-500 hover:text-blue-700 hover:bg-blue-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditClick(row);
+                }}
+              >
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">Editar</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteTransactionWithToast(row.id);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Excluir</span>
+              </Button>
+            </>
+          )}
         </div>
       )
-    }] : [])
-  ], [getCategoryById, getCategoryPath, handleDeleteTransactionWithToast, canEdit, showValues]);
+    }
+  ];
 
   return (
-    <TransactionsTable 
-      transactions={transactions}
-      transactionColumns={transactionColumns}
-    />
+    <>
+      <TransactionsTable 
+        transactions={transactions}
+        transactionColumns={transactionColumns}
+      />
+
+      <EditTransactionDialog 
+        isOpen={!!editingTransaction}
+        onClose={handleCloseDialog}
+        transaction={editingTransaction}
+        onSave={handleSaveTransactionWithToast}
+      />
+    </>
   );
 };
 
