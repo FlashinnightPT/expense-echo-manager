@@ -60,6 +60,71 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
     loadCategories();
   }, []);
 
+  // Efeito para inicializar corretamente a categoria quando estamos editando uma transação existente
+  useEffect(() => {
+    if (transaction && transaction.categoryId && allCategories.length > 0) {
+      console.log("Setting up category path for existing transaction:", transaction.categoryId);
+      setupCategoryPathForExistingTransaction(transaction.categoryId);
+    }
+  }, [transaction, allCategories]);
+
+  // Função para configurar o caminho da categoria para uma transação existente
+  const setupCategoryPathForExistingTransaction = (categoryId: string) => {
+    // Encontrar a categoria atual
+    const category = getCategoryFromAll(categoryId);
+    if (!category) {
+      console.error("Category not found:", categoryId);
+      return;
+    }
+
+    // Construir o caminho da categoria recursivamente
+    const path: string[] = [];
+    let currentCat: TransactionCategory | undefined = category;
+    
+    // Adicionar a categoria atual ao caminho
+    path.unshift(currentCat.id);
+    
+    // Adicionar todas as categorias pai ao caminho
+    while (currentCat && currentCat.parentId) {
+      const parentCat = getCategoryFromAll(currentCat.parentId);
+      if (parentCat) {
+        path.unshift(parentCat.id);
+        currentCat = parentCat;
+      } else {
+        break;
+      }
+    }
+    
+    console.log("Constructed category path:", path);
+    setCategoryPath(path);
+    
+    // Configurar corretamente o nível da categoria e as categorias disponíveis
+    if (path.length > 0) {
+      // Verificar se a categoria selecionada é uma folha (sem filhos)
+      const hasChildren = allCategories.some(cat => 
+        cat.parentId === categoryId && 
+        cat.isActive !== false
+      );
+      
+      setIsAtLeafCategory(!hasChildren);
+      
+      // Se não estamos na raiz, mostrar as subcategorias do nível apropriado
+      if (path.length > 1) {
+        const parentId = path[path.length - 2]; // O penúltimo item no caminho
+        const childCategories = allCategories.filter(
+          cat => cat.parentId === parentId && cat.isActive !== false
+        );
+        setAvailableCategories(childCategories);
+        
+        // Definir o nível correto com base na categoria atual
+        setCategoryLevel(category.level);
+      } else {
+        // Estamos na raiz, mostrar categorias de primeiro nível
+        resetToFirstLevelCategories();
+      }
+    }
+  };
+
   // Resetar para categorias de primeiro nível com base no tipo selecionado
   const resetToFirstLevelCategories = () => {
     // Como suas categorias começam no nível 2, ajustamos aqui
@@ -73,16 +138,22 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
     console.log("Resetting to first level categories:", firstLevelCategories);
     setAvailableCategories(firstLevelCategories);
     setCategoryLevel(2); // Começar no nível 2, onde suas categorias começam
-    setCategoryPath([]);
+    
+    // Não resetar o caminho da categoria se estamos editando uma transação existente
+    if (!transaction) {
+      setCategoryPath([]);
+    }
     setIsAtLeafCategory(false);
   };
 
   useEffect(() => {
     // Inicializar categorias baseadas no tipo selecionado
-    resetToFirstLevelCategories();
+    if (!transaction || !transaction.categoryId) {
+      resetToFirstLevelCategories();
+    }
     
     // Log para depuração
-    console.log("Resetting form for type:", formData.type);
+    console.log("Form type updated:", formData.type);
   }, [formData.type, allCategories]);
 
   useEffect(() => {
@@ -134,9 +205,10 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
         ...formData,
         type: value as "income" | "expense",
         categoryId: "", // Resetar categoria quando o tipo muda
-        amount: 0 // Resetar valor quando o tipo muda
+        amount: transaction ? transaction.amount : 0 // Manter valor original se estiver editando
       });
       setIsAtLeafCategory(false);
+      setCategoryPath([]);
     } else {
       setFormData({
         ...formData,
@@ -209,14 +281,16 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
       onSave(formData);
       
       // Resetar o formulário após salvar, mantendo o tipo e data
-      setFormData(prev => ({
-        ...prev,
-        amount: 0,
-        categoryId: "",
-      }));
-      
-      // Resetar para o primeiro nível de categorias
-      resetToFirstLevelCategories();
+      if (!transaction) {
+        setFormData(prev => ({
+          ...prev,
+          amount: 0,
+          categoryId: "",
+        }));
+        
+        // Resetar para o primeiro nível de categorias
+        resetToFirstLevelCategories();
+      }
       
       toast.success(transaction ? "Transação atualizada" : "Transação adicionada");
     }
@@ -232,6 +306,11 @@ export function useTransactionForm({ transaction, onSave }: UseTransactionFormPr
         type: transaction.type
       });
       setSelectedDate(new Date(transaction.date));
+      
+      // Reset category path to match the original transaction
+      if (transaction.categoryId) {
+        setupCategoryPathForExistingTransaction(transaction.categoryId);
+      }
     } else {
       // Ao limpar, mantem a data atual, resetando apenas os outros campos
       setFormData({
