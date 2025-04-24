@@ -1,16 +1,16 @@
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CircleDollarSign } from "lucide-react";
 import DataTable from "@/components/tables/DataTable";
-import { Transaction } from "@/utils/mockData";
+import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { ReactNode } from "react";
 import { exportToExcel, prepareTransactionsForExport } from "@/utils/exportUtils";
 import { toast } from "sonner";
 
 interface TransactionsTableProps {
   transactions: Transaction[];
+  categories: TransactionCategory[];
   transactionColumns: {
     id: string;
     header: string;
@@ -22,6 +22,7 @@ interface TransactionsTableProps {
 
 const TransactionsTable = ({ 
   transactions, 
+  categories,
   transactionColumns 
 }: TransactionsTableProps) => {
   // Estado local para acompanhar as transações mais recentes
@@ -47,7 +48,7 @@ const TransactionsTable = ({
   // Handle export transactions
   const handleExportTransactions = (transactionsToExport: Transaction[]) => {
     try {
-      const exportData = prepareTransactionsForExport(transactionsToExport);
+      const exportData = prepareTransactionsForExport(transactionsToExport, categories);
       exportToExcel(exportData, `transacoes_${new Date().toISOString().split('T')[0]}`);
       toast.success("Transações exportadas com sucesso");
     } catch (error) {

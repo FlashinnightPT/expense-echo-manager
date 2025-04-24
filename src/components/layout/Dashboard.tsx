@@ -162,6 +162,7 @@ const Painel = () => {
         
         <TransactionsSection 
           transactions={transactions}
+          categories={categories}
           getCategoryById={getCategoryById}
           getCategoryPath={getCategoryPath}
           handleDeleteTransactionWithToast={handleDeleteTransactionWithToast}
