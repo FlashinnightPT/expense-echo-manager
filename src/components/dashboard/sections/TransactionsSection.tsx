@@ -1,13 +1,15 @@
+
 import { FC, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit } from "lucide-react";
 import TransactionsTable from "@/components/dashboard/TransactionsTable";
-import { Transaction } from "@/utils/mockData";
+import { Transaction, TransactionCategory } from "@/utils/mockData";
 import { formatCurrency } from "@/utils/financialCalculations";
 import EditTransactionDialog from "../dialogs/EditTransactionDialog";
 
 interface TransactionsSectionProps {
   transactions: Transaction[];
+  categories: TransactionCategory[];
   getCategoryById: (categoryId: string) => any;
   getCategoryPath: (categoryId: string) => string[];
   handleDeleteTransactionWithToast: (transactionId: string) => void;
@@ -18,6 +20,7 @@ interface TransactionsSectionProps {
 
 const TransactionsSection: FC<TransactionsSectionProps> = ({
   transactions,
+  categories,
   getCategoryById,
   getCategoryPath,
   handleDeleteTransactionWithToast,
@@ -139,6 +142,7 @@ const TransactionsSection: FC<TransactionsSectionProps> = ({
     <>
       <TransactionsTable 
         transactions={transactions}
+        categories={categories}
         transactionColumns={transactionColumns}
       />
 

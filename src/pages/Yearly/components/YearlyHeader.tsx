@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { FileDown, Table } from "lucide-react";
 import { toast } from "sonner";
-import { exportToExcel, prepareMonthlyDataForExport, prepareMonthlyCategoryReport } from "@/utils/exports";
+import { exportToExcel, prepareMonthlyCategoryReport, prepareMonthlyDataForExport } from "@/utils/exports";
 
 interface YearlyHeaderProps {
   availableYears: number[];

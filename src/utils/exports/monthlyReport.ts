@@ -27,8 +27,8 @@ export const prepareMonthlyCategoryReport = async (
   const expenseYearlyTotal = calculateYearlyTotal(expenseMonthlyTotals);
   
   // Calcular médias mensais (usando meses com valores ou 12 se não houver)
-  const incomeMonthsWithValues = Object.values(incomeMonthlyTotals).filter(v => v > 0).length || 12;
-  const expenseMonthsWithValues = Object.values(expenseMonthlyTotals).filter(v => v > 0).length || 12;
+  const incomeMonthsWithValues = Object.values(incomeMonthlyTotals).filter(v => typeof v === 'number' && v > 0).length || 12;
+  const expenseMonthsWithValues = Object.values(expenseMonthlyTotals).filter(v => typeof v === 'number' && v > 0).length || 12;
   const incomeMonthlyAverage = calculateMonthlyAverage(incomeYearlyTotal, incomeMonthsWithValues);
   const expenseMonthlyAverage = calculateMonthlyAverage(expenseYearlyTotal, expenseMonthsWithValues);
 

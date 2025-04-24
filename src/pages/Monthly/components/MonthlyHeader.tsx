@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileDown, Table } from "lucide-react";
 import { toast } from "sonner";
-import { exportToExcel, prepareMonthlyDataForExport, prepareMonthlyCategoryReport } from "@/utils/exports";
+import { exportToExcel, prepareMonthlyCategoryReport, prepareMonthlyDataForExport } from "@/utils/exports";
 import { TransactionCategory } from "@/utils/mockData";
 
 interface MonthlyHeaderProps {
