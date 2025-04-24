@@ -129,8 +129,8 @@ const Painel = () => {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Visão Geral</h2>
           <div className="flex gap-2">
-            {canEdit && (
-              <Button 
+            {canEdit && !canEdit && (
+              <Button
                 onClick={handleGenerateTestTransactions}
                 className="flex items-center gap-2"
                 variant="outline"
