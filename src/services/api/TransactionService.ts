@@ -1,4 +1,3 @@
-
 import { Transaction } from "@/utils/mockData";
 import { ApiServiceCore } from "./ApiServiceCore";
 import { toast } from "sonner";
@@ -43,7 +42,12 @@ export class TransactionService extends ApiServiceCore {
       const dbTransaction = transactionModelToDb(transaction);
       console.log("Saving transaction:", dbTransaction);
       
-      // Send to API
+      // If the transaction has an ID, it's an update operation - use PUT
+      if (transaction.id) {
+        return await this.updateTransaction(transaction);
+      }
+      
+      // Otherwise it's a new transaction - use POST
       const result = await this.apiPost('/transactions', dbTransaction);
       
       if (!result) {
@@ -56,6 +60,29 @@ export class TransactionService extends ApiServiceCore {
     } catch (error) {
       console.error("Error saving transaction to API:", error);
       toast.error("Error saving transaction");
+      throw error;
+    }
+  }
+
+  public async updateTransaction(transaction: Partial<Transaction>): Promise<Transaction> {
+    try {
+      // Convert to DB format
+      const dbTransaction = transactionModelToDb(transaction);
+      console.log("Updating transaction:", dbTransaction);
+      
+      // Use PUT method for updates
+      const result = await this.apiPut(`/transactions/${transaction.id}`, dbTransaction);
+      
+      if (!result) {
+        throw new Error("No data returned from API");
+      }
+      
+      const updatedTransaction = dbToTransactionModel(result);
+      console.log("Updated transaction:", updatedTransaction);
+      return updatedTransaction;
+    } catch (error) {
+      console.error("Error updating transaction in API:", error);
+      toast.error("Error updating transaction");
       throw error;
     }
   }

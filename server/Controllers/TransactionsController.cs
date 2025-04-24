@@ -120,6 +120,87 @@ namespace expense_echo_manager_api.Controllers
             }
         }
         
+        [HttpPut]
+        [Route("{id}")]
+        public HttpResponseMessage UpdateTransaction(string id, Transaction transaction)
+        {
+            try
+            {
+                // Ensure the ID in the URL matches the transaction ID
+                if (id != transaction.Id)
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Transaction ID mismatch");
+                }
+                
+                using (var connection = DbConnection.GetConnection())
+                {
+                    connection.Open();
+                    
+                    string sql = @"UPDATE transactions 
+                                  SET date = @date, 
+                                      amount = @amount, 
+                                      description = @description, 
+                                      categoryid = @categoryid, 
+                                      type = @type
+                                  WHERE id = @id";
+                    
+                    using (var command = new MySqlCommand(sql, connection))
+                    {
+                        command.Parameters.AddWithValue("@id", transaction.Id);
+                        command.Parameters.AddWithValue("@date", transaction.Date);
+                        command.Parameters.AddWithValue("@amount", transaction.Amount);
+                        command.Parameters.AddWithValue("@description", transaction.Description);
+                        command.Parameters.AddWithValue("@categoryid", transaction.CategoryId);
+                        command.Parameters.AddWithValue("@type", transaction.Type);
+                        
+                        int rowsAffected = command.ExecuteNonQuery();
+                        
+                        if (rowsAffected == 0)
+                        {
+                            return Request.CreateErrorResponse(
+                                HttpStatusCode.NotFound, 
+                                $"Transaction with ID {id} not found"
+                            );
+                        }
+                    }
+                    
+                    // Get the updated transaction
+                    string querySql = "SELECT * FROM transactions WHERE id = @id";
+                    Transaction updatedTransaction = null;
+                    
+                    using (var command = new MySqlCommand(querySql, connection))
+                    {
+                        command.Parameters.AddWithValue("@id", transaction.Id);
+                        
+                        using (var reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                DateTime date = Convert.ToDateTime(reader["date"]);
+                                updatedTransaction = new Transaction
+                                {
+                                    Id = reader["id"].ToString(),
+                                    Date = date.ToString("dd-MM-yyyy HH:mm:ss"),
+                                    Amount = Convert.ToDecimal(reader["amount"]),
+                                    Description = reader["description"].ToString(),
+                                    CategoryId = reader["categoryid"].ToString(),
+                                    Type = reader["type"].ToString(),
+                                    CreatedAt = reader["createdat"] != DBNull.Value ? Convert.ToDateTime(reader["createdat"]) : DateTime.MinValue
+                                };
+                            }
+                        }
+                    }
+                    
+                    return Request.CreateResponse(HttpStatusCode.OK, updatedTransaction);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating transaction: {ex.Message}");
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, ex.Message);
+            }
+        }
+        
         [HttpDelete]
         [Route("{id}")]
         public HttpResponseMessage DeleteTransaction(string id)
